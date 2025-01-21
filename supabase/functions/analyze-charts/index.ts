@@ -21,12 +21,12 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Get ticket data
+    // Get ticket data with limit
     const { data: tickets, error: ticketError } = await supabase
       .from('ticket_analysis')
-      .select('*')
+      .select('category, priority, responsible_department, sentiment, company_name, created_at')
       .order('created_at', { ascending: false })
-      .limit(100);
+      .limit(50);
 
     if (ticketError) {
       console.error('Error fetching tickets:', ticketError);
@@ -38,7 +38,8 @@ serve(async (req) => {
         JSON.stringify({
           analysis: "No ticket data available for analysis.",
           chartSuggestion: "none",
-          chartData: []
+          chartData: [],
+          followUpQuestions: []
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
@@ -52,10 +53,6 @@ serve(async (req) => {
       departments: {},
       sentiments: {},
       companies: {},
-      timeRange: {
-        start: tickets[tickets.length - 1]?.created_at,
-        end: tickets[0]?.created_at
-      }
     };
 
     tickets.forEach(ticket => {
@@ -72,14 +69,14 @@ serve(async (req) => {
     console.log('Data summary prepared:', summary);
 
     // Call OpenAI API with the summarized data
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o',
+        model: 'gpt-4o-mini',
         messages: [
           {
             role: 'system',
@@ -101,46 +98,49 @@ serve(async (req) => {
               "followUpQuestions": ["question1", "question2", "question3"]
             }
             
-            For the chartData:
-            - Use bar charts for comparing categories, priorities, or departments
-            - Use line charts for time-based trends
-            - Ensure data points are clear and meaningful
-            - Limit to 10 data points maximum for readability
-            
+            Keep your response concise and ensure the JSON is valid.
+            Limit chartData to 10 data points maximum for readability.
             Include 3 relevant follow-up questions based on the current analysis.`,
           },
           {
             role: 'user',
-            content: `Analyze this ticket data and respond to this prompt: ${prompt}`,
+            content: prompt,
           }
         ],
+        temperature: 0.7,
+        max_tokens: 1000,
       }),
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
+    if (!openAIResponse.ok) {
+      const errorText = await openAIResponse.text();
       console.error('OpenAI API error:', errorText);
       throw new Error(`OpenAI API error: ${errorText}`);
     }
 
-    const data = await response.json();
-    console.log('OpenAI response:', data);
-    
-    if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+    const openAIData = await openAIResponse.json();
+    console.log('OpenAI raw response:', openAIData);
+
+    if (!openAIData.choices?.[0]?.message?.content) {
       throw new Error('Invalid response format from OpenAI');
     }
 
-    let aiResponse;
+    let parsedResponse;
     try {
-      aiResponse = JSON.parse(data.choices[0].message.content);
-      console.log('Parsed AI response:', aiResponse);
+      parsedResponse = JSON.parse(openAIData.choices[0].message.content);
+      console.log('Parsed AI response:', parsedResponse);
+
+      // Validate the response structure
+      if (!parsedResponse.analysis || !parsedResponse.chartSuggestion || !Array.isArray(parsedResponse.chartData)) {
+        throw new Error('Invalid response structure');
+      }
     } catch (error) {
       console.error('Error parsing OpenAI response:', error);
       throw new Error('Failed to parse OpenAI response');
     }
 
     return new Response(
-      JSON.stringify(aiResponse),
+      JSON.stringify(parsedResponse),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
@@ -151,7 +151,8 @@ serve(async (req) => {
         error: error.message,
         analysis: "Failed to analyze the data.",
         chartSuggestion: "none",
-        chartData: []
+        chartData: [],
+        followUpQuestions: []
       }),
       {
         status: 500,
