@@ -14,6 +14,7 @@ export type Database = {
           category: string | null
           common_issue: string | null
           company_name: string | null
+          created_at: string | null
           id: number
           issue: string | null
           issue_summary: string | null
@@ -32,6 +33,7 @@ export type Database = {
           category?: string | null
           common_issue?: string | null
           company_name?: string | null
+          created_at?: string | null
           id: number
           issue?: string | null
           issue_summary?: string | null
@@ -50,6 +52,7 @@ export type Database = {
           category?: string | null
           common_issue?: string | null
           company_name?: string | null
+          created_at?: string | null
           id?: number
           issue?: string | null
           issue_summary?: string | null

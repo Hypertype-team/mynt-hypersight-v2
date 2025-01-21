@@ -13,16 +13,19 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TicketCharts } from "@/components/TicketCharts";
+import { Button } from "@/components/ui/button";
+import { RefreshCw } from "lucide-react";
 
 const Index = () => {
   const { toast } = useToast();
 
-  const { data: tickets, isLoading, error } = useQuery({
+  const { data: tickets, isLoading, error, refetch } = useQuery({
     queryKey: ["tickets"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("ticket_analysis")
-        .select("*");
+        .select("*")
+        .order('created_at', { ascending: false });
       
       if (error) {
         toast({
@@ -35,7 +38,19 @@ const Index = () => {
       
       return data;
     },
+    refetchInterval: 30000, // Refetch every 30 seconds
   });
+
+  const handleRefresh = async () => {
+    toast({
+      title: "Refreshing data...",
+    });
+    await refetch();
+    toast({
+      title: "Data refreshed",
+      description: "The latest ticket data has been loaded.",
+    });
+  };
 
   if (isLoading) {
     return (
@@ -50,11 +65,22 @@ const Index = () => {
   return (
     <Layout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Ticket Analysis</h1>
-          <p className="text-muted-foreground">
-            View and analyze your ticket data
-          </p>
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Ticket Analysis</h1>
+            <p className="text-muted-foreground">
+              View and analyze your ticket data
+            </p>
+          </div>
+          <Button
+            onClick={handleRefresh}
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-2"
+          >
+            <RefreshCw className="h-4 w-4" />
+            Refresh Data
+          </Button>
         </div>
         <Tabs defaultValue="table">
           <TabsList>
