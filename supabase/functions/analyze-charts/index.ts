@@ -1,5 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -15,6 +16,11 @@ serve(async (req) => {
   try {
     const { prompt } = await req.json();
     console.log('Received prompt:', prompt);
+
+    // Create Supabase client
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
 
     // Get ticket data
     const { data: tickets, error: ticketError } = await supabase
@@ -49,7 +55,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o',
+        model: 'gpt-4',
         messages: [
           {
             role: 'system',
@@ -60,7 +66,8 @@ serve(async (req) => {
               "chartSuggestion": "line or bar",
               "chartData": [{"name": "Category 1", "value": 10}, {"name": "Category 2", "value": 20}]
             }
-            Always ensure chartData is an array of objects with name and value properties.`
+            Always ensure chartData is an array of objects with name and value properties.
+            Based on the user's prompt, analyze the data and suggest either a line chart for time-based trends or a bar chart for comparisons.`
           },
           {
             role: 'user',
