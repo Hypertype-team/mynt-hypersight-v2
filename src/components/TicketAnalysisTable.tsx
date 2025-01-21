@@ -14,7 +14,6 @@ import {
   Pagination,
   PaginationContent,
   PaginationItem,
-  PaginationLink,
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
@@ -25,20 +24,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/use-toast";
+import { Loader2 } from "lucide-react";
 
 export const TicketAnalysisTable = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [analyzingTicketId, setAnalyzingTicketId] = useState<number | null>(null);
+  const { toast } = useToast();
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, refetch } = useQuery({
     queryKey: ["tickets", currentPage, itemsPerPage],
     queryFn: async () => {
-      // First, get total count
       const { count } = await supabase
         .from("ticket_analysis")
         .select("*", { count: "exact", head: true });
 
-      // Then get paginated data
       const { data, error } = await supabase
         .from("ticket_analysis")
         .select("*")
@@ -58,6 +60,32 @@ export const TicketAnalysisTable = () => {
     },
   });
 
+  const analyzeTicket = async (ticketId: number, issue: string) => {
+    setAnalyzingTicketId(ticketId);
+    try {
+      const response = await supabase.functions.invoke('analyze-ticket', {
+        body: { ticketId, content: issue },
+      });
+
+      if (response.error) throw new Error(response.error.message);
+      
+      await refetch();
+      toast({
+        title: "Analysis Complete",
+        description: "The ticket has been analyzed successfully.",
+      });
+    } catch (error) {
+      console.error('Error analyzing ticket:', error);
+      toast({
+        title: "Analysis Failed",
+        description: "Failed to analyze the ticket. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setAnalyzingTicketId(null);
+    }
+  };
+
   if (isLoading) {
     return (
       <Card className="p-6">
@@ -71,7 +99,7 @@ export const TicketAnalysisTable = () => {
 
   const handleItemsPerPageChange = (value: string) => {
     setItemsPerPage(Number(value));
-    setCurrentPage(1); // Reset to first page when changing items per page
+    setCurrentPage(1);
   };
 
   return (
@@ -89,6 +117,7 @@ export const TicketAnalysisTable = () => {
             <TableHead>Priority</TableHead>
             <TableHead>Sentiment</TableHead>
             <TableHead>Department</TableHead>
+            <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -100,6 +129,23 @@ export const TicketAnalysisTable = () => {
               <TableCell>{ticket.priority || "N/A"}</TableCell>
               <TableCell>{ticket.sentiment || "N/A"}</TableCell>
               <TableCell>{ticket.responsible_department || "N/A"}</TableCell>
+              <TableCell>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => analyzeTicket(ticket.id, ticket.issue || "")}
+                  disabled={analyzingTicketId === ticket.id || !ticket.issue}
+                >
+                  {analyzingTicketId === ticket.id ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Analyzing
+                    </>
+                  ) : (
+                    "Analyze"
+                  )}
+                </Button>
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>
@@ -135,7 +181,6 @@ export const TicketAnalysisTable = () => {
                 />
               </PaginationItem>
             )}
-            {/* Show current page number */}
             <PaginationItem>
               <span className="px-4 py-2">
                 Page {currentPage} of {totalPages}
