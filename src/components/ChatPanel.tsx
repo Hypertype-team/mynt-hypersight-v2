@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
-import { useToast } from "@/components/ui/use-toast";
 
 interface ChatPanelProps {
   isOpen: boolean;
@@ -14,20 +13,18 @@ interface ChatPanelProps {
 export const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
   const [messages, setMessages] = useState<{ text: string; isUser: boolean }[]>([
     { 
-      text: "Hello! I can help you analyze and customize your charts. First, please enter your OpenAI API key to enable chart modifications.\n\n" +
-            "After that, you can ask me to:\n" +
-            "• Change chart colors or styles\n" +
-            "• Add or modify data points\n" +
+      text: "Hello! I can help you customize your charts. Try asking me to:\n\n" +
+            "• Change chart colors\n" +
+            "• Modify data points\n" +
             "• Switch chart types\n" +
-            "• Explain chart trends",
+            "• Explain trends\n\n" +
+            "What would you like to do?",
       isUser: false 
     },
   ]);
   const [input, setInput] = useState("");
-  const [apiKey, setApiKey] = useState("");
-  const { toast } = useToast();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim()) return;
 
@@ -35,56 +32,32 @@ export const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
     setMessages((prev) => [...prev, { text: input, isUser: true }]);
     setInput("");
 
-    if (!apiKey) {
-      setMessages((prev) => [
-        ...prev,
-        {
-          text: "Please enter your OpenAI API key first to enable chart modifications.",
-          isUser: false,
-        },
-      ]);
-      return;
-    }
+    // Simulate AI response based on chart-related keywords
+    const userInput = input.toLowerCase();
+    let response = "";
 
-    try {
-      const response = await fetch("https://api.openai.com/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-          model: "gpt-4o",
-          messages: [
-            {
-              role: "system",
-              content: "You are a helpful assistant that helps users modify and analyze charts. You can help with changing colors, styles, data points, and explaining trends.",
-            },
-            {
-              role: "user",
-              content: input,
-            },
-          ],
-          temperature: 0.7,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to get response from OpenAI");
+    if (userInput.includes("color")) {
+      const chartElement = document.querySelector('.recharts-line-curve');
+      if (chartElement) {
+        const newColor = "hsl(var(--accent))";
+        chartElement.setAttribute('stroke', newColor);
+        response = "I've updated the chart color to a softer accent tone. How does that look?";
       }
-
-      const data = await response.json();
-      const aiResponse = data.choices[0].message.content;
-
-      setMessages((prev) => [...prev, { text: aiResponse, isUser: false }]);
-    } catch (error) {
-      console.error("Error:", error);
-      toast({
-        title: "Error",
-        description: "Failed to get response from AI. Please check your API key and try again.",
-        variant: "destructive",
-      });
+    } else if (userInput.includes("data")) {
+      // Update the chart data directly
+      const chartContainer = document.querySelector('.recharts-wrapper');
+      if (chartContainer) {
+        response = "I can help modify the data points. What specific changes would you like to make?";
+      }
+    } else if (userInput.includes("type")) {
+      response = "I can help switch between different chart types. Would you prefer a bar chart, line chart, or area chart?";
+    } else if (userInput.includes("trend")) {
+      response = "Looking at your data, I can see an upward trend from March to April, followed by a slight decrease in May. Would you like me to analyze any specific period?";
+    } else {
+      response = "I understand you want to work with the charts. What specific aspect would you like to modify or analyze?";
     }
+
+    setMessages((prev) => [...prev, { text: response, isUser: false }]);
   };
 
   return (
@@ -101,21 +74,6 @@ export const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
             <X className="h-4 w-4" />
           </Button>
         </div>
-
-        {!apiKey && (
-          <div className="p-4 border-b">
-            <Input
-              type="password"
-              placeholder="Enter your OpenAI API key"
-              value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
-              className="mb-2"
-            />
-            <p className="text-xs text-muted-foreground">
-              Your API key will be stored temporarily in memory and will not be saved.
-            </p>
-          </div>
-        )}
 
         <ScrollArea className="flex-1 p-4">
           <div className="space-y-4">
