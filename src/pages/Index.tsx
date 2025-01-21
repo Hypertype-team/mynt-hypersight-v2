@@ -11,6 +11,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useToast } from "@/components/ui/use-toast";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TicketCharts } from "@/components/TicketCharts";
 
 const Index = () => {
   const { toast } = useToast();
@@ -54,32 +56,43 @@ const Index = () => {
             View and analyze your ticket data
           </p>
         </div>
-        <Card>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Company</TableHead>
-                <TableHead>Issue</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Priority</TableHead>
-                <TableHead>State</TableHead>
-                <TableHead>Sentiment</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {tickets?.map((ticket) => (
-                <TableRow key={ticket.id}>
-                  <TableCell>{ticket.company_name || "N/A"}</TableCell>
-                  <TableCell>{ticket.issue || "N/A"}</TableCell>
-                  <TableCell>{ticket.category || "N/A"}</TableCell>
-                  <TableCell>{ticket.priority || "N/A"}</TableCell>
-                  <TableCell>{ticket.state || "N/A"}</TableCell>
-                  <TableCell>{ticket.sentiment || "N/A"}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </Card>
+        <Tabs defaultValue="table">
+          <TabsList>
+            <TabsTrigger value="table">Table View</TabsTrigger>
+            <TabsTrigger value="charts">Charts</TabsTrigger>
+          </TabsList>
+          <TabsContent value="table">
+            <Card>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Company</TableHead>
+                    <TableHead>Issue</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead>Priority</TableHead>
+                    <TableHead>State</TableHead>
+                    <TableHead>Sentiment</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {tickets?.map((ticket) => (
+                    <TableRow key={ticket.id}>
+                      <TableCell>{ticket.company_name || "N/A"}</TableCell>
+                      <TableCell>{ticket.issue || "N/A"}</TableCell>
+                      <TableCell>{ticket.category || "N/A"}</TableCell>
+                      <TableCell>{ticket.priority || "N/A"}</TableCell>
+                      <TableCell>{ticket.state || "N/A"}</TableCell>
+                      <TableCell>{ticket.sentiment || "N/A"}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </Card>
+          </TabsContent>
+          <TabsContent value="charts">
+            <TicketCharts tickets={tickets || []} />
+          </TabsContent>
+        </Tabs>
       </div>
     </Layout>
   );
