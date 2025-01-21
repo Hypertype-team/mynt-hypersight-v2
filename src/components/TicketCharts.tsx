@@ -41,6 +41,20 @@ export const TicketCharts = ({ tickets }: TicketChartsProps) => {
     return acc;
   }, []);
 
+  // Prepare data for Category Distribution
+  const categoryData = tickets.reduce((acc: { name: string; value: number }[], ticket) => {
+    const category = ticket.category || "Unknown";
+    const existingCategory = acc.find((item) => item.name === category);
+    
+    if (existingCategory) {
+      existingCategory.value += 1;
+    } else {
+      acc.push({ name: category, value: 1 });
+    }
+    
+    return acc;
+  }, []);
+
   // Prepare data for Sentiment Analysis
   const sentimentData = tickets.reduce((acc: { name: string; value: number }[], ticket) => {
     const sentiment = ticket.sentiment || "Unknown";
@@ -76,6 +90,21 @@ export const TicketCharts = ({ tickets }: TicketChartsProps) => {
       </Card>
 
       <Card className="p-6">
+        <h3 className="text-lg font-semibold mb-4">Category Distribution</h3>
+        <div className="h-[300px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={categoryData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip />
+              <Bar dataKey="value" fill="hsl(var(--secondary))" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </Card>
+
+      <Card className="p-6 md:col-span-2">
         <h3 className="text-lg font-semibold mb-4">Sentiment Analysis</h3>
         <div className="h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
