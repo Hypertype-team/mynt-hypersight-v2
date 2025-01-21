@@ -22,10 +22,12 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Get ticket data
+    // Get ticket data with specific columns and limit
     const { data: tickets, error: ticketError } = await supabase
       .from('ticket_analysis')
-      .select('*');
+      .select('category, priority, sentiment, responsible_department, created_at')
+      .order('created_at', { ascending: false })
+      .limit(100);
 
     if (ticketError) {
       console.error('Error fetching tickets:', ticketError);
@@ -45,21 +47,42 @@ serve(async (req) => {
       );
     }
 
-    console.log('Fetched tickets:', tickets.length);
+    // Process the data to create a summary
+    const summary = {
+      totalTickets: tickets.length,
+      categories: {},
+      priorities: {},
+      departments: {},
+      timeRange: {
+        start: tickets[tickets.length - 1]?.created_at,
+        end: tickets[0]?.created_at
+      }
+    };
 
-    // Call OpenAI API
-    const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+    tickets.forEach(ticket => {
+      if (ticket.category) summary.categories[ticket.category] = (summary.categories[ticket.category] || 0) + 1;
+      if (ticket.priority) summary.priorities[ticket.priority] = (summary.priorities[ticket.priority] || 0) + 1;
+      if (ticket.responsible_department) {
+        summary.departments[ticket.responsible_department] = 
+          (summary.departments[ticket.responsible_department] || 0) + 1;
+      }
+    });
+
+    console.log('Data summary prepared:', summary);
+
+    // Call OpenAI API with the summarized data
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4',
+        model: 'gpt-4o',
         messages: [
           {
             role: 'system',
-            content: `You are a data analysis assistant. Analyze ticket data and provide insights. 
+            content: `You are a data analysis assistant. Analyze ticket data summary and provide insights. 
             Format your response as JSON with the following structure:
             {
               "analysis": "text explanation of insights",
@@ -71,19 +94,19 @@ serve(async (req) => {
           },
           {
             role: 'user',
-            content: `Analyze this ticket data and respond to this prompt: ${prompt}\n\nTicket data: ${JSON.stringify(tickets)}`,
+            content: `Analyze this ticket data summary and respond to this prompt: ${prompt}\n\nData summary: ${JSON.stringify(summary)}`,
           }
         ],
       }),
     });
 
-    if (!openAIResponse.ok) {
-      const errorText = await openAIResponse.text();
+    if (!response.ok) {
+      const errorText = await response.text();
       console.error('OpenAI API error:', errorText);
       throw new Error(`OpenAI API error: ${errorText}`);
     }
 
-    const data = await openAIResponse.json();
+    const data = await response.json();
     console.log('OpenAI response:', data);
     
     if (!data.choices || !data.choices[0] || !data.choices[0].message) {
