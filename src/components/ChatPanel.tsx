@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
-import OpenAI from "openai";
+import { useToast } from "@/components/ui/use-toast";
 
 interface ChatPanelProps {
   isOpen: boolean;
@@ -14,17 +14,17 @@ interface ChatPanelProps {
 export const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
   const [messages, setMessages] = useState<{ text: string; isUser: boolean }[]>([
     { 
-      text: "Hello! I can help you customize your charts. Try asking me to:\n\n" +
+      text: "Hello! I can help you customize your dashboard. Try asking me to:\n\n" +
             "• Change chart colors\n" +
-            "• Modify data points\n" +
+            "• Modify chart data\n" +
             "• Switch chart types\n" +
-            "• Explain trends\n\n" +
+            "• Add new visualizations\n\n" +
             "What would you like to do?",
       isUser: false 
     },
   ]);
   const [input, setInput] = useState("");
-  const [apiKey, setApiKey] = useState(localStorage.getItem("openai_key") || "");
+  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,87 +34,72 @@ export const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
     setMessages((prev) => [...prev, { text: input, isUser: true }]);
     setInput("");
 
+    // Process the command
+    const command = input.toLowerCase();
+    let response = "";
+
     try {
-      if (!apiKey) {
-        setMessages((prev) => [...prev, { 
-          text: "Please enter your OpenAI API key first.", 
-          isUser: false 
-        }]);
-        return;
-      }
-
-      const openai = new OpenAI({
-        apiKey: apiKey,
-        dangerouslyAllowBrowser: true
-      });
-
-      // Process user input with OpenAI
-      const completion = await openai.chat.completions.create({
-        messages: [
-          {
-            role: "system",
-            content: "You are a helpful assistant that modifies charts. When users ask to modify charts, respond with specific JavaScript commands that can be executed to modify chart elements. For example, if they ask to change colors, suggest specific color values. Keep responses concise and focused on actionable changes."
-          },
-          {
-            role: "user",
-            content: input
+      if (command.includes("color")) {
+        const charts = document.querySelectorAll('.recharts-line-curve');
+        const newColor = 'hsl(var(--accent))';
+        charts.forEach(chart => {
+          if (chart instanceof SVGElement) {
+            chart.style.stroke = newColor;
           }
-        ],
-        model: "gpt-4o",
-      });
-
-      const aiResponse = completion.choices[0]?.message?.content || "I couldn't process that request.";
-      
-      // Add AI response
-      setMessages((prev) => [...prev, { text: aiResponse, isUser: false }]);
-
-      // Process chart modifications based on AI response
-      const userInput = input.toLowerCase();
-      if (userInput.includes("color")) {
-        const chartElements = document.querySelectorAll('.recharts-line-curve');
-        chartElements.forEach((element) => {
-          element.setAttribute('stroke', 'hsl(var(--accent))');
         });
+        response = "I've updated the chart colors to use the accent color.";
       } 
-      else if (userInput.includes("data")) {
-        const chartContainer = document.querySelector('.recharts-wrapper');
-        if (chartContainer) {
-          const chart = document.querySelector('.recharts-line');
-          if (chart) {
-            const points = chart.querySelectorAll('.recharts-line-dot');
-            points.forEach((point) => {
-              const cy = point.getAttribute('cy');
-              if (cy) {
-                point.setAttribute('cy', String(Number(cy) - 20));
+      else if (command.includes("data")) {
+        const chart = document.querySelector('.recharts-wrapper');
+        if (chart) {
+          // Modify chart data points
+          const points = chart.querySelectorAll('.recharts-line-dot');
+          points.forEach((point, index) => {
+            if (point instanceof SVGElement) {
+              const currentCy = point.getAttribute('cy');
+              if (currentCy) {
+                const newCy = Number(currentCy) + Math.sin(index) * 20;
+                point.setAttribute('cy', newCy.toString());
               }
-            });
-          }
+            }
+          });
+          response = "I've adjusted the data points to show a new pattern.";
         }
       }
-      else if (userInput.includes("type")) {
-        const lineChart = document.querySelector('.recharts-line');
-        if (lineChart) {
-          lineChart.classList.add('recharts-area');
-          lineChart.classList.remove('recharts-line');
+      else if (command.includes("type")) {
+        const chart = document.querySelector('.recharts-line');
+        if (chart) {
+          chart.classList.add('recharts-area');
+          chart.classList.remove('recharts-line');
+          response = "I've changed the chart type to an area chart.";
         }
       }
+      else if (command.includes("add")) {
+        response = "To add a new visualization, please specify what type of chart you'd like (line, bar, or area).";
+      }
+      else {
+        response = "I can help you modify the dashboard. Try asking me to change colors, modify data, or switch chart types.";
+      }
+
+      // Add assistant response
+      setMessages((prev) => [...prev, { text: response, isUser: false }]);
+      
+      // Show toast notification
+      toast({
+        title: "Dashboard Updated",
+        description: response,
+      });
 
     } catch (error) {
       console.error('Error:', error);
-      setMessages((prev) => [...prev, { 
-        text: "Sorry, there was an error processing your request.", 
-        isUser: false 
-      }]);
+      const errorMessage = "Sorry, I couldn't process that request. Please try again.";
+      setMessages((prev) => [...prev, { text: errorMessage, isUser: false }]);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: errorMessage,
+      });
     }
-  };
-
-  const handleApiKeySubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    localStorage.setItem("openai_key", apiKey);
-    setMessages((prev) => [...prev, { 
-      text: "API key saved! You can now interact with the AI assistant.", 
-      isUser: false 
-    }]);
   };
 
   return (
@@ -126,26 +111,11 @@ export const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
     >
       <div className="h-full flex flex-col">
         <div className="border-b p-4 flex items-center justify-between bg-muted/30">
-          <h2 className="font-semibold">Chart Assistant</h2>
+          <h2 className="font-semibold">Dashboard Assistant</h2>
           <Button variant="ghost" size="icon" onClick={onClose}>
             <X className="h-4 w-4" />
           </Button>
         </div>
-
-        {!apiKey && (
-          <form onSubmit={handleApiKeySubmit} className="p-4 border-b">
-            <div className="space-y-2">
-              <Input
-                type="password"
-                value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
-                placeholder="Enter OpenAI API Key"
-                className="flex-1"
-              />
-              <Button type="submit" className="w-full">Save API Key</Button>
-            </div>
-          </form>
-        )}
 
         <ScrollArea className="flex-1 p-4">
           <div className="space-y-4">
@@ -170,7 +140,7 @@ export const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
             <Input
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask about your charts..."
+              placeholder="Ask about your dashboard..."
               className="flex-1"
             />
             <Button type="submit">Send</Button>
