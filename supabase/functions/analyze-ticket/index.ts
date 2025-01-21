@@ -16,6 +16,12 @@ serve(async (req) => {
   try {
     const { ticketId, content } = await req.json();
     
+    if (!content) {
+      throw new Error('No content provided for analysis');
+    }
+
+    console.log('Analyzing ticket:', { ticketId, content });
+    
     // Initialize OpenAI API call
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -50,7 +56,15 @@ serve(async (req) => {
       }),
     });
 
+    if (!response.ok) {
+      const error = await response.text();
+      console.error('OpenAI API error:', error);
+      throw new Error(`OpenAI API error: ${error}`);
+    }
+
     const aiResponse = await response.json();
+    console.log('OpenAI response:', aiResponse);
+    
     const analysis = JSON.parse(aiResponse.choices[0].message.content);
 
     // Initialize Supabase client
@@ -72,7 +86,10 @@ serve(async (req) => {
       })
       .eq('id', ticketId);
 
-    if (updateError) throw updateError;
+    if (updateError) {
+      console.error('Supabase update error:', updateError);
+      throw updateError;
+    }
 
     return new Response(JSON.stringify(analysis), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
