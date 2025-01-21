@@ -32,31 +32,54 @@ export const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
     setMessages((prev) => [...prev, { text: input, isUser: true }]);
     setInput("");
 
-    // Simulate AI response based on chart-related keywords
+    // Process user input and modify UI
     const userInput = input.toLowerCase();
     let response = "";
 
     if (userInput.includes("color")) {
-      const chartElement = document.querySelector('.recharts-line-curve');
-      if (chartElement) {
-        const newColor = "hsl(var(--accent))";
-        chartElement.setAttribute('stroke', newColor);
-        response = "I've updated the chart color to a softer accent tone. How does that look?";
-      }
-    } else if (userInput.includes("data")) {
-      // Update the chart data directly
+      // Find all chart lines and modify their colors
+      const chartElements = document.querySelectorAll('.recharts-line-curve');
+      chartElements.forEach((element) => {
+        element.setAttribute('stroke', 'hsl(var(--accent))');
+      });
+      response = "I've updated the chart colors to use the accent color. How does that look?";
+    } 
+    else if (userInput.includes("data")) {
+      // Find and modify chart data
       const chartContainer = document.querySelector('.recharts-wrapper');
       if (chartContainer) {
-        response = "I can help modify the data points. What specific changes would you like to make?";
+        // Update chart data by finding the component's data prop
+        const chart = document.querySelector('.recharts-line');
+        if (chart) {
+          // Simulate data update by modifying DOM
+          const points = chart.querySelectorAll('.recharts-line-dot');
+          points.forEach((point) => {
+            const cy = point.getAttribute('cy');
+            if (cy) {
+              point.setAttribute('cy', String(Number(cy) - 20));
+            }
+          });
+        }
+        response = "I've adjusted the data points to show a different trend. Is this what you were looking for?";
       }
-    } else if (userInput.includes("type")) {
-      response = "I can help switch between different chart types. Would you prefer a bar chart, line chart, or area chart?";
-    } else if (userInput.includes("trend")) {
+    }
+    else if (userInput.includes("type")) {
+      // Change chart type by modifying class names
+      const lineChart = document.querySelector('.recharts-line');
+      if (lineChart) {
+        lineChart.classList.add('recharts-area');
+        lineChart.classList.remove('recharts-line');
+      }
+      response = "I've changed the chart type. Would you like to try another type?";
+    }
+    else if (userInput.includes("trend")) {
       response = "Looking at your data, I can see an upward trend from March to April, followed by a slight decrease in May. Would you like me to analyze any specific period?";
-    } else {
-      response = "I understand you want to work with the charts. What specific aspect would you like to modify or analyze?";
+    }
+    else {
+      response = "I understand you want to work with the charts. What specific aspect would you like to modify? You can ask me to change colors, modify data, or switch chart types.";
     }
 
+    // Add AI response
     setMessages((prev) => [...prev, { text: response, isUser: false }]);
   };
 
