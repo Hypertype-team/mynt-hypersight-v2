@@ -1,6 +1,8 @@
 import {
   BarChart,
   Bar,
+  LineChart,
+  Line,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -10,68 +12,112 @@ import {
 import { Card } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 export const CategoryBreakdownChart = () => {
-  const { data: categoryData, isLoading } = useQuery({
-    queryKey: ["category-breakdown"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("ticket_analysis")
-        .select("category");
+  const [prompt, setPrompt] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [chartData, setChartData] = useState<any>(null);
+  const [analysis, setAnalysis] = useState<string>("");
+  const [chartType, setChartType] = useState<"bar" | "line">("bar");
 
-      if (error) throw error;
+  const handleAnalyze = async () => {
+    if (!prompt.trim()) return;
+    
+    setIsLoading(true);
+    try {
+      const response = await supabase.functions.invoke('analyze-charts', {
+        body: { prompt },
+      });
 
-      // Count occurrences of each category
-      const categoryCounts = data.reduce((acc: { [key: string]: number }, item) => {
-        const category = item.category || "Uncategorized";
-        acc[category] = (acc[category] || 0) + 1;
-        return acc;
-      }, {});
+      if (response.error) throw response.error;
 
-      // Transform into format needed for chart
-      return Object.entries(categoryCounts).map(([name, count]) => ({
-        name,
-        count,
-      }));
-    },
-  });
+      const { analysis, chartSuggestion, chartData } = response.data;
+      setAnalysis(analysis);
+      setChartData(chartData);
+      setChartType(chartSuggestion.toLowerCase().includes('bar') ? 'bar' : 'line');
+    } catch (error) {
+      console.error('Error:', error);
+      setAnalysis("Failed to analyze the data. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-  if (isLoading) {
-    return (
-      <Card className="p-6">
-        <p>Loading category breakdown...</p>
-      </Card>
+  const renderChart = () => {
+    if (!chartData) return null;
+
+    return chartType === 'bar' ? (
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart data={chartData}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis
+            dataKey="name"
+            angle={-45}
+            textAnchor="end"
+            height={70}
+            interval={0}
+          />
+          <YAxis />
+          <Tooltip />
+          <Bar
+            dataKey="value"
+            fill="hsl(var(--primary))"
+            name="Count"
+          />
+        </BarChart>
+      </ResponsiveContainer>
+    ) : (
+      <ResponsiveContainer width="100%" height="100%">
+        <LineChart data={chartData}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis
+            dataKey="name"
+            angle={-45}
+            textAnchor="end"
+            height={70}
+            interval={0}
+          />
+          <YAxis />
+          <Tooltip />
+          <Line
+            type="monotone"
+            dataKey="value"
+            stroke="hsl(var(--primary))"
+            name="Count"
+          />
+        </LineChart>
+      </ResponsiveContainer>
     );
-  }
+  };
 
   return (
     <Card className="p-6">
       <div className="mb-4">
-        <h3 className="text-lg font-semibold">Category Breakdown</h3>
-        <p className="text-sm text-muted-foreground">
-          Distribution of tickets across categories
+        <h3 className="text-lg font-semibold">Data Analysis</h3>
+        <p className="text-sm text-muted-foreground mb-4">
+          Ask questions about your ticket data
         </p>
+        <div className="flex gap-2 mb-4">
+          <Input
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            placeholder="e.g., Show me ticket priorities distribution"
+            className="flex-1"
+            disabled={isLoading}
+          />
+          <Button onClick={handleAnalyze} disabled={isLoading}>
+            {isLoading ? "Analyzing..." : "Analyze"}
+          </Button>
+        </div>
+        {analysis && (
+          <p className="text-sm text-muted-foreground mb-4">{analysis}</p>
+        )}
       </div>
       <div className="h-[300px]">
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={categoryData}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis
-              dataKey="name"
-              angle={-45}
-              textAnchor="end"
-              height={70}
-              interval={0}
-            />
-            <YAxis />
-            <Tooltip />
-            <Bar
-              dataKey="count"
-              fill="hsl(var(--primary))"
-              name="Number of Tickets"
-            />
-          </BarChart>
-        </ResponsiveContainer>
+        {renderChart()}
       </div>
     </Card>
   );
