@@ -14,17 +14,17 @@ serve(async (req) => {
 
   try {
     const { prompt } = await req.json();
-    console.log('Analyzing prompt:', prompt);
+    console.log('Processing query:', prompt);
     
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Get ticket data with specific columns and limit
+    // Get ticket data
     const { data: tickets, error: ticketError } = await supabase
       .from('ticket_analysis')
-      .select('category, priority, sentiment, responsible_department, created_at, issue_summary, company_name')
+      .select('*')
       .order('created_at', { ascending: false })
       .limit(100);
 
@@ -34,16 +34,13 @@ serve(async (req) => {
     }
 
     if (!tickets || tickets.length === 0) {
-      console.error('No tickets found');
       return new Response(
         JSON.stringify({
           analysis: "No ticket data available for analysis.",
           chartSuggestion: "none",
           chartData: []
         }),
-        {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        }
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -82,7 +79,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4',
+        model: 'gpt-4o',
         messages: [
           {
             role: 'system',
@@ -100,14 +97,17 @@ serve(async (req) => {
             {
               "analysis": "detailed text explanation of insights",
               "chartSuggestion": "bar" or "line",
-              "chartData": [{"name": "label", "value": number}, ...]
+              "chartData": [{"name": "label", "value": number}, ...],
+              "followUpQuestions": ["question1", "question2", "question3"]
             }
             
             For the chartData:
             - Use bar charts for comparing categories, priorities, or departments
             - Use line charts for time-based trends
             - Ensure data points are clear and meaningful
-            - Limit to 10 data points maximum for readability`,
+            - Limit to 10 data points maximum for readability
+            
+            Include 3 relevant follow-up questions based on the current analysis.`,
           },
           {
             role: 'user',

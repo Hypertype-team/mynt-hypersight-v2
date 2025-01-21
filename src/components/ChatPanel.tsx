@@ -29,11 +29,19 @@ interface Message {
   chartData?: any;
   chartType?: 'line' | 'bar';
   analysis?: string;
+  followUpQuestions?: string[];
 }
 
 export const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
   const [messages, setMessages] = useState<Message[]>([
-    { text: "Hello! I can help you analyze your ticket data. Ask me anything about trends, patterns, or insights!", isUser: false },
+    { 
+      text: "Hello! I can help you analyze your ticket data. Try asking questions like:\n\n" +
+            "- Show me the distribution of ticket priorities\n" +
+            "- What are the most common categories?\n" +
+            "- How are sentiments distributed across departments?\n" +
+            "- Which companies have the most tickets?",
+      isUser: false 
+    },
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -54,7 +62,7 @@ export const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
 
       if (response.error) throw response.error;
 
-      const { analysis, chartSuggestion, chartData } = response.data;
+      const { analysis, chartSuggestion, chartData, followUpQuestions } = response.data;
 
       setMessages((prev) => [
         ...prev,
@@ -64,6 +72,7 @@ export const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
           chartData: chartData,
           chartType: chartSuggestion.toLowerCase().includes('bar') ? 'bar' : 'line',
           analysis: analysis,
+          followUpQuestions: followUpQuestions,
         },
       ]);
     } catch (error) {
@@ -83,6 +92,10 @@ export const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleFollowUpClick = (question: string) => {
+    setInput(question);
   };
 
   const renderChart = (message: Message) => {
@@ -153,6 +166,21 @@ export const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
                   {message.text}
                 </div>
                 {renderChart(message)}
+                {!message.isUser && message.followUpQuestions && (
+                  <div className="mt-2 space-y-2">
+                    <p className="text-sm text-muted-foreground">Follow-up questions:</p>
+                    {message.followUpQuestions.map((question, idx) => (
+                      <Button
+                        key={idx}
+                        variant="outline"
+                        className="text-sm mr-2"
+                        onClick={() => handleFollowUpClick(question)}
+                      >
+                        {question}
+                      </Button>
+                    ))}
+                  </div>
+                )}
               </div>
             ))}
           </div>
