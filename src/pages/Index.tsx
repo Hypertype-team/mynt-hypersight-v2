@@ -1,5 +1,6 @@
 import { Layout } from "@/components/Layout";
 import { TicketAnalysisTable } from "@/components/TicketAnalysisTable";
+import { CategoryBreakdownChart } from "@/components/CategoryBreakdownChart";
 
 const Index = () => {
   return (
@@ -10,6 +11,9 @@ const Index = () => {
           <p className="text-muted-foreground">
             View and analyze ticket data
           </p>
+        </div>
+        <div className="grid gap-6 md:grid-cols-2">
+          <CategoryBreakdownChart />
         </div>
         <TicketAnalysisTable />
       </div>
