@@ -135,20 +135,12 @@ export const TicketAnalysisTable = () => {
                 />
               </PaginationItem>
             )}
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-              <PaginationItem key={page}>
-                <PaginationLink
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setCurrentPage(page);
-                  }}
-                  isActive={currentPage === page}
-                >
-                  {page}
-                </PaginationLink>
-              </PaginationItem>
-            ))}
+            {/* Show current page number */}
+            <PaginationItem>
+              <span className="px-4 py-2">
+                Page {currentPage} of {totalPages}
+              </span>
+            </PaginationItem>
             {currentPage < totalPages && (
               <PaginationItem>
                 <PaginationNext
