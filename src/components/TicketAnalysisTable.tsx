@@ -9,18 +9,43 @@ import {
 import { Card } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useState } from "react";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+
+const ITEMS_PER_PAGE = 10;
 
 export const TicketAnalysisTable = () => {
-  const { data: tickets, isLoading } = useQuery({
-    queryKey: ["tickets"],
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["tickets", currentPage],
     queryFn: async () => {
+      // First, get total count
+      const { count } = await supabase
+        .from("ticket_analysis")
+        .select("*", { count: "exact", head: true });
+
+      // Then get paginated data
       const { data, error } = await supabase
         .from("ticket_analysis")
         .select("*")
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .range((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE - 1);
 
       if (error) throw error;
-      return data;
+
+      return {
+        tickets: data,
+        totalCount: count || 0,
+        totalPages: Math.ceil((count || 0) / ITEMS_PER_PAGE),
+      };
     },
   });
 
@@ -31,6 +56,9 @@ export const TicketAnalysisTable = () => {
       </Card>
     );
   }
+
+  const tickets = data?.tickets || [];
+  const totalPages = data?.totalPages || 1;
 
   return (
     <Card>
@@ -50,7 +78,7 @@ export const TicketAnalysisTable = () => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {tickets?.map((ticket) => (
+          {tickets.map((ticket) => (
             <TableRow key={ticket.id}>
               <TableCell>{ticket.company_name || "N/A"}</TableCell>
               <TableCell>{ticket.category || "N/A"}</TableCell>
@@ -62,6 +90,48 @@ export const TicketAnalysisTable = () => {
           ))}
         </TableBody>
       </Table>
+      <div className="p-4">
+        <Pagination>
+          <PaginationContent>
+            {currentPage > 1 && (
+              <PaginationItem>
+                <PaginationPrevious
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setCurrentPage((prev) => Math.max(1, prev - 1));
+                  }}
+                />
+              </PaginationItem>
+            )}
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <PaginationItem key={page}>
+                <PaginationLink
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setCurrentPage(page);
+                  }}
+                  isActive={currentPage === page}
+                >
+                  {page}
+                </PaginationLink>
+              </PaginationItem>
+            ))}
+            {currentPage < totalPages && (
+              <PaginationItem>
+                <PaginationNext
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setCurrentPage((prev) => Math.min(totalPages, prev + 1));
+                  }}
+                />
+              </PaginationItem>
+            )}
+          </PaginationContent>
+        </Pagination>
+      </div>
     </Card>
   );
 };
