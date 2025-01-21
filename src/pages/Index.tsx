@@ -1,5 +1,5 @@
-import { SampleChart } from "@/components/SampleChart";
 import { Layout } from "@/components/Layout";
+import { TicketAnalysisTable } from "@/components/TicketAnalysisTable";
 
 const Index = () => {
   return (
@@ -8,13 +8,10 @@ const Index = () => {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
           <p className="text-muted-foreground">
-            View and analyze your data through interactive charts
+            View and analyze ticket data
           </p>
         </div>
-        <div className="grid gap-6 md:grid-cols-2">
-          <SampleChart />
-          <SampleChart />
-        </div>
+        <TicketAnalysisTable />
       </div>
     </Layout>
   );
