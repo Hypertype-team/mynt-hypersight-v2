@@ -88,24 +88,36 @@ export const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
   const renderChart = (message: Message) => {
     if (!message.chartData) return null;
 
-    const ChartComponent = message.chartType === 'bar' ? BarChart : LineChart;
-    const DataComponent = message.chartType === 'bar' ? Bar : Line;
-
-    return (
+    return message.chartType === 'bar' ? (
       <div className="h-[200px] w-full mt-4">
         <ResponsiveContainer>
-          <ChartComponent data={message.chartData}>
+          <BarChart data={message.chartData}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="name" />
             <YAxis />
             <Tooltip />
-            <DataComponent
+            <Bar
               type="monotone"
               dataKey="value"
               fill="hsl(var(--primary))"
+            />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+    ) : (
+      <div className="h-[200px] w-full mt-4">
+        <ResponsiveContainer>
+          <LineChart data={message.chartData}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="name" />
+            <YAxis />
+            <Tooltip />
+            <Line
+              type="monotone"
+              dataKey="value"
               stroke="hsl(var(--primary))"
             />
-          </ChartComponent>
+          </LineChart>
         </ResponsiveContainer>
       </div>
     );
