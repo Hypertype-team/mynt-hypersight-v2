@@ -18,14 +18,20 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-
-const ITEMS_PER_PAGE = 10;
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export const TicketAnalysisTable = () => {
   const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   const { data, isLoading } = useQuery({
-    queryKey: ["tickets", currentPage],
+    queryKey: ["tickets", currentPage, itemsPerPage],
     queryFn: async () => {
       // First, get total count
       const { count } = await supabase
@@ -37,14 +43,17 @@ export const TicketAnalysisTable = () => {
         .from("ticket_analysis")
         .select("*")
         .order("created_at", { ascending: false })
-        .range((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE - 1);
+        .range(
+          (currentPage - 1) * itemsPerPage,
+          currentPage * itemsPerPage - 1
+        );
 
       if (error) throw error;
 
       return {
         tickets: data,
         totalCount: count || 0,
-        totalPages: Math.ceil((count || 0) / ITEMS_PER_PAGE),
+        totalPages: Math.ceil((count || 0) / itemsPerPage),
       };
     },
   });
@@ -59,6 +68,11 @@ export const TicketAnalysisTable = () => {
 
   const tickets = data?.tickets || [];
   const totalPages = data?.totalPages || 1;
+
+  const handleItemsPerPageChange = (value: string) => {
+    setItemsPerPage(Number(value));
+    setCurrentPage(1); // Reset to first page when changing items per page
+  };
 
   return (
     <Card>
@@ -90,7 +104,24 @@ export const TicketAnalysisTable = () => {
           ))}
         </TableBody>
       </Table>
-      <div className="p-4">
+      <div className="p-4 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-muted-foreground">Items per page:</span>
+          <Select
+            value={String(itemsPerPage)}
+            onValueChange={handleItemsPerPageChange}
+          >
+            <SelectTrigger className="w-[100px]">
+              <SelectValue placeholder="10" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="5">5</SelectItem>
+              <SelectItem value="10">10</SelectItem>
+              <SelectItem value="20">20</SelectItem>
+              <SelectItem value="50">50</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
         <Pagination>
           <PaginationContent>
             {currentPage > 1 && (
