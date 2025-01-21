@@ -39,7 +39,7 @@ const Index = () => {
       console.log("Fetched tickets:", data); // Debug log
       return data;
     },
-    refetchInterval: 30000,
+    refetchInterval: 30000, // Refetch every 30 seconds
     refetchOnMount: true, // Force fetch on component mount
     staleTime: 0, // Consider data immediately stale
   });
@@ -60,6 +60,16 @@ const Index = () => {
       <Layout>
         <div className="flex items-center justify-center h-[calc(100vh-8rem)]">
           <p className="text-muted-foreground">Loading tickets...</p>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (error) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center h-[calc(100vh-8rem)]">
+          <p className="text-red-500">Error loading tickets. Please try again.</p>
         </div>
       </Layout>
     );
