@@ -9,25 +9,32 @@ import {
 } from "recharts";
 import { Card } from "@/components/ui/card";
 
-const data = [
-  { name: "Jan", value: 400 },
-  { name: "Feb", value: 300 },
-  { name: "Mar", value: 600 },
-  { name: "Apr", value: 800 },
-  { name: "May", value: 500 },
-  { name: "Jun", value: 700 },
-];
+interface TicketData {
+  created_at: string;
+  // Add other fields from your ticket_analysis table as needed
+  [key: string]: any;
+}
 
-export const SampleChart = () => {
+interface SampleChartProps {
+  data?: TicketData[];
+}
+
+export const SampleChart = ({ data = [] }: SampleChartProps) => {
+  // Transform the data for the chart
+  const chartData = data?.map(ticket => ({
+    name: new Date(ticket.created_at).toLocaleDateString(),
+    value: 1, // You can modify this based on what value you want to show
+  })) || [];
+
   return (
     <Card className="p-6">
       <div className="mb-4">
-        <h3 className="text-lg font-semibold">Monthly Performance</h3>
-        <p className="text-sm text-muted-foreground">Last 6 months of data</p>
+        <h3 className="text-lg font-semibold">Ticket Analysis</h3>
+        <p className="text-sm text-muted-foreground">Ticket creation over time</p>
       </div>
       <div className="h-[300px]">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={data}>
+          <LineChart data={chartData}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="name" />
             <YAxis />
