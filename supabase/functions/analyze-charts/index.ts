@@ -21,12 +21,11 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Get ticket data with limit
+    // Get all ticket data without limit
     const { data: tickets, error: ticketError } = await supabase
       .from('ticket_analysis')
       .select('category, priority, responsible_department, sentiment, company_name, created_at')
-      .order('created_at', { ascending: false })
-      .limit(50);
+      .order('created_at', { ascending: false });
 
     if (ticketError) {
       console.error('Error fetching tickets:', ticketError);
@@ -39,7 +38,6 @@ serve(async (req) => {
           analysis: "No ticket data available for analysis.",
           chartSuggestion: "none",
           chartData: [],
-          followUpQuestions: []
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
@@ -76,31 +74,20 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'gpt-4',
         messages: [
           {
             role: 'system',
-            content: `You are a data analysis assistant specialized in analyzing ticket data. 
-            You have access to ticket analysis data with the following summary: ${JSON.stringify(summary)}.
-            
-            When analyzing the data, consider:
-            - Distribution of tickets across categories
-            - Priority levels and their frequency
-            - Sentiment analysis trends
-            - Department workload distribution
-            - Company-specific patterns
-            
-            Format your response as JSON with the following structure:
+            content: `You are a data analysis assistant. Analyze the ticket data summary and respond to user queries.
+            Format your response as JSON with:
             {
-              "analysis": "detailed text explanation of insights",
+              "analysis": "brief text explanation of insights",
               "chartSuggestion": "bar" or "line",
-              "chartData": [{"name": "label", "value": number}, ...],
-              "followUpQuestions": ["question1", "question2", "question3"]
+              "chartData": [{"name": "label", "value": number}]
             }
-            
-            Keep your response concise and ensure the JSON is valid.
-            Limit chartData to 10 data points maximum for readability.
-            Include 3 relevant follow-up questions based on the current analysis.`,
+            Keep responses concise and ensure valid JSON.
+            Limit chartData to 10 items for readability.
+            Base your analysis on this data summary: ${JSON.stringify(summary)}`
           },
           {
             role: 'user',
@@ -108,18 +95,17 @@ serve(async (req) => {
           }
         ],
         temperature: 0.7,
-        max_tokens: 1000,
+        max_tokens: 500,
       }),
     });
 
     if (!openAIResponse.ok) {
-      const errorText = await openAIResponse.text();
-      console.error('OpenAI API error:', errorText);
-      throw new Error(`OpenAI API error: ${errorText}`);
+      console.error('OpenAI API error:', await openAIResponse.text());
+      throw new Error('OpenAI API error');
     }
 
     const openAIData = await openAIResponse.json();
-    console.log('OpenAI raw response:', openAIData);
+    console.log('OpenAI response:', openAIData);
 
     if (!openAIData.choices?.[0]?.message?.content) {
       throw new Error('Invalid response format from OpenAI');
@@ -128,9 +114,8 @@ serve(async (req) => {
     let parsedResponse;
     try {
       parsedResponse = JSON.parse(openAIData.choices[0].message.content);
-      console.log('Parsed AI response:', parsedResponse);
+      console.log('Parsed response:', parsedResponse);
 
-      // Validate the response structure
       if (!parsedResponse.analysis || !parsedResponse.chartSuggestion || !Array.isArray(parsedResponse.chartData)) {
         throw new Error('Invalid response structure');
       }
@@ -152,7 +137,6 @@ serve(async (req) => {
         analysis: "Failed to analyze the data.",
         chartSuggestion: "none",
         chartData: [],
-        followUpQuestions: []
       }),
       {
         status: 500,
