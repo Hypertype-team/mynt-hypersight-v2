@@ -14,6 +14,7 @@ serve(async (req) => {
 
   try {
     const { prompt } = await req.json();
+    console.log('Analyzing prompt:', prompt);
     
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -23,7 +24,7 @@ serve(async (req) => {
     // Get ticket data with specific columns and limit
     const { data: tickets, error: ticketError } = await supabase
       .from('ticket_analysis')
-      .select('category, priority, sentiment, responsible_department, created_at')
+      .select('category, priority, sentiment, responsible_department, created_at, issue_summary, company_name')
       .order('created_at', { ascending: false })
       .limit(100);
 
@@ -52,6 +53,8 @@ serve(async (req) => {
       categories: {},
       priorities: {},
       departments: {},
+      sentiments: {},
+      companies: {},
       timeRange: {
         start: tickets[tickets.length - 1]?.created_at,
         end: tickets[0]?.created_at
@@ -65,6 +68,8 @@ serve(async (req) => {
         summary.departments[ticket.responsible_department] = 
           (summary.departments[ticket.responsible_department] || 0) + 1;
       }
+      if (ticket.sentiment) summary.sentiments[ticket.sentiment] = (summary.sentiments[ticket.sentiment] || 0) + 1;
+      if (ticket.company_name) summary.companies[ticket.company_name] = (summary.companies[ticket.company_name] || 0) + 1;
     });
 
     console.log('Data summary prepared:', summary);
@@ -77,21 +82,36 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o',
+        model: 'gpt-4',
         messages: [
           {
             role: 'system',
-            content: `You are a data analysis assistant. Analyze ticket data summary and provide insights. 
+            content: `You are a data analysis assistant specialized in analyzing ticket data. 
+            You have access to ticket analysis data with the following summary: ${JSON.stringify(summary)}.
+            
+            When analyzing the data, consider:
+            - Distribution of tickets across categories
+            - Priority levels and their frequency
+            - Sentiment analysis trends
+            - Department workload distribution
+            - Company-specific patterns
+            
             Format your response as JSON with the following structure:
             {
-              "analysis": "text explanation of insights",
+              "analysis": "detailed text explanation of insights",
               "chartSuggestion": "bar" or "line",
               "chartData": [{"name": "label", "value": number}, ...]
-            }`,
+            }
+            
+            For the chartData:
+            - Use bar charts for comparing categories, priorities, or departments
+            - Use line charts for time-based trends
+            - Ensure data points are clear and meaningful
+            - Limit to 10 data points maximum for readability`,
           },
           {
             role: 'user',
-            content: `Analyze this ticket data summary and respond to this prompt: ${prompt}\n\nData summary: ${JSON.stringify(summary)}`,
+            content: `Analyze this ticket data and respond to this prompt: ${prompt}`,
           }
         ],
       }),
@@ -113,6 +133,7 @@ serve(async (req) => {
     let aiResponse;
     try {
       aiResponse = JSON.parse(data.choices[0].message.content);
+      console.log('Parsed AI response:', aiResponse);
     } catch (error) {
       console.error('Error parsing OpenAI response:', error);
       throw new Error('Failed to parse OpenAI response');
