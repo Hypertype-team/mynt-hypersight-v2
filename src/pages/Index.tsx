@@ -20,7 +20,7 @@ const Index = () => {
   const { toast } = useToast();
 
   const { data: tickets, isLoading, error, refetch } = useQuery({
-    queryKey: ["tickets"],
+    queryKey: ["tickets", Date.now()], // Force new cache key
     queryFn: async () => {
       const { data, error } = await supabase
         .from("ticket_analysis")
@@ -36,9 +36,12 @@ const Index = () => {
         throw error;
       }
       
+      console.log("Fetched tickets:", data); // Debug log
       return data;
     },
-    refetchInterval: 30000, // Refetch every 30 seconds
+    refetchInterval: 30000,
+    refetchOnMount: true, // Force fetch on component mount
+    staleTime: 0, // Consider data immediately stale
   });
 
   const handleRefresh = async () => {
