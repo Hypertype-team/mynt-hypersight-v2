@@ -35,9 +35,9 @@ export const SentimentTrendChart = () => {
   });
 
   return (
-    <Card className="p-6">
+    <Card className="p-6 bg-secondary border-none">
       <div className="mb-4">
-        <h3 className="text-lg font-semibold">Sentiment Analysis</h3>
+        <h3 className="text-lg font-semibold text-white">Sentiment Analysis</h3>
         <p className="text-sm text-muted-foreground">
           Distribution of ticket sentiments
         </p>
@@ -45,13 +45,26 @@ export const SentimentTrendChart = () => {
       <div className="h-[300px]">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="name" />
-            <YAxis />
-            <Tooltip />
+            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+            <XAxis 
+              dataKey="name" 
+              stroke="#a1a1aa"
+              tick={{ fill: '#a1a1aa' }}
+            />
+            <YAxis 
+              stroke="#a1a1aa"
+              tick={{ fill: '#a1a1aa' }}
+            />
+            <Tooltip
+              contentStyle={{
+                backgroundColor: '#1a1d2d',
+                border: '1px solid rgba(255,255,255,0.1)',
+                color: 'white',
+              }}
+            />
             <Bar
               dataKey="value"
-              fill="hsl(var(--primary))"
+              fill="#9b87f5"
               name="Count"
             />
           </BarChart>

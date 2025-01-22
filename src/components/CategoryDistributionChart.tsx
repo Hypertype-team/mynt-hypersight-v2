@@ -12,13 +12,13 @@ import {
 
 const COLORS = [
   "#9b87f5", // Primary Purple
-  "#0EA5E9", // Ocean Blue
-  "#F97316", // Bright Orange
-  "#D946EF", // Magenta Pink
-  "#8B5CF6", // Vivid Purple
-  "#1EAEDB", // Bright Blue
-  "#7E69AB", // Secondary Purple
-  "#33C3F0", // Sky Blue
+  "#6366f1", // Accent Blue
+  "#8b5cf6", // Bright Purple
+  "#7c3aed", // Deep Purple
+  "#6d28d9", // Royal Purple
+  "#5b21b6", // Dark Purple
+  "#4c1d95", // Deep Violet
+  "#4338ca", // Indigo
 ];
 
 const RADIAN = Math.PI / 180;
@@ -72,9 +72,9 @@ export const CategoryDistributionChart = () => {
   });
 
   return (
-    <Card className="p-6">
+    <Card className="p-6 bg-secondary border-none">
       <div className="mb-4">
-        <h3 className="text-lg font-semibold">Category Distribution</h3>
+        <h3 className="text-lg font-semibold text-white">Category Distribution</h3>
         <p className="text-sm text-muted-foreground">
           Distribution of tickets by category
         </p>
@@ -106,8 +106,9 @@ export const CategoryDistributionChart = () => {
               formatter={(value: number) => [`${value} tickets`, 'Count']}
               contentStyle={{
                 borderRadius: '8px',
-                border: '1px solid var(--border)',
-                backgroundColor: 'var(--background)',
+                backgroundColor: '#1a1d2d',
+                border: '1px solid rgba(255,255,255,0.1)',
+                color: 'white',
               }}
             />
             <Legend 
