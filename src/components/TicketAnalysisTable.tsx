@@ -33,6 +33,7 @@ export const TicketAnalysisTable = () => {
       const { data, error } = await supabase
         .from("ticket_analysis")
         .select("*")
+        .order("category", { ascending: true })
         .order("created_at", { ascending: false })
         .range(
           (currentPage - 1) * itemsPerPage,
@@ -41,8 +42,18 @@ export const TicketAnalysisTable = () => {
 
       if (error) throw error;
 
+      // Group tickets by category
+      const groupedTickets = data.reduce((acc, ticket) => {
+        const category = ticket.category || "Uncategorized";
+        if (!acc[category]) {
+          acc[category] = [];
+        }
+        acc[category].push(ticket);
+        return acc;
+      }, {} as Record<string, typeof data>);
+
       return {
-        tickets: data,
+        groupedTickets,
         totalCount: count || 0,
         totalPages: Math.ceil((count || 0) / itemsPerPage),
       };
@@ -57,8 +68,8 @@ export const TicketAnalysisTable = () => {
     );
   }
 
-  const tickets = data?.tickets || [];
   const totalPages = data?.totalPages || 1;
+  const groupedTickets = data?.groupedTickets || {};
 
   const handleItemsPerPageChange = (value: string) => {
     setItemsPerPage(Number(value));
@@ -75,68 +86,71 @@ export const TicketAnalysisTable = () => {
 
   return (
     <div className="space-y-4 w-full max-w-[calc(100%-24rem)]">
-      {tickets.map((ticket) => (
-        <Card key={ticket.id} className="p-6">
-          <div 
-            className="flex items-center justify-between cursor-pointer"
-            onClick={() => toggleTicketExpansion(ticket.id)}
-          >
-            <div>
-              <h3 className="text-lg font-semibold">
-                {ticket.issue_summary || "No Issue Summary"}
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                {ticket.company_name || "No Company Name"}
-              </p>
-            </div>
-            {expandedTickets.includes(ticket.id) ? (
-              <ChevronUp className="h-5 w-5" />
-            ) : (
-              <ChevronDown className="h-5 w-5" />
-            )}
-          </div>
+      {Object.entries(groupedTickets).map(([category, tickets]) => (
+        <Card key={category} className="p-6">
+          <h2 className="text-xl font-bold mb-4">{category}</h2>
+          <div className="space-y-4">
+            {tickets.map((ticket) => (
+              <Card key={ticket.id} className="p-4">
+                <div 
+                  className="flex items-center justify-between cursor-pointer"
+                  onClick={() => toggleTicketExpansion(ticket.id)}
+                >
+                  <div>
+                    <h3 className="text-lg font-semibold">
+                      {ticket.issue_summary || "No Issue Summary"}
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      {ticket.company_name || "No Company Name"}
+                    </p>
+                  </div>
+                  {expandedTickets.includes(ticket.id) ? (
+                    <ChevronUp className="h-5 w-5" />
+                  ) : (
+                    <ChevronDown className="h-5 w-5" />
+                  )}
+                </div>
 
-          {expandedTickets.includes(ticket.id) && (
-            <div className="mt-4 space-y-3 border-t pt-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm font-medium">State</p>
-                  <p className="text-sm text-muted-foreground">{ticket.state || "N/A"}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium">Read Status</p>
-                  <p className="text-sm text-muted-foreground">
-                    {ticket.read ? "Read" : "Unread"}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium">Priority</p>
-                  <p className="text-sm text-muted-foreground">{ticket.priority || "N/A"}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium">Sentiment</p>
-                  <p className="text-sm text-muted-foreground">{ticket.sentiment || "N/A"}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium">Category</p>
-                  <p className="text-sm text-muted-foreground">{ticket.category || "N/A"}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium">Department</p>
-                  <p className="text-sm text-muted-foreground">
-                    {ticket.responsible_department || "N/A"}
-                  </p>
-                </div>
-              </div>
-              
-              <div>
-                <p className="text-sm font-medium">Summary</p>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {ticket.summary || "No summary available"}
-                </p>
-              </div>
-            </div>
-          )}
+                {expandedTickets.includes(ticket.id) && (
+                  <div className="mt-4 space-y-3 border-t pt-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm font-medium">State</p>
+                        <p className="text-sm text-muted-foreground">{ticket.state || "N/A"}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium">Read Status</p>
+                        <p className="text-sm text-muted-foreground">
+                          {ticket.read ? "Read" : "Unread"}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium">Priority</p>
+                        <p className="text-sm text-muted-foreground">{ticket.priority || "N/A"}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium">Sentiment</p>
+                        <p className="text-sm text-muted-foreground">{ticket.sentiment || "N/A"}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium">Department</p>
+                        <p className="text-sm text-muted-foreground">
+                          {ticket.responsible_department || "N/A"}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <p className="text-sm font-medium">Summary</p>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {ticket.summary || "No summary available"}
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </Card>
+            ))}
+          </div>
         </Card>
       ))}
 
