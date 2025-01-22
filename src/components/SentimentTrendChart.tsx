@@ -11,6 +11,11 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
+const COLORS = {
+  bar: "#E5DEFF", // Soft Purple
+  hover: "#D3E4FD", // Soft Blue
+};
+
 export const SentimentTrendChart = () => {
   const { data: chartData } = useQuery({
     queryKey: ["sentiment-trend"],
@@ -35,37 +40,42 @@ export const SentimentTrendChart = () => {
   });
 
   return (
-    <Card className="p-6 bg-secondary border-none">
-      <div className="mb-4">
-        <h3 className="text-lg font-semibold text-white">Sentiment Analysis</h3>
-        <p className="text-sm text-muted-foreground">
+    <Card className="p-6 bg-white border border-gray-100">
+      <div className="mb-6">
+        <h3 className="text-xl font-semibold text-black">Sentiment Analysis</h3>
+        <p className="text-sm text-gray-600 mt-1">
           Distribution of ticket sentiments
         </p>
       </div>
       <div className="h-[300px]">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
             <XAxis 
               dataKey="name" 
-              stroke="#a1a1aa"
-              tick={{ fill: '#a1a1aa' }}
+              stroke="#000000"
+              tick={{ fill: '#000000' }}
             />
             <YAxis 
-              stroke="#a1a1aa"
-              tick={{ fill: '#a1a1aa' }}
+              stroke="#000000"
+              tick={{ fill: '#000000' }}
             />
             <Tooltip
               contentStyle={{
-                backgroundColor: '#1a1d2d',
-                border: '1px solid rgba(255,255,255,0.1)',
-                color: 'white',
+                backgroundColor: 'white',
+                border: '1px solid #e2e8f0',
+                borderRadius: '8px',
+                padding: '8px 12px',
+              }}
+              itemStyle={{
+                color: '#000000',
               }}
             />
             <Bar
               dataKey="value"
-              fill="#9b87f5"
+              fill={COLORS.bar}
               name="Count"
+              radius={[4, 4, 0, 0]}
             />
           </BarChart>
         </ResponsiveContainer>
