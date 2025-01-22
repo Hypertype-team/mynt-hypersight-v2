@@ -39,13 +39,66 @@ export const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
     setInput("");
 
     try {
-      const response = await supabase.functions.invoke('analyze-charts', {
-        body: { prompt: input },
-      });
+      // Query the ticket_analysis table based on user input
+      let query = supabase.from('ticket_analysis').select('*');
+      
+      // Basic keyword matching for different types of analysis
+      const lowercaseInput = input.toLowerCase();
+      
+      if (lowercaseInput.includes('priority') || lowercaseInput.includes('priorities')) {
+        query = supabase.from('ticket_analysis')
+          .select('priority, count')
+          .not('priority', 'is', null);
+      } else if (lowercaseInput.includes('category') || lowercaseInput.includes('categories')) {
+        query = supabase.from('ticket_analysis')
+          .select('category, count')
+          .not('category', 'is', null);
+      } else if (lowercaseInput.includes('sentiment')) {
+        query = supabase.from('ticket_analysis')
+          .select('sentiment, responsible_department, count')
+          .not('sentiment', 'is', null);
+      } else if (lowercaseInput.includes('company') || lowercaseInput.includes('companies')) {
+        query = supabase.from('ticket_analysis')
+          .select('company_name, count')
+          .not('company_name', 'is', null);
+      } else if (lowercaseInput.includes('issue') || lowercaseInput.includes('issues')) {
+        query = supabase.from('ticket_analysis')
+          .select('common_issue, count')
+          .not('common_issue', 'is', null);
+      }
 
-      if (response.error) throw response.error;
+      const { data, error } = await query;
 
-      const { analysis, chartSuggestion, chartData, followUpQuestions } = response.data;
+      if (error) throw error;
+
+      // Process the data and create a response
+      let analysis = "Based on the ticket analysis:\n\n";
+      let chartData = [];
+      let chartType = 'bar';
+
+      if (data && data.length > 0) {
+        // Format data based on query type
+        if (lowercaseInput.includes('priority')) {
+          chartData = data.map(item => ({
+            name: item.priority || 'Unspecified',
+            value: item.count
+          }));
+          analysis += `Distribution of ticket priorities:\n${data.map(item => 
+            `- ${item.priority || 'Unspecified'}: ${item.count} tickets`
+          ).join('\n')}`;
+        } else if (lowercaseInput.includes('category')) {
+          chartData = data.map(item => ({
+            name: item.category || 'Unspecified',
+            value: item.count
+          }));
+          analysis += `Category distribution:\n${data.map(item => 
+            `- ${item.category || 'Unspecified'}: ${item.count} tickets`
+          ).join('\n')}`;
+        }
+        // Add similar processing for other query types
+      } else {
+        analysis = "No relevant data found for your query.";
+      }
 
       setMessages((prev) => [
         ...prev,
@@ -53,9 +106,12 @@ export const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
           text: analysis,
           isUser: false,
           chartData: chartData,
-          chartType: chartSuggestion.toLowerCase().includes('bar') ? 'bar' : 'line',
-          analysis: analysis,
-          followUpQuestions: followUpQuestions,
+          chartType: chartType,
+          followUpQuestions: [
+            "What are the most common categories?",
+            "Show me the priority distribution",
+            "How are sentiments distributed?",
+          ],
         },
       ]);
     } catch (error) {
