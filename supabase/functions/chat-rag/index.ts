@@ -8,12 +8,14 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
     const { prompt } = await req.json();
+    console.log('Received prompt:', prompt);
     
     // Initialize Supabase client
     const supabaseClient = createClient(
@@ -22,11 +24,18 @@ serve(async (req) => {
     );
 
     // Fetch relevant context from the ticket_analysis table
-    const { data: relevantTickets } = await supabaseClient
+    const { data: relevantTickets, error: searchError } = await supabaseClient
       .from('ticket_analysis')
       .select('*')
       .textSearch('summary', prompt.split(' ').join(' & '))
       .limit(5);
+
+    if (searchError) {
+      console.error('Error fetching tickets:', searchError);
+      throw searchError;
+    }
+
+    console.log('Found relevant tickets:', relevantTickets?.length);
 
     // Prepare context from relevant tickets
     const context = relevantTickets?.map(ticket => `
@@ -37,11 +46,16 @@ serve(async (req) => {
       Issue: ${ticket.issue}
     `).join('\n\n');
 
+    const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+    if (!openAIApiKey) {
+      throw new Error('OpenAI API key not configured');
+    }
+
     // Call OpenAI with context
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
+        'Authorization': `Bearer ${openAIApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -57,18 +71,20 @@ serve(async (req) => {
       }),
     });
 
-    if (!response.ok) {
+    if (!openAIResponse.ok) {
+      const errorData = await openAIResponse.json();
+      console.error('OpenAI API error:', errorData);
       throw new Error('Failed to get response from OpenAI');
     }
 
-    const data = await response.json();
+    const data = await openAIResponse.json();
     const analysis = data.choices[0].message.content;
 
     // Get follow-up questions based on the context
     const followUpResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
+        'Authorization': `Bearer ${openAIApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -91,6 +107,8 @@ serve(async (req) => {
       .filter(q => q.trim())
       .slice(0, 3);
 
+    console.log('Successfully generated response and follow-up questions');
+
     return new Response(
       JSON.stringify({
         analysis,
@@ -101,7 +119,7 @@ serve(async (req) => {
       }
     );
   } catch (error) {
-    console.error('Error:', error);
+    console.error('Error in chat-rag function:', error);
     return new Response(
       JSON.stringify({ error: error.message }),
       {
