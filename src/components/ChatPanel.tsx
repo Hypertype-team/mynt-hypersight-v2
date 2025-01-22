@@ -40,62 +40,91 @@ export const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
 
     try {
       // Query the ticket_analysis table based on user input
-      let query = supabase.from('ticket_analysis').select('*');
-      
-      // Basic keyword matching for different types of analysis
       const lowercaseInput = input.toLowerCase();
+      let data;
+      let error;
       
       if (lowercaseInput.includes('priority') || lowercaseInput.includes('priorities')) {
-        query = supabase.from('ticket_analysis')
-          .select('priority, count')
+        const result = await supabase
+          .from('ticket_analysis')
+          .select('priority')
           .not('priority', 'is', null);
+        data = result.data;
+        error = result.error;
+        
+        // Count occurrences of each priority
+        if (data) {
+          const counts = data.reduce((acc: Record<string, number>, item) => {
+            acc[item.priority] = (acc[item.priority] || 0) + 1;
+            return acc;
+          }, {});
+          data = Object.entries(counts).map(([priority, count]) => ({
+            name: priority,
+            value: count
+          }));
+        }
       } else if (lowercaseInput.includes('category') || lowercaseInput.includes('categories')) {
-        query = supabase.from('ticket_analysis')
-          .select('category, count')
+        const result = await supabase
+          .from('ticket_analysis')
+          .select('category')
           .not('category', 'is', null);
+        data = result.data;
+        error = result.error;
+        
+        // Count occurrences of each category
+        if (data) {
+          const counts = data.reduce((acc: Record<string, number>, item) => {
+            acc[item.category] = (acc[item.category] || 0) + 1;
+            return acc;
+          }, {});
+          data = Object.entries(counts).map(([category, count]) => ({
+            name: category,
+            value: count
+          }));
+        }
       } else if (lowercaseInput.includes('sentiment')) {
-        query = supabase.from('ticket_analysis')
-          .select('sentiment, responsible_department, count')
+        const result = await supabase
+          .from('ticket_analysis')
+          .select('sentiment, responsible_department')
           .not('sentiment', 'is', null);
-      } else if (lowercaseInput.includes('company') || lowercaseInput.includes('companies')) {
-        query = supabase.from('ticket_analysis')
-          .select('company_name, count')
-          .not('company_name', 'is', null);
-      } else if (lowercaseInput.includes('issue') || lowercaseInput.includes('issues')) {
-        query = supabase.from('ticket_analysis')
-          .select('common_issue, count')
-          .not('common_issue', 'is', null);
+        data = result.data;
+        error = result.error;
+        
+        // Count occurrences of each sentiment per department
+        if (data) {
+          const counts = data.reduce((acc: Record<string, number>, item) => {
+            const key = `${item.sentiment} (${item.responsible_department})`;
+            acc[key] = (acc[key] || 0) + 1;
+            return acc;
+          }, {});
+          data = Object.entries(counts).map(([key, count]) => ({
+            name: key,
+            value: count
+          }));
+        }
       }
-
-      const { data, error } = await query;
 
       if (error) throw error;
 
       // Process the data and create a response
       let analysis = "Based on the ticket analysis:\n\n";
-      let chartData = [];
-      let chartType = 'bar';
+      let chartData = data || [];
+      let chartType: "bar" | "line" = "bar";
 
       if (data && data.length > 0) {
-        // Format data based on query type
         if (lowercaseInput.includes('priority')) {
-          chartData = data.map(item => ({
-            name: item.priority || 'Unspecified',
-            value: item.count
-          }));
           analysis += `Distribution of ticket priorities:\n${data.map(item => 
-            `- ${item.priority || 'Unspecified'}: ${item.count} tickets`
+            `- ${item.name}: ${item.value} tickets`
           ).join('\n')}`;
         } else if (lowercaseInput.includes('category')) {
-          chartData = data.map(item => ({
-            name: item.category || 'Unspecified',
-            value: item.count
-          }));
           analysis += `Category distribution:\n${data.map(item => 
-            `- ${item.category || 'Unspecified'}: ${item.count} tickets`
+            `- ${item.name}: ${item.value} tickets`
+          ).join('\n')}`;
+        } else if (lowercaseInput.includes('sentiment')) {
+          analysis += `Sentiment distribution by department:\n${data.map(item => 
+            `- ${item.name}: ${item.value} tickets`
           ).join('\n')}`;
         }
-        // Add similar processing for other query types
       } else {
         analysis = "No relevant data found for your query.";
       }
