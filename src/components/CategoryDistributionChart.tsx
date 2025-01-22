@@ -69,10 +69,10 @@ export const CategoryDistributionChart = () => {
   });
 
   return (
-    <Card className="p-6 bg-white border border-gray-100">
+    <Card className="p-8 bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border-0">
       <div className="mb-6">
-        <h3 className="text-xl font-semibold text-black">Category Distribution</h3>
-        <p className="text-sm text-gray-600 mt-1">
+        <h3 className="text-2xl font-medium text-[#1a1a1a]">Category Distribution</h3>
+        <p className="text-base text-[#666666] mt-1">
           Distribution of tickets by category
         </p>
       </div>
@@ -104,11 +104,12 @@ export const CategoryDistributionChart = () => {
               contentStyle={{
                 backgroundColor: 'white',
                 border: '1px solid #e2e8f0',
-                borderRadius: '8px',
+                borderRadius: '12px',
                 padding: '8px 12px',
+                boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
               }}
               itemStyle={{
-                color: '#000000',
+                color: '#1a1a1a',
               }}
             />
             <Legend 
