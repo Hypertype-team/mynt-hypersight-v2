@@ -1,17 +1,49 @@
 import { PieChart, Pie, Cell, ResponsiveContainer, Label } from "recharts";
 import { Card } from "@/components/ui/card";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
-const data = [
-  { name: "Residential areas", value: 38, color: "#E88D7D" },
-  { name: "Public parking lots and garages", value: 10.9, color: "#FDE1D3" },
-  { name: "Public transportation hubs", value: 7.4, color: "#FFDEE2" },
-  { name: "Commercial and retail locations", value: 4.1, color: "#E5DEFF" },
-  { name: "Workplace", value: 2.7, color: "#D8E1FF" },
-];
-
-const TOTAL = "64 M";
+const COLORS = ["#E88D7D", "#FDE1D3", "#FFDEE2", "#E5DEFF", "#D8E1FF"];
 
 export const EVChargingLocationsChart = () => {
+  const { data: categoryData, isLoading } = useQuery({
+    queryKey: ['ticket-categories'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('ticket_analysis')
+        .select('category')
+        .not('category', 'is', null);
+
+      if (error) throw error;
+
+      // Count occurrences of each category
+      const categoryCounts = data.reduce((acc, curr) => {
+        if (curr.category) {
+          acc[curr.category] = (acc[curr.category] || 0) + 1;
+        }
+        return acc;
+      }, {} as Record<string, number>);
+
+      // Convert to array format needed for chart
+      const chartData = Object.entries(categoryCounts)
+        .map(([name, value]) => ({ name, value }))
+        .sort((a, b) => b.value - a.value) // Sort by value descending
+        .slice(0, 5); // Take top 5 categories
+
+      return chartData;
+    }
+  });
+
+  const total = categoryData?.reduce((sum, item) => sum + item.value, 0) || 0;
+
+  if (isLoading) {
+    return (
+      <Card className="p-8 rounded-3xl">
+        <div>Loading...</div>
+      </Card>
+    );
+  }
+
   return (
     <Card className="p-8 rounded-3xl">
       <div className="space-y-6">
@@ -19,20 +51,20 @@ export const EVChargingLocationsChart = () => {
           <div className="flex items-start justify-between">
             <div className="space-y-1">
               <h3 className="text-xl font-medium text-black">
-                The most popular locations for EV charging station
+                Top Issue Categories Distribution
               </h3>
-              <p className="text-base text-gray-600">Total residential areas</p>
+              <p className="text-base text-gray-600">Total issues analyzed</p>
             </div>
-            <span className="text-sm text-gray-500">M, areas</span>
+            <span className="text-sm text-gray-500">Count</span>
           </div>
-          <p className="text-4xl font-semibold text-black">{TOTAL}</p>
+          <p className="text-4xl font-semibold text-black">{total}</p>
         </div>
 
         <div className="h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
-                data={data}
+                data={categoryData}
                 cx="50%"
                 cy="50%"
                 innerRadius="70%"
@@ -42,10 +74,10 @@ export const EVChargingLocationsChart = () => {
                 startAngle={180}
                 endAngle={-180}
               >
-                {data.map((entry, index) => (
+                {categoryData?.map((entry, index) => (
                   <Cell 
                     key={`cell-${index}`} 
-                    fill={entry.color} 
+                    fill={COLORS[index % COLORS.length]} 
                     stroke="none"
                   />
                 ))}
@@ -59,7 +91,7 @@ export const EVChargingLocationsChart = () => {
                         dominantBaseline="middle"
                         className="fill-black font-medium text-2xl"
                       >
-                        {data[0].value}
+                        {categoryData?.[0]?.value || 0}
                       </text>
                     );
                   }}
@@ -70,11 +102,11 @@ export const EVChargingLocationsChart = () => {
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-          {data.map((item, index) => (
+          {categoryData?.map((item, index) => (
             <div key={index} className="flex items-center gap-2">
               <div
                 className="w-3 h-3 rounded"
-                style={{ backgroundColor: item.color }}
+                style={{ backgroundColor: COLORS[index % COLORS.length] }}
               />
               <span className="text-sm text-gray-600">{item.name}</span>
             </div>
