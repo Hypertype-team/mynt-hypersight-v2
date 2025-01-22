@@ -17,12 +17,14 @@ interface ChatPanelProps {
 export const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
-      text: "Hello! I can help you analyze your ticket data. Try asking questions like:\n\n" +
-        "- What are the most common issues and their patterns?\n" +
-        "- Can you summarize the tickets by category?\n" +
-        "- What are the department justifications for specific issues?\n" +
-        "- Are there any relevant documentation links?\n" +
-        "- What are the relationships between categories and subcategories?\n",
+      text: "👋 Hi! I'm your ticket analysis assistant. I can help you understand patterns and insights from your ticket data.\n\n" +
+        "Try asking questions like:\n\n" +
+        "• What are the most common issues we're seeing?\n" +
+        "• Can you summarize tickets by category?\n" +
+        "• What are the department justifications for specific issues?\n" +
+        "• Are there any documentation links I should know about?\n" +
+        "• How do categories and subcategories relate to each other?\n\n" +
+        "Feel free to ask anything about your ticket data!",
       isUser: false,
     },
   ]);
@@ -39,7 +41,6 @@ export const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
     setInput("");
 
     try {
-      // Call the analyze-tickets function using the Supabase client
       const { data, error } = await supabase.functions.invoke('analyze-tickets', {
         body: { query: input }
       });
@@ -63,13 +64,13 @@ export const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
       console.error('Error:', error);
       toast({
         title: "Analysis Failed",
-        description: "Failed to analyze the data. Please try again.",
+        description: "I couldn't analyze the data right now. Please try asking again.",
         variant: "destructive",
       });
       setMessages((prev) => [
         ...prev,
         {
-          text: "Sorry, I encountered an error while analyzing the data. Please try again.",
+          text: "I apologize, but I encountered an error while analyzing the data. Could you please try rephrasing your question or asking something else?",
           isUser: false,
         },
       ]);
