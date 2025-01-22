@@ -84,7 +84,7 @@ export const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
   return (
     <div
       className={cn(
-        "fixed right-0 w-96 bg-background border-l h-screen flex flex-col",
+        "h-full flex flex-col bg-background border-l",
         isOpen ? "translate-x-0" : "translate-x-full"
       )}
     >
