@@ -11,11 +11,14 @@ import {
 } from "recharts";
 
 const COLORS = [
-  "hsl(var(--primary))",
-  "hsl(var(--secondary))",
-  "hsl(var(--accent))",
-  "hsl(var(--destructive))",
-  "hsl(var(--muted))",
+  "#9b87f5", // Primary Purple
+  "#0EA5E9", // Ocean Blue
+  "#F97316", // Bright Orange
+  "#D946EF", // Magenta Pink
+  "#8B5CF6", // Vivid Purple
+  "#1EAEDB", // Bright Blue
+  "#7E69AB", // Secondary Purple
+  "#33C3F0", // Sky Blue
 ];
 
 export const CategoryDistributionChart = () => {
