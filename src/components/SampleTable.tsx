@@ -17,25 +17,25 @@ const data = [
 
 export const SampleTable = () => {
   return (
-    <Card>
+    <Card className="bg-secondary border-none">
       <div className="p-6 pb-0">
-        <h3 className="text-lg font-semibold">Product Performance</h3>
+        <h3 className="text-lg font-semibold text-white">Product Performance</h3>
         <p className="text-sm text-muted-foreground">Latest sales data</p>
       </div>
       <Table>
         <TableHeader>
-          <TableRow>
-            <TableHead>Product</TableHead>
-            <TableHead className="text-right">Sales</TableHead>
-            <TableHead className="text-right">Revenue</TableHead>
+          <TableRow className="border-white/10">
+            <TableHead className="text-white">Product</TableHead>
+            <TableHead className="text-right text-white">Sales</TableHead>
+            <TableHead className="text-right text-white">Revenue</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {data.map((row) => (
-            <TableRow key={row.id}>
-              <TableCell>{row.name}</TableCell>
-              <TableCell className="text-right">{row.sales}</TableCell>
-              <TableCell className="text-right">${row.revenue}</TableCell>
+            <TableRow key={row.id} className="border-white/10">
+              <TableCell className="text-white">{row.name}</TableCell>
+              <TableCell className="text-right text-white">{row.sales}</TableCell>
+              <TableCell className="text-right text-white">${row.revenue}</TableCell>
             </TableRow>
           ))}
         </TableBody>
