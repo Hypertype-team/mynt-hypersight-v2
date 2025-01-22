@@ -21,11 +21,10 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Get all ticket data without limit
+    // Get all ticket data
     const { data: tickets, error: ticketError } = await supabase
       .from('ticket_analysis')
-      .select('category, priority, responsible_department, sentiment, company_name, created_at')
-      .order('created_at', { ascending: false });
+      .select('*');
 
     if (ticketError) {
       console.error('Error fetching tickets:', ticketError);
@@ -38,6 +37,7 @@ serve(async (req) => {
           analysis: "No ticket data available for analysis.",
           chartSuggestion: "none",
           chartData: [],
+          followUpQuestions: [],
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
@@ -51,6 +51,7 @@ serve(async (req) => {
       departments: {},
       sentiments: {},
       companies: {},
+      issues: {},
     };
 
     tickets.forEach(ticket => {
@@ -62,11 +63,12 @@ serve(async (req) => {
       }
       if (ticket.sentiment) summary.sentiments[ticket.sentiment] = (summary.sentiments[ticket.sentiment] || 0) + 1;
       if (ticket.company_name) summary.companies[ticket.company_name] = (summary.companies[ticket.company_name] || 0) + 1;
+      if (ticket.issue_summary) summary.issues[ticket.issue_summary] = (summary.issues[ticket.issue_summary] || 0) + 1;
     });
 
     console.log('Data summary prepared:', summary);
 
-    // Call OpenAI API with the summarized data
+    // Call OpenAI API
     const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -74,20 +76,32 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4',
+        model: 'gpt-4o-mini',
         messages: [
           {
             role: 'system',
-            content: `You are a data analysis assistant. Analyze the ticket data summary and respond to user queries.
-            Format your response as JSON with:
+            content: `You are a data analysis assistant specialized in analyzing ticket data. 
+            You have access to ticket analysis data with the following summary: ${JSON.stringify(summary)}.
+            
+            When analyzing the data, consider:
+            - Distribution of tickets across categories
+            - Priority levels and their frequency
+            - Sentiment analysis trends
+            - Department workload distribution
+            - Company-specific patterns
+            - Common issues and their frequency
+            
+            Format your response as JSON with the following structure:
             {
-              "analysis": "brief text explanation of insights",
+              "analysis": "detailed text explanation of insights",
               "chartSuggestion": "bar" or "line",
-              "chartData": [{"name": "label", "value": number}]
+              "chartData": [{"name": "label", "value": number}, ...],
+              "followUpQuestions": ["question1", "question2", "question3"]
             }
-            Keep responses concise and ensure valid JSON.
-            Limit chartData to 10 items for readability.
-            Base your analysis on this data summary: ${JSON.stringify(summary)}`
+            
+            Keep your response concise and ensure the JSON is valid.
+            Limit chartData to 10 data points maximum for readability.
+            Include 3 relevant follow-up questions based on the current analysis.`
           },
           {
             role: 'user',
@@ -95,7 +109,7 @@ serve(async (req) => {
           }
         ],
         temperature: 0.7,
-        max_tokens: 500,
+        max_tokens: 1000,
       }),
     });
 
@@ -106,10 +120,6 @@ serve(async (req) => {
 
     const openAIData = await openAIResponse.json();
     console.log('OpenAI response:', openAIData);
-
-    if (!openAIData.choices?.[0]?.message?.content) {
-      throw new Error('Invalid response format from OpenAI');
-    }
 
     let parsedResponse;
     try {
@@ -137,6 +147,7 @@ serve(async (req) => {
         analysis: "Failed to analyze the data.",
         chartSuggestion: "none",
         chartData: [],
+        followUpQuestions: [],
       }),
       {
         status: 500,

@@ -39,7 +39,8 @@ export const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
             "- Show me the distribution of ticket priorities\n" +
             "- What are the most common categories?\n" +
             "- How are sentiments distributed across departments?\n" +
-            "- Which companies have the most tickets?",
+            "- Which companies have the most tickets?\n" +
+            "- What are the common issues reported?",
       isUser: false 
     },
   ]);
@@ -145,7 +146,7 @@ export const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
     >
       <div className="h-full flex flex-col">
         <div className="border-b p-4 flex items-center justify-between">
-          <h2 className="font-semibold">Data Analysis Assistant</h2>
+          <h2 className="font-semibold">Ticket Analysis Assistant</h2>
           <Button variant="ghost" size="icon" onClick={onClose}>
             <X className="h-4 w-4" />
           </Button>
