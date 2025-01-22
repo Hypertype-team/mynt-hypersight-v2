@@ -11,17 +11,17 @@ export const Sidebar = () => {
   ];
 
   return (
-    <div className="w-16 border-r border-white/10 bg-secondary flex flex-col items-center py-4 gap-4">
+    <div className="w-16 border-r bg-background flex flex-col items-center py-4 gap-4">
       {links.map(({ icon: Icon, label, path }) => (
         <Link
           key={path}
           to={path}
           className={cn(
-            "w-10 h-10 flex items-center justify-center rounded-lg transition-colors hover:bg-white/10",
-            location.pathname === path && "bg-white/10"
+            "w-10 h-10 flex items-center justify-center rounded-lg transition-colors hover:bg-accent",
+            location.pathname === path && "bg-accent"
           )}
         >
-          <Icon className="w-5 h-5 text-white" />
+          <Icon className="w-5 h-5" />
         </Link>
       ))}
     </div>
