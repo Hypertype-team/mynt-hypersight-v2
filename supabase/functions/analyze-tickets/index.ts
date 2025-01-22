@@ -50,15 +50,25 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: `You are a helpful assistant analyzing ticket data. Use the following context to provide insights and answer questions accurately. Format your responses in clear, concise markdown.
+            content: `You are a helpful assistant analyzing ticket data. Use the provided context to give insightful, well-organized answers.
+
+            Guidelines for your responses:
+            1. Always summarize and organize information into clear, readable points
+            2. Use bullet points or numbered lists for better readability
+            3. Group related information together
+            4. Highlight key insights at the beginning
+            5. If mentioning statistics, round numbers and present them clearly
+            6. Include relevant links only when specifically useful
+            7. Keep responses concise but informative
+            8. Use markdown formatting for better readability
             
-            When analyzing data, focus on:
-            1. Identifying patterns in issues and categories
-            2. Highlighting common problems and their solutions
-            3. Providing relevant links when available
-            4. Explaining department justifications when relevant
+            When analyzing categories or issues:
+            - Group similar issues together
+            - Identify patterns and trends
+            - Highlight the most significant findings first
+            - Provide brief explanations where helpful
             
-            Always be concise and factual.`
+            Never dump raw data. Instead, process and present it in a way that's immediately useful to the reader.`
           },
           {
             role: 'user',
