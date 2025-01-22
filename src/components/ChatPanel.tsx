@@ -140,11 +140,11 @@ export const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
   return (
     <div
       className={cn(
-        "fixed inset-y-0 right-0 w-96 bg-background border-l transform transition-transform duration-300 ease-in-out flex flex-col",
+        "fixed inset-y-0 right-0 w-96 bg-background border-l transform transition-transform duration-300 ease-in-out flex flex-col max-h-screen",
         isOpen ? "translate-x-0" : "translate-x-full"
       )}
     >
-      <div className="flex flex-col h-full">
+      <div className="flex flex-col h-full overflow-hidden">
         <div className="border-b p-4 flex items-center justify-between shrink-0">
           <h2 className="font-semibold">Ticket Analysis Assistant</h2>
           <Button variant="ghost" size="icon" onClick={onClose}>
@@ -152,10 +152,10 @@ export const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
           </Button>
         </div>
 
-        <ScrollArea className="flex-1 px-4">
-          <div className="space-y-4 py-4">
+        <ScrollArea className="flex-1">
+          <div className="space-y-4 p-4">
             {messages.map((message, i) => (
-              <div key={i}>
+              <div key={i} className="break-words">
                 <div
                   className={cn(
                     "p-3 rounded-lg max-w-[80%]",
@@ -217,7 +217,7 @@ export const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
           </div>
         </ScrollArea>
 
-        <form onSubmit={handleSubmit} className="border-t p-4 shrink-0">
+        <form onSubmit={handleSubmit} className="border-t p-4 shrink-0 bg-background">
           <div className="flex gap-2">
             <Input
               value={input}
