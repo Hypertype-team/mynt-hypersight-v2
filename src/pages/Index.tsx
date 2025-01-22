@@ -1,6 +1,7 @@
 import { Layout } from "@/components/Layout";
 import { TicketAnalysisTable } from "@/components/TicketAnalysisTable";
 import { CategoryBreakdownChart } from "@/components/CategoryBreakdownChart";
+import { EVChargingLocationsChart } from "@/components/EVChargingLocationsChart";
 
 const Index = () => {
   return (
@@ -14,6 +15,7 @@ const Index = () => {
         </div>
         <div className="grid gap-6 md:grid-cols-2">
           <CategoryBreakdownChart />
+          <EVChargingLocationsChart />
         </div>
         <TicketAnalysisTable />
       </div>
