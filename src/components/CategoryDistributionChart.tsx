@@ -21,6 +21,33 @@ const COLORS = [
   "#33C3F0", // Sky Blue
 ];
 
+const RADIAN = Math.PI / 180;
+const renderCustomizedLabel = ({
+  cx,
+  cy,
+  midAngle,
+  innerRadius,
+  outerRadius,
+  percent,
+}: any) => {
+  const radius = innerRadius + (outerRadius - innerRadius) * 0.6;
+  const x = cx + radius * Math.cos(-midAngle * RADIAN);
+  const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+  return (
+    <text
+      x={x}
+      y={y}
+      fill="white"
+      textAnchor={x > cx ? 'start' : 'end'}
+      dominantBaseline="central"
+      className="text-xs font-medium"
+    >
+      {`${(percent * 100).toFixed(0)}%`}
+    </text>
+  );
+};
+
 export const CategoryDistributionChart = () => {
   const { data: chartData } = useQuery({
     queryKey: ["category-distribution"],
@@ -61,18 +88,36 @@ export const CategoryDistributionChart = () => {
               nameKey="name"
               cx="50%"
               cy="50%"
+              innerRadius={60}
               outerRadius={100}
-              label={(entry) => entry.name}
+              paddingAngle={2}
+              labelLine={false}
+              label={renderCustomizedLabel}
             >
               {chartData?.map((_, index) => (
                 <Cell
                   key={`cell-${index}`}
                   fill={COLORS[index % COLORS.length]}
+                  strokeWidth={1}
                 />
               ))}
             </Pie>
-            <Tooltip />
-            <Legend />
+            <Tooltip 
+              formatter={(value: number) => [`${value} tickets`, 'Count']}
+              contentStyle={{
+                borderRadius: '8px',
+                border: '1px solid var(--border)',
+                backgroundColor: 'var(--background)',
+              }}
+            />
+            <Legend 
+              layout="horizontal" 
+              verticalAlign="bottom" 
+              align="center"
+              wrapperStyle={{
+                paddingTop: '20px',
+              }}
+            />
           </PieChart>
         </ResponsiveContainer>
       </div>
