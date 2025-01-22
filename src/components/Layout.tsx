@@ -9,7 +9,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
         <div className="flex-1 overflow-auto px-6 py-6">
           {children}
         </div>
-        <div className="w-[400px] overflow-hidden">
+        <div className="w-[400px] border-l">
           <ChatPanel isOpen={true} onClose={() => {}} />
         </div>
       </main>

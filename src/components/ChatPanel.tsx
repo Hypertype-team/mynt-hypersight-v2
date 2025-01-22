@@ -84,7 +84,7 @@ export const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
   return (
     <div
       className={cn(
-        "h-full flex flex-col bg-background",
+        "h-full flex flex-col bg-background border-l",
         isOpen ? "translate-x-0" : "translate-x-full"
       )}
     >
@@ -107,7 +107,7 @@ export const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
         </div>
       </ScrollArea>
 
-      <div className="border-t">
+      <div className="border-t mt-auto">
         <ChatInput
           input={input}
           isLoading={isLoading}
