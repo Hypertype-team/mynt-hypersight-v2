@@ -27,6 +27,13 @@ serve(async (req) => {
 
     if (error) throw error;
 
+    // Get all valid links from the database
+    const validLinks = new Set(
+      tickets
+        .filter(ticket => ticket.link)
+        .map(ticket => ticket.link)
+    );
+
     // Format the context for OpenAI
     const context = tickets.map(ticket => ({
       summary: ticket.summary,
@@ -46,19 +53,19 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'gpt-4-turbo-preview',
         messages: [
           {
             role: 'system',
             content: `You are a helpful assistant analyzing ticket data. Use the provided context to give insightful, well-organized answers.
-
+            
             Guidelines for your responses:
             1. Always summarize and organize information into clear, readable points
             2. Use bullet points or numbered lists for better readability
             3. Group related information together
             4. Highlight key insights at the beginning
             5. If mentioning statistics, round numbers and present them clearly
-            6. Include relevant links only when specifically useful
+            6. Only include links that are present in this list: ${Array.from(validLinks).join(', ')}
             7. Keep responses concise but informative
             8. Use markdown formatting for better readability
             
@@ -68,7 +75,9 @@ serve(async (req) => {
             - Highlight the most significant findings first
             - Provide brief explanations where helpful
             
-            Never dump raw data. Instead, process and present it in a way that's immediately useful to the reader.`
+            Never dump raw data. Instead, process and present it in a way that's immediately useful to the reader.
+            
+            IMPORTANT: When including links in your response, ONLY use links from the validated list provided. Do not make up or suggest any links that aren't in the database.`
           },
           {
             role: 'user',
@@ -83,8 +92,15 @@ serve(async (req) => {
     const result = await response.json();
     const answer = result.choices[0].message.content;
 
+    // Post-process the answer to ensure only valid links are included
+    let processedAnswer = answer;
+    const markdownLinkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
+    processedAnswer = processedAnswer.replace(markdownLinkRegex, (match, text, url) => {
+      return validLinks.has(url) ? match : text;
+    });
+
     return new Response(
-      JSON.stringify({ answer }),
+      JSON.stringify({ answer: processedAnswer }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     );
   } catch (error) {
