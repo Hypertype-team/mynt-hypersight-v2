@@ -84,30 +84,30 @@ export const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
   return (
     <div
       className={cn(
-        "fixed inset-y-0 right-0 w-96 bg-background border-l transform transition-transform duration-300 ease-in-out h-screen",
+        "fixed right-0 w-96 bg-background border-l h-screen flex flex-col",
         isOpen ? "translate-x-0" : "translate-x-full"
       )}
     >
-      <div className="flex flex-col h-full">
-        <div className="border-b p-4 flex items-center justify-between shrink-0">
-          <h2 className="font-semibold">Ticket Analysis Assistant</h2>
-          <Button variant="ghost" size="icon" onClick={onClose}>
-            <X className="h-4 w-4" />
-          </Button>
+      <div className="border-b p-4 flex items-center justify-between">
+        <h2 className="font-semibold">Ticket Analysis Assistant</h2>
+        <Button variant="ghost" size="icon" onClick={onClose}>
+          <X className="h-4 w-4" />
+        </Button>
+      </div>
+
+      <ScrollArea className="flex-1 px-4">
+        <div className="py-4 space-y-4">
+          {messages.map((message, i) => (
+            <Message
+              key={i}
+              message={message}
+              onFollowUpClick={handleFollowUpClick}
+            />
+          ))}
         </div>
+      </ScrollArea>
 
-        <ScrollArea className="flex-1">
-          <div className="space-y-4 p-4">
-            {messages.map((message, i) => (
-              <Message
-                key={i}
-                message={message}
-                onFollowUpClick={handleFollowUpClick}
-              />
-            ))}
-          </div>
-        </ScrollArea>
-
+      <div className="border-t mt-auto">
         <ChatInput
           input={input}
           isLoading={isLoading}
