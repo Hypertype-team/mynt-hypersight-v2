@@ -22,15 +22,15 @@ export const SampleChart = () => {
   return (
     <Card className="p-6">
       <div className="mb-4">
-        <h3 className="text-lg font-semibold">Monthly Performance</h3>
-        <p className="text-sm text-muted-foreground">Last 6 months of data</p>
+        <h3 className="text-lg font-semibold text-black">Monthly Performance</h3>
+        <p className="text-gray-600">Last 6 months of data</p>
       </div>
       <div className="h-[300px]">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data}>
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="name" />
-            <YAxis />
+            <XAxis dataKey="name" stroke="#000000" />
+            <YAxis stroke="#000000" />
             <Tooltip />
             <Line
               type="monotone"
