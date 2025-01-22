@@ -82,14 +82,7 @@ export const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
   };
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="border-b p-4 flex items-center justify-between">
-        <h2 className="font-semibold">Ticket Analysis Assistant</h2>
-        <Button variant="ghost" size="icon" onClick={onClose}>
-          <X className="h-4 w-4" />
-        </Button>
-      </div>
-
+    <div className="flex flex-col h-full bg-background">
       <ScrollArea className="flex-1">
         <div className="p-4 space-y-4">
           {messages.map((message, i) => (
