@@ -82,12 +82,7 @@ export const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
   };
 
   return (
-    <div
-      className={cn(
-        "h-full flex flex-col bg-background border-l",
-        isOpen ? "translate-x-0" : "translate-x-full"
-      )}
-    >
+    <div className="flex flex-col h-full">
       <div className="border-b p-4 flex items-center justify-between">
         <h2 className="font-semibold">Ticket Analysis Assistant</h2>
         <Button variant="ghost" size="icon" onClick={onClose}>
@@ -95,8 +90,8 @@ export const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
         </Button>
       </div>
 
-      <ScrollArea className="flex-1 px-4">
-        <div className="py-4 space-y-4">
+      <ScrollArea className="flex-1">
+        <div className="p-4 space-y-4">
           {messages.map((message, i) => (
             <Message
               key={i}
@@ -107,7 +102,7 @@ export const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
         </div>
       </ScrollArea>
 
-      <div className="border-t mt-auto">
+      <div className="border-t">
         <ChatInput
           input={input}
           isLoading={isLoading}
