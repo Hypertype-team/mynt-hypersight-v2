@@ -18,11 +18,11 @@ export const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       text: "Hello! I can help you analyze your ticket data. Try asking questions like:\n\n" +
-        "- What are the common issues in high-priority tickets?\n" +
-        "- How are different departments handling customer complaints?\n" +
-        "- What patterns do you see in recent technical issues?\n" +
-        "- Which categories have the most critical tickets?\n" +
-        "- What are the trending issues this month?",
+        "- Show me the distribution of ticket priorities\n" +
+        "- What are the most common categories?\n" +
+        "- How are sentiments distributed across departments?\n" +
+        "- Which companies have the most tickets?\n" +
+        "- What are the common issues reported?",
       isUser: false,
     },
   ]);
@@ -39,19 +39,22 @@ export const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
     setInput("");
 
     try {
-      const response = await supabase.functions.invoke('chat-rag', {
+      const response = await supabase.functions.invoke('analyze-charts', {
         body: { prompt: input },
       });
 
       if (response.error) throw response.error;
 
-      const { analysis, followUpQuestions } = response.data;
+      const { analysis, chartSuggestion, chartData, followUpQuestions } = response.data;
 
       setMessages((prev) => [
         ...prev,
         {
           text: analysis,
           isUser: false,
+          chartData: chartData,
+          chartType: chartSuggestion.toLowerCase().includes('bar') ? 'bar' : 'line',
+          analysis: analysis,
           followUpQuestions: followUpQuestions,
         },
       ]);
