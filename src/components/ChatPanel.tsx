@@ -17,14 +17,19 @@ interface ChatPanelProps {
 export const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
-      text: "👋 Hi! I'm your ticket analysis assistant. I can help you understand patterns and insights from your ticket data.\n\n" +
-        "Try asking questions like:\n\n" +
-        "• What are the most common issues we're seeing?\n" +
-        "• Can you summarize tickets by category?\n" +
-        "• What are the department justifications for specific issues?\n" +
-        "• Are there any documentation links I should know about?\n" +
-        "• How do categories and subcategories relate to each other?\n\n" +
-        "Feel free to ask anything about your ticket data!",
+      text: `# 👋 Welcome to Your Ticket Analysis Assistant!
+
+I'm here to help you understand patterns and insights from your ticket data. I can analyze trends, summarize issues, and provide valuable insights to help you make informed decisions.
+
+## 💡 Try asking questions like:
+
+* 📊 "What are the most common issues we're seeing?"
+* 📑 "Can you summarize tickets by category?"
+* 🏢 "What are the department justifications for specific issues?"
+* 📚 "Are there any documentation links I should know about?"
+* 🔍 "How do categories and subcategories relate to each other?"
+
+I'll provide organized, easy-to-read responses with relevant insights from your ticket data. Feel free to ask anything!`,
       isUser: false,
     },
   ]);
