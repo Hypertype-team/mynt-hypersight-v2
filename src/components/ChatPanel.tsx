@@ -18,11 +18,11 @@ export const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       text: "Hello! I can help you analyze your ticket data. Try asking questions like:\n\n" +
-        "- What are the common issues reported?\n" +
-        "- Show me ticket summaries by category\n" +
-        "- What are the subcategories?\n" +
-        "- Show me department justifications\n" +
-        "- What are the related links?\n",
+        "- What are the most common issues and their patterns?\n" +
+        "- Can you summarize the tickets by category?\n" +
+        "- What are the department justifications for specific issues?\n" +
+        "- Are there any relevant documentation links?\n" +
+        "- What are the relationships between categories and subcategories?\n",
       isUser: false,
     },
   ]);
@@ -39,135 +39,35 @@ export const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
     setInput("");
 
     try {
-      const lowercaseInput = input.toLowerCase();
-      let data;
-      let error;
-      let analysis = "Based on the ticket analysis:\n\n";
-      let chartData: any[] = [];
-      let chartType: "bar" | "line" = "bar";
-
-      if (lowercaseInput.includes('issue') || lowercaseInput.includes('problem')) {
-        const result = await supabase
-          .from('ticket_analysis')
-          .select('issue, common_issue')
-          .not('issue', 'is', null);
-        data = result.data;
-        error = result.error;
-
-        if (data) {
-          const issueCount = data.reduce((acc: Record<string, number>, item) => {
-            if (item.common_issue) {
-              acc[item.common_issue] = (acc[item.common_issue] || 0) + 1;
-            }
-            return acc;
-          }, {});
-
-          chartData = Object.entries(issueCount).map(([name, value]) => ({
-            name,
-            value
-          }));
-
-          analysis += "Common issues reported:\n" + 
-            Object.entries(issueCount)
-              .map(([issue, count]) => `- ${issue}: ${count} tickets`)
-              .join('\n');
+      // Call the analyze-tickets function
+      const response = await fetch(
+        'https://pzppkiwucwxdopggylmd.supabase.co/functions/v1/analyze-tickets',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${process.env.SUPABASE_ANON_KEY}`,
+          },
+          body: JSON.stringify({ query: input }),
         }
-      } else if (lowercaseInput.includes('summary') || lowercaseInput.includes('category')) {
-        const result = await supabase
-          .from('ticket_analysis')
-          .select('summary, category')
-          .not('summary', 'is', null);
-        data = result.data;
-        error = result.error;
+      );
 
-        if (data) {
-          const categoryCount = data.reduce((acc: Record<string, number>, item) => {
-            if (item.category) {
-              acc[item.category] = (acc[item.category] || 0) + 1;
-            }
-            return acc;
-          }, {});
-
-          chartData = Object.entries(categoryCount).map(([name, value]) => ({
-            name,
-            value
-          }));
-
-          analysis += "Summaries by category:\n" +
-            Object.entries(categoryCount)
-              .map(([category, count]) => `- ${category}: ${count} tickets`)
-              .join('\n');
-        }
-      } else if (lowercaseInput.includes('subcategory')) {
-        const result = await supabase
-          .from('ticket_analysis')
-          .select('category, subcategory')
-          .not('subcategory', 'is', null);
-        data = result.data;
-        error = result.error;
-
-        if (data) {
-          const subcategoryCount = data.reduce((acc: Record<string, number>, item) => {
-            if (item.subcategory) {
-              acc[item.subcategory] = (acc[item.subcategory] || 0) + 1;
-            }
-            return acc;
-          }, {});
-
-          chartData = Object.entries(subcategoryCount).map(([name, value]) => ({
-            name,
-            value
-          }));
-
-          analysis += "Subcategories distribution:\n" +
-            Object.entries(subcategoryCount)
-              .map(([subcategory, count]) => `- ${subcategory}: ${count} tickets`)
-              .join('\n');
-        }
-      } else if (lowercaseInput.includes('justification') || lowercaseInput.includes('department')) {
-        const result = await supabase
-          .from('ticket_analysis')
-          .select('responsible_department, responsible_department_justification')
-          .not('responsible_department_justification', 'is', null);
-        data = result.data;
-        error = result.error;
-
-        if (data) {
-          analysis += "Department justifications:\n" +
-            data.map(item => 
-              `- ${item.responsible_department}: ${item.responsible_department_justification}`
-            ).join('\n');
-        }
-      } else if (lowercaseInput.includes('link')) {
-        const result = await supabase
-          .from('ticket_analysis')
-          .select('category, link')
-          .not('link', 'is', null);
-        data = result.data;
-        error = result.error;
-
-        if (data) {
-          analysis += "Related links by category:\n" +
-            data.map(item => 
-              `- ${item.category}: ${item.link}`
-            ).join('\n');
-        }
+      if (!response.ok) {
+        throw new Error('Failed to analyze tickets');
       }
 
-      if (error) throw error;
+      const { answer } = await response.json();
 
       setMessages((prev) => [
         ...prev,
         {
-          text: analysis || "No relevant data found for your query.",
+          text: answer,
           isUser: false,
-          chartData: chartData,
-          chartType: chartType,
           followUpQuestions: [
-            "What are the common issues reported?",
+            "What are the most common issues?",
             "Show me ticket summaries by category",
-            "What are the subcategories?",
-            "Show me department justifications",
+            "What are the department justifications?",
+            "Are there any relevant documentation links?",
           ],
         },
       ]);
