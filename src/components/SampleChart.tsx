@@ -20,10 +20,12 @@ const data = [
 
 export const SampleChart = () => {
   return (
-    <Card className="p-6 bg-white border border-gray-100">
+    <Card className="p-8 bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border-0">
       <div className="mb-6">
-        <h3 className="text-xl font-semibold text-black">Monthly Performance</h3>
-        <p className="text-sm text-gray-600 mt-1">Last 6 months of data</p>
+        <h3 className="text-2xl font-medium text-[#1a1a1a]">Monthly Performance</h3>
+        <p className="text-base text-[#666666] mt-1">
+          Last 6 months of data
+        </p>
       </div>
       <div className="h-[300px]">
         <ResponsiveContainer width="100%" height="100%">
@@ -31,31 +33,32 @@ export const SampleChart = () => {
             <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
             <XAxis 
               dataKey="name" 
-              stroke="#000000"
-              tick={{ fill: '#000000' }}
+              stroke="#1a1a1a"
+              tick={{ fill: '#1a1a1a' }}
             />
             <YAxis 
-              stroke="#000000"
-              tick={{ fill: '#000000' }}
+              stroke="#1a1a1a"
+              tick={{ fill: '#1a1a1a' }}
             />
             <Tooltip
               contentStyle={{
                 backgroundColor: 'white',
                 border: '1px solid #e2e8f0',
-                borderRadius: '8px',
+                borderRadius: '12px',
                 padding: '8px 12px',
+                boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
               }}
               itemStyle={{
-                color: '#000000',
+                color: '#1a1a1a',
               }}
             />
             <Line
               type="monotone"
               dataKey="value"
-              stroke="#F8D7E8"
+              stroke="#E88D7D"
               strokeWidth={3}
-              dot={{ fill: '#F8D7E8', strokeWidth: 2 }}
-              activeDot={{ r: 6, fill: '#E5DEFF' }}
+              dot={{ fill: '#E88D7D', strokeWidth: 2 }}
+              activeDot={{ r: 6, fill: '#FFE5D3' }}
             />
           </LineChart>
         </ResponsiveContainer>
