@@ -11,14 +11,11 @@ import {
 } from "recharts";
 
 const COLORS = [
-  "#9b87f5", // Primary Purple
-  "#6366f1", // Accent Blue
-  "#8b5cf6", // Bright Purple
-  "#7c3aed", // Deep Purple
-  "#6d28d9", // Royal Purple
-  "#5b21b6", // Dark Purple
-  "#4c1d95", // Deep Violet
-  "#4338ca", // Indigo
+  "#E88D7D", // Soft Coral
+  "#FFE5D3", // Soft Peach
+  "#F8D7E8", // Soft Pink
+  "#E5DEFF", // Soft Purple
+  "#D3E4FD", // Soft Blue
 ];
 
 const RADIAN = Math.PI / 180;
@@ -30,7 +27,7 @@ const renderCustomizedLabel = ({
   outerRadius,
   percent,
 }: any) => {
-  const radius = innerRadius + (outerRadius - innerRadius) * 0.6;
+  const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
   const x = cx + radius * Math.cos(-midAngle * RADIAN);
   const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
@@ -38,12 +35,12 @@ const renderCustomizedLabel = ({
     <text
       x={x}
       y={y}
-      fill="white"
+      fill="#000000"
       textAnchor={x > cx ? 'start' : 'end'}
       dominantBaseline="central"
-      className="text-xs font-medium"
+      className="text-sm font-medium"
     >
-      {`${(percent * 100).toFixed(0)}%`}
+      {`${(percent * 100).toFixed(1)}`}
     </text>
   );
 };
@@ -72,10 +69,10 @@ export const CategoryDistributionChart = () => {
   });
 
   return (
-    <Card className="p-6 bg-secondary border-none">
-      <div className="mb-4">
-        <h3 className="text-lg font-semibold text-white">Category Distribution</h3>
-        <p className="text-sm text-muted-foreground">
+    <Card className="p-6 bg-white border border-gray-100">
+      <div className="mb-6">
+        <h3 className="text-xl font-semibold text-black">Category Distribution</h3>
+        <p className="text-sm text-gray-600 mt-1">
           Distribution of tickets by category
         </p>
       </div>
@@ -88,9 +85,9 @@ export const CategoryDistributionChart = () => {
               nameKey="name"
               cx="50%"
               cy="50%"
-              innerRadius={60}
-              outerRadius={100}
-              paddingAngle={2}
+              innerRadius={80}
+              outerRadius={120}
+              paddingAngle={4}
               labelLine={false}
               label={renderCustomizedLabel}
             >
@@ -98,17 +95,20 @@ export const CategoryDistributionChart = () => {
                 <Cell
                   key={`cell-${index}`}
                   fill={COLORS[index % COLORS.length]}
-                  strokeWidth={1}
+                  stroke="none"
                 />
               ))}
             </Pie>
             <Tooltip 
-              formatter={(value: number) => [`${value} tickets`, 'Count']}
+              formatter={(value: number) => [`${value}`, 'Count']}
               contentStyle={{
+                backgroundColor: 'white',
+                border: '1px solid #e2e8f0',
                 borderRadius: '8px',
-                backgroundColor: '#1a1d2d',
-                border: '1px solid rgba(255,255,255,0.1)',
-                color: 'white',
+                padding: '8px 12px',
+              }}
+              itemStyle={{
+                color: '#000000',
               }}
             />
             <Legend 
