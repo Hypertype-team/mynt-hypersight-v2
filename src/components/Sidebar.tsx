@@ -1,4 +1,4 @@
-import { BarChart3, Table } from "lucide-react";
+import { BarChart3, Table, MessageCircle } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
@@ -8,6 +8,7 @@ export const Sidebar = () => {
   const links = [
     { icon: BarChart3, label: "Charts", path: "/" },
     { icon: Table, label: "Tables", path: "/tables" },
+    { icon: MessageCircle, label: "Chat", path: "/chat" },
   ];
 
   return (
