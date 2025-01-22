@@ -1,3 +1,12 @@
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Card } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
@@ -15,13 +24,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Card } from "@/components/ui/card";
-import { ChevronDown, ChevronUp } from "lucide-react";
 
 export const TicketAnalysisTable = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [expandedTickets, setExpandedTickets] = useState<number[]>([]);
 
   const { data, isLoading } = useQuery({
     queryKey: ["tickets", currentPage, itemsPerPage],
@@ -33,7 +39,6 @@ export const TicketAnalysisTable = () => {
       const { data, error } = await supabase
         .from("ticket_analysis")
         .select("*")
-        .order("category", { ascending: true })
         .order("created_at", { ascending: false })
         .range(
           (currentPage - 1) * itemsPerPage,
@@ -42,18 +47,8 @@ export const TicketAnalysisTable = () => {
 
       if (error) throw error;
 
-      // Group tickets by category
-      const groupedTickets = data.reduce((acc, ticket) => {
-        const category = ticket.category || "Uncategorized";
-        if (!acc[category]) {
-          acc[category] = [];
-        }
-        acc[category].push(ticket);
-        return acc;
-      }, {} as Record<string, typeof data>);
-
       return {
-        groupedTickets,
+        tickets: data,
         totalCount: count || 0,
         totalPages: Math.ceil((count || 0) / itemsPerPage),
       };
@@ -68,93 +63,47 @@ export const TicketAnalysisTable = () => {
     );
   }
 
+  const tickets = data?.tickets || [];
   const totalPages = data?.totalPages || 1;
-  const groupedTickets = data?.groupedTickets || {};
 
   const handleItemsPerPageChange = (value: string) => {
     setItemsPerPage(Number(value));
     setCurrentPage(1);
   };
 
-  const toggleTicketExpansion = (ticketId: number) => {
-    setExpandedTickets((prev) =>
-      prev.includes(ticketId)
-        ? prev.filter((id) => id !== ticketId)
-        : [...prev, ticketId]
-    );
-  };
-
   return (
-    <div className="space-y-4 w-full max-w-[calc(100%-24rem)]">
-      {Object.entries(groupedTickets).map(([category, tickets]) => (
-        <Card key={category} className="p-6">
-          <h2 className="text-xl font-bold mb-4">{category}</h2>
-          <div className="space-y-4">
+    <Card className="w-full">
+      <div className="p-6 pb-0">
+        <h3 className="text-lg font-semibold">Ticket Analysis</h3>
+        <p className="text-sm text-muted-foreground">Overview of analyzed tickets</p>
+      </div>
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Company</TableHead>
+              <TableHead>Category</TableHead>
+              <TableHead>Issue</TableHead>
+              <TableHead>Priority</TableHead>
+              <TableHead>Sentiment</TableHead>
+              <TableHead>Department</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {tickets.map((ticket) => (
-              <Card key={ticket.id} className="p-4">
-                <div 
-                  className="flex items-center justify-between cursor-pointer"
-                  onClick={() => toggleTicketExpansion(ticket.id)}
-                >
-                  <div>
-                    <h3 className="text-lg font-semibold">
-                      {ticket.issue_summary || "No Issue Summary"}
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                      {ticket.company_name || "No Company Name"}
-                    </p>
-                  </div>
-                  {expandedTickets.includes(ticket.id) ? (
-                    <ChevronUp className="h-5 w-5" />
-                  ) : (
-                    <ChevronDown className="h-5 w-5" />
-                  )}
-                </div>
-
-                {expandedTickets.includes(ticket.id) && (
-                  <div className="mt-4 space-y-3 border-t pt-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <p className="text-sm font-medium">State</p>
-                        <p className="text-sm text-muted-foreground">{ticket.state || "N/A"}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium">Read Status</p>
-                        <p className="text-sm text-muted-foreground">
-                          {ticket.read ? "Read" : "Unread"}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium">Priority</p>
-                        <p className="text-sm text-muted-foreground">{ticket.priority || "N/A"}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium">Sentiment</p>
-                        <p className="text-sm text-muted-foreground">{ticket.sentiment || "N/A"}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium">Department</p>
-                        <p className="text-sm text-muted-foreground">
-                          {ticket.responsible_department || "N/A"}
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <p className="text-sm font-medium">Summary</p>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        {ticket.summary || "No summary available"}
-                      </p>
-                    </div>
-                  </div>
-                )}
-              </Card>
+              <TableRow key={ticket.id}>
+                <TableCell>{ticket.company_name || "N/A"}</TableCell>
+                <TableCell>{ticket.category || "N/A"}</TableCell>
+                <TableCell>{ticket.issue_summary || "N/A"}</TableCell>
+                <TableCell>{ticket.priority || "N/A"}</TableCell>
+                <TableCell>{ticket.sentiment || "N/A"}</TableCell>
+                <TableCell>{ticket.responsible_department || "N/A"}</TableCell>
+              </TableRow>
             ))}
-          </div>
-        </Card>
-      ))}
-
-      <div className="flex items-center justify-between mt-4">
+          </TableBody>
+        </Table>
+      </div>
+      <div className="p-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="text-sm text-muted-foreground">Items per page:</span>
           <Select
@@ -204,6 +153,6 @@ export const TicketAnalysisTable = () => {
           </PaginationContent>
         </Pagination>
       </div>
-    </div>
+    </Card>
   );
 };
