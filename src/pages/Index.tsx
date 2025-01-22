@@ -1,6 +1,5 @@
 import { Layout } from "@/components/Layout";
 import { TicketAnalysisTable } from "@/components/TicketAnalysisTable";
-import { CategoryBreakdownChart } from "@/components/CategoryBreakdownChart";
 import { PriorityDistributionChart } from "@/components/PriorityDistributionChart";
 import { SentimentTrendChart } from "@/components/SentimentTrendChart";
 import { DepartmentWorkloadChart } from "@/components/DepartmentWorkloadChart";
@@ -16,10 +15,9 @@ const Index = () => {
           </p>
         </div>
         <div className="grid gap-6 md:grid-cols-2">
-          <CategoryBreakdownChart />
           <PriorityDistributionChart />
-          <SentimentTrendChart />
           <DepartmentWorkloadChart />
+          <SentimentTrendChart />
         </div>
         <TicketAnalysisTable />
       </div>
