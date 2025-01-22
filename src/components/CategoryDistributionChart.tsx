@@ -2,14 +2,21 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
+  PieChart,
+  Pie,
+  Cell,
   Tooltip,
   ResponsiveContainer,
+  Legend,
 } from "recharts";
+
+const COLORS = [
+  "hsl(var(--primary))",
+  "hsl(var(--secondary))",
+  "hsl(var(--accent))",
+  "hsl(var(--destructive))",
+  "hsl(var(--muted))",
+];
 
 export const CategoryDistributionChart = () => {
   const { data: chartData } = useQuery({
@@ -39,22 +46,31 @@ export const CategoryDistributionChart = () => {
       <div className="mb-4">
         <h3 className="text-lg font-semibold">Category Distribution</h3>
         <p className="text-sm text-muted-foreground">
-          Number of tickets per category
+          Distribution of tickets by category
         </p>
       </div>
       <div className="h-[300px]">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="name" />
-            <YAxis />
-            <Tooltip />
-            <Bar
+          <PieChart>
+            <Pie
+              data={chartData}
               dataKey="value"
-              fill="hsl(var(--primary))"
-              name="Count"
-            />
-          </BarChart>
+              nameKey="name"
+              cx="50%"
+              cy="50%"
+              outerRadius={100}
+              label={(entry) => entry.name}
+            >
+              {chartData?.map((_, index) => (
+                <Cell
+                  key={`cell-${index}`}
+                  fill={COLORS[index % COLORS.length]}
+                />
+              ))}
+            </Pie>
+            <Tooltip />
+            <Legend />
+          </PieChart>
         </ResponsiveContainer>
       </div>
     </Card>
