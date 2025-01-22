@@ -39,29 +39,17 @@ export const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
     setInput("");
 
     try {
-      // Call the analyze-tickets function
-      const response = await fetch(
-        'https://pzppkiwucwxdopggylmd.supabase.co/functions/v1/analyze-tickets',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${process.env.SUPABASE_ANON_KEY}`,
-          },
-          body: JSON.stringify({ query: input }),
-        }
-      );
+      // Call the analyze-tickets function using the Supabase client
+      const { data, error } = await supabase.functions.invoke('analyze-tickets', {
+        body: { query: input }
+      });
 
-      if (!response.ok) {
-        throw new Error('Failed to analyze tickets');
-      }
-
-      const { answer } = await response.json();
+      if (error) throw error;
 
       setMessages((prev) => [
         ...prev,
         {
-          text: answer,
+          text: data.answer,
           isUser: false,
           followUpQuestions: [
             "What are the most common issues?",
