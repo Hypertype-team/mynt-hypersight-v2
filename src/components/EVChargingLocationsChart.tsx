@@ -50,16 +50,11 @@ export const EVChargingLocationsChart = () => {
                   />
                 ))}
                 <Label
-                  content={({ viewBox }) => {
-                    // Explicitly type the viewBox properties
-                    const { x, y, width, height } = viewBox;
-                    // Calculate center coordinates
-                    const cx = x + width / 2;
-                    const cy = y + height / 2;
+                  content={({ viewBox }: { viewBox: { cx: number; cy: number } }) => {
                     return (
                       <text
-                        x={cx}
-                        y={cy}
+                        x={viewBox.cx}
+                        y={viewBox.cy}
                         textAnchor="middle"
                         dominantBaseline="middle"
                         className="fill-black font-medium text-2xl"
