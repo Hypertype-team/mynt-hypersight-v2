@@ -8,24 +8,40 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { 
+      headers: corsHeaders,
+      status: 200
+    });
   }
 
   try {
+    // Parse the request body
     const { query } = await req.json();
+
+    if (!query) {
+      throw new Error('Query is required');
+    }
 
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+    console.log('Fetching ticket data for query:', query);
+
     // Fetch relevant data from ticket_analysis
     const { data: tickets, error } = await supabase
       .from('ticket_analysis')
       .select('summary, issue, common_issue, category, subcategory, link, responsible_department_justification');
 
-    if (error) throw error;
+    if (error) {
+      console.error('Database query error:', error);
+      throw error;
+    }
+
+    console.log('Retrieved ticket count:', tickets?.length);
 
     // Get all valid links from the database
     const validLinks = new Set(
@@ -44,6 +60,8 @@ serve(async (req) => {
       link: ticket.link,
       justification: ticket.responsible_department_justification
     }));
+
+    console.log('Calling OpenAI API');
 
     // Call OpenAI API
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -89,8 +107,15 @@ serve(async (req) => {
       }),
     });
 
+    if (!response.ok) {
+      console.error('OpenAI API error:', await response.text());
+      throw new Error('Failed to get response from OpenAI');
+    }
+
     const result = await response.json();
     const answer = result.choices[0].message.content;
+
+    console.log('Successfully generated response');
 
     // Post-process the answer to ensure only valid links are included
     let processedAnswer = answer;
@@ -101,15 +126,27 @@ serve(async (req) => {
 
     return new Response(
       JSON.stringify({ answer: processedAnswer }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      { 
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'application/json' 
+        },
+        status: 200
+      },
     );
   } catch (error) {
-    console.error('Error:', error);
+    console.error('Error in analyze-tickets function:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: error.message,
+        details: error.stack 
+      }),
       { 
         status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'application/json' 
+        },
       },
     );
   }
