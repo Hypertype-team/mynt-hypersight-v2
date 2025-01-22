@@ -11,46 +11,43 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-export const DepartmentWorkloadChart = () => {
+export const CategoryDistributionChart = () => {
   const { data: chartData } = useQuery({
-    queryKey: ["department-workload"],
+    queryKey: ["category-distribution"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("ticket_analysis")
-        .select("responsible_department")
-        .not("responsible_department", "is", null);
+        .select("category")
+        .not("category", "is", null);
 
       if (error) throw error;
 
-      const deptCounts = data.reduce((acc: Record<string, number>, curr) => {
-        acc[curr.responsible_department] = (acc[curr.responsible_department] || 0) + 1;
+      const categoryCounts = data.reduce((acc: Record<string, number>, curr) => {
+        acc[curr.category] = (acc[curr.category] || 0) + 1;
         return acc;
       }, {});
 
-      return Object.entries(deptCounts)
-        .map(([name, value]) => ({
-          name,
-          value,
-        }))
-        .sort((a, b) => b.value - a.value)
-        .slice(0, 5); // Show top 5 departments
+      return Object.entries(categoryCounts).map(([name, value]) => ({
+        name,
+        value,
+      }));
     },
   });
 
   return (
     <Card className="p-6">
       <div className="mb-4">
-        <h3 className="text-lg font-semibold">Department Workload</h3>
+        <h3 className="text-lg font-semibold">Category Distribution</h3>
         <p className="text-sm text-muted-foreground">
-          Top 5 departments by ticket volume
+          Number of tickets per category
         </p>
       </div>
       <div className="h-[300px]">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={chartData} layout="vertical">
+          <BarChart data={chartData}>
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis type="number" />
-            <YAxis dataKey="name" type="category" width={150} />
+            <XAxis dataKey="name" />
+            <YAxis />
             <Tooltip />
             <Bar
               dataKey="value"
