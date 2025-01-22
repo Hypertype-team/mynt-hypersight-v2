@@ -140,20 +140,20 @@ export const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
   return (
     <div
       className={cn(
-        "fixed inset-y-0 right-0 w-96 bg-background border-l transform transition-transform duration-300 ease-in-out",
+        "fixed inset-y-0 right-0 w-96 bg-background border-l transform transition-transform duration-300 ease-in-out flex flex-col",
         isOpen ? "translate-x-0" : "translate-x-full"
       )}
     >
-      <div className="h-full flex flex-col">
-        <div className="border-b p-4 flex items-center justify-between">
+      <div className="flex flex-col h-full">
+        <div className="border-b p-4 flex items-center justify-between shrink-0">
           <h2 className="font-semibold">Ticket Analysis Assistant</h2>
           <Button variant="ghost" size="icon" onClick={onClose}>
             <X className="h-4 w-4" />
           </Button>
         </div>
 
-        <ScrollArea className="flex-1 p-4">
-          <div className="space-y-4">
+        <ScrollArea className="flex-1 px-4">
+          <div className="space-y-4 py-4">
             {messages.map((message, i) => (
               <div key={i}>
                 <div
@@ -166,20 +166,50 @@ export const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
                 >
                   {message.text}
                 </div>
-                {renderChart(message)}
+                {message.chartData && (
+                  <div className="mt-4 bg-background p-2 rounded-lg">
+                    <div className="h-[200px] w-full">
+                      <ResponsiveContainer>
+                        {message.chartType === 'bar' ? (
+                          <BarChart data={message.chartData}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="name" />
+                            <YAxis />
+                            <Tooltip />
+                            <Bar dataKey="value" fill="hsl(var(--primary))" />
+                          </BarChart>
+                        ) : (
+                          <LineChart data={message.chartData}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="name" />
+                            <YAxis />
+                            <Tooltip />
+                            <Line
+                              type="monotone"
+                              dataKey="value"
+                              stroke="hsl(var(--primary))"
+                            />
+                          </LineChart>
+                        )}
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+                )}
                 {!message.isUser && message.followUpQuestions && (
                   <div className="mt-2 space-y-2">
                     <p className="text-sm text-muted-foreground">Follow-up questions:</p>
-                    {message.followUpQuestions.map((question, idx) => (
-                      <Button
-                        key={idx}
-                        variant="outline"
-                        className="text-sm mr-2"
-                        onClick={() => handleFollowUpClick(question)}
-                      >
-                        {question}
-                      </Button>
-                    ))}
+                    <div className="flex flex-wrap gap-2">
+                      {message.followUpQuestions.map((question, idx) => (
+                        <Button
+                          key={idx}
+                          variant="outline"
+                          className="text-sm"
+                          onClick={() => handleFollowUpClick(question)}
+                        >
+                          {question}
+                        </Button>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
@@ -187,7 +217,7 @@ export const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
           </div>
         </ScrollArea>
 
-        <form onSubmit={handleSubmit} className="border-t p-4">
+        <form onSubmit={handleSubmit} className="border-t p-4 shrink-0">
           <div className="flex gap-2">
             <Input
               value={input}
