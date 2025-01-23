@@ -4,9 +4,10 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect } from "react";
 
-const COLORS = ["#E88D7D", "#FDE1D3", "#FFDEE2", "#E5DEFF", "#D8E1FF"];
+// Updated colors to darker, more distinct shades
+const COLORS = ["#E34F32", "#2B4C7E", "#567B95", "#1A936F", "#114B5F"];
 const ACTIVE_OPACITY = 1;
-const INACTIVE_OPACITY = 0.6;
+const INACTIVE_OPACITY = 0.5;
 
 export const EVChargingLocationsChart = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -23,7 +24,6 @@ export const EVChargingLocationsChart = () => {
 
       if (error) throw error;
 
-      // Count occurrences of each category
       const categoryCounts = data.reduce((acc, curr) => {
         if (curr.category) {
           acc[curr.category] = (acc[curr.category] || 0) + 1;
@@ -31,11 +31,10 @@ export const EVChargingLocationsChart = () => {
         return acc;
       }, {} as Record<string, number>);
 
-      // Convert to array format needed for chart
       const chartData = Object.entries(categoryCounts)
         .map(([name, value]) => ({ name, value }))
-        .sort((a, b) => b.value - a.value) // Sort by value descending
-        .slice(0, 5); // Take top 5 categories
+        .sort((a, b) => b.value - a.value)
+        .slice(0, 5);
 
       return chartData;
     }
@@ -45,7 +44,6 @@ export const EVChargingLocationsChart = () => {
     setSelectedCategory(data.name);
     setSelectedCount(data.value);
 
-    // Fetch top issue for selected category
     const { data: issueData, error } = await supabase
       .from('ticket_analysis')
       .select('issue')
@@ -53,7 +51,6 @@ export const EVChargingLocationsChart = () => {
       .not('issue', 'is', null);
 
     if (!error && issueData.length > 0) {
-      // Count occurrences of each issue
       const issueCounts = issueData.reduce((acc, curr) => {
         if (curr.issue) {
           acc[curr.issue] = (acc[curr.issue] || 0) + 1;
@@ -61,7 +58,6 @@ export const EVChargingLocationsChart = () => {
         return acc;
       }, {} as Record<string, number>);
 
-      // Get the most common issue
       const topIssue = Object.entries(issueCounts)
         .sort((a, b) => b[1] - a[1])[0];
       
@@ -69,7 +65,6 @@ export const EVChargingLocationsChart = () => {
     }
   };
 
-  // Set default selection when data loads
   useEffect(() => {
     if (categoryData && categoryData.length > 0 && !selectedCategory) {
       handlePieClick(categoryData[0]);
@@ -137,7 +132,7 @@ export const EVChargingLocationsChart = () => {
                           dominantBaseline="middle"
                           className="fill-black font-medium text-2xl"
                         >
-                          {categoryData?.[0]?.value || 0}
+                          {selectedCount || categoryData?.[0]?.value || 0}
                         </text>
                       );
                     }}
@@ -168,7 +163,10 @@ export const EVChargingLocationsChart = () => {
             >
               <div
                 className="w-3 h-3 rounded"
-                style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                style={{ 
+                  backgroundColor: COLORS[index % COLORS.length],
+                  opacity: item.name === selectedCategory ? ACTIVE_OPACITY : INACTIVE_OPACITY
+                }}
               />
               <span className="text-sm text-gray-600">{item.name}</span>
             </div>
