@@ -2,10 +2,12 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Label } from "recharts";
 import { Card } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
 
 const COLORS = ["#E88D7D", "#FDE1D3", "#FFDEE2", "#E5DEFF", "#D8E1FF"];
 
 export const EVChargingLocationsChart = () => {
+  const { toast } = useToast();
   const { data: categoryData, isLoading } = useQuery({
     queryKey: ['ticket-categories'],
     queryFn: async () => {
@@ -35,6 +37,13 @@ export const EVChargingLocationsChart = () => {
   });
 
   const total = categoryData?.reduce((sum, item) => sum + item.value, 0) || 0;
+
+  const handlePieClick = (data: any) => {
+    toast({
+      title: data.name,
+      description: `Count: ${data.value} tickets (${((data.value / total) * 100).toFixed(1)}%)`,
+    });
+  };
 
   if (isLoading) {
     return (
@@ -73,6 +82,8 @@ export const EVChargingLocationsChart = () => {
                 dataKey="value"
                 startAngle={180}
                 endAngle={-180}
+                onClick={handlePieClick}
+                cursor="pointer"
               >
                 {categoryData?.map((entry, index) => (
                   <Cell 
@@ -103,7 +114,11 @@ export const EVChargingLocationsChart = () => {
 
         <div className="grid grid-cols-2 gap-4">
           {categoryData?.map((item, index) => (
-            <div key={index} className="flex items-center gap-2">
+            <div 
+              key={index} 
+              className="flex items-center gap-2 cursor-pointer hover:opacity-80"
+              onClick={() => handlePieClick(item)}
+            >
               <div
                 className="w-3 h-3 rounded"
                 style={{ backgroundColor: COLORS[index % COLORS.length] }}
