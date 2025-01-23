@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 
 const Index = () => {
-  const [showMoreCharts, setShowMoreCharts] = useState(false);
+  const [showAnalysis, setShowAnalysis] = useState(false);
 
   return (
     <Layout>
@@ -18,19 +18,19 @@ const Index = () => {
           </p>
         </div>
         <div className="relative">
-          <div className={`transition-all duration-300 ${showMoreCharts ? 'md:w-1/2' : 'w-full'}`}>
+          <div className={`transition-all duration-300 ${showAnalysis ? 'md:w-1/2' : 'w-full'}`}>
             <EVChargingLocationsChart />
           </div>
           <Button
             variant="outline"
             className="absolute top-4 right-4"
-            onClick={() => setShowMoreCharts(!showMoreCharts)}
+            onClick={() => setShowAnalysis(true)}
           >
             Want more charts?
           </Button>
-          {showMoreCharts && (
+          {showAnalysis && (
             <div className="fixed top-0 right-0 w-full md:w-1/2 h-full bg-background p-6 shadow-lg animate-slideIn">
-              <CategoryBreakdownChart />
+              <CategoryBreakdownChart showAnalysisPanel={true} />
             </div>
           )}
         </div>

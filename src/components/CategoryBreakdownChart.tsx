@@ -15,13 +15,17 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
-export const CategoryBreakdownChart = () => {
+interface CategoryBreakdownChartProps {
+  showAnalysisPanel?: boolean;
+}
+
+export const CategoryBreakdownChart = ({ showAnalysisPanel = false }: CategoryBreakdownChartProps) => {
   const [prompt, setPrompt] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [chartData, setChartData] = useState<any>(null);
   const [analysis, setAnalysis] = useState<string>("");
   const [chartType, setChartType] = useState<"bar" | "line">("bar");
-  const [showAnalysis, setShowAnalysis] = useState(false);
+  const [showAnalysis] = useState(showAnalysisPanel);
 
   const handleAnalyze = async () => {
     if (!prompt.trim()) return;
@@ -134,15 +138,6 @@ export const CategoryBreakdownChart = () => {
           {renderChart()}
         </div>
       </div>
-
-      {!showAnalysis && (
-        <Button 
-          onClick={() => setShowAnalysis(true)}
-          className="absolute top-4 right-4 text-lg"
-        >
-          Want more charts?
-        </Button>
-      )}
     </div>
   );
 };
