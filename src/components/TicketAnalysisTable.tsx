@@ -191,48 +191,50 @@ export const TicketAnalysisTable = () => {
                             </div>
                           </AccordionTrigger>
                           <AccordionContent>
-                            <div className="px-4 pb-4 space-y-3">
-                              {Object.entries(commonIssues).map(([commonIssue, { tickets }]) => (
-                                <div 
-                                  key={commonIssue}
-                                  className="p-3 rounded-lg bg-background/80 border shadow-sm hover:shadow-md transition-shadow"
-                                >
-                                  <h4 className="font-medium mb-2 text-primary">{commonIssue}</h4>
-                                  <div className="space-y-2">
-                                    {tickets.map((ticket) => (
-                                      <div 
-                                        key={ticket.id}
-                                        className="text-sm text-muted-foreground"
-                                      >
-                                        <div className="flex items-center gap-2 mb-1">
-                                          <Badge 
-                                            variant={ticket.priority?.toLowerCase() === 'high' ? 'destructive' : 'secondary'}
-                                            className="text-xs"
-                                          >
-                                            {ticket.priority || 'No Priority'}
-                                          </Badge>
-                                          {ticket.sentiment && (
+                            <ScrollArea className="h-[300px]">
+                              <div className="px-4 pb-4 space-y-3">
+                                {Object.entries(commonIssues).map(([commonIssue, { tickets }]) => (
+                                  <div 
+                                    key={commonIssue}
+                                    className="p-3 rounded-lg bg-background/80 border shadow-sm hover:shadow-md transition-shadow"
+                                  >
+                                    <h4 className="font-medium mb-2 text-primary">{commonIssue}</h4>
+                                    <div className="space-y-2">
+                                      {tickets.map((ticket) => (
+                                        <div 
+                                          key={ticket.id}
+                                          className="text-sm text-muted-foreground"
+                                        >
+                                          <div className="flex items-center gap-2 mb-1">
                                             <Badge 
-                                              variant="outline"
-                                              className={
-                                                ticket.sentiment.toLowerCase() === 'positive' 
-                                                  ? 'bg-green-500/10 text-green-700 border-green-300'
-                                                  : ticket.sentiment.toLowerCase() === 'negative'
-                                                  ? 'bg-red-500/10 text-red-700 border-red-300'
-                                                  : 'bg-yellow-500/10 text-yellow-700 border-yellow-300'
-                                              }
+                                              variant={ticket.priority?.toLowerCase() === 'high' ? 'destructive' : 'secondary'}
+                                              className="text-xs"
                                             >
-                                              {ticket.sentiment}
+                                              {ticket.priority || 'No Priority'}
                                             </Badge>
-                                          )}
+                                            {ticket.sentiment && (
+                                              <Badge 
+                                                variant="outline"
+                                                className={
+                                                  ticket.sentiment.toLowerCase() === 'positive' 
+                                                    ? 'bg-green-500/10 text-green-700 border-green-300'
+                                                    : ticket.sentiment.toLowerCase() === 'negative'
+                                                    ? 'bg-red-500/10 text-red-700 border-red-300'
+                                                    : 'bg-yellow-500/10 text-yellow-700 border-yellow-300'
+                                                }
+                                              >
+                                                {ticket.sentiment}
+                                              </Badge>
+                                            )}
+                                          </div>
+                                          <p className="line-clamp-2">{ticket.issue_summary}</p>
                                         </div>
-                                        <p className="line-clamp-2">{ticket.issue_summary}</p>
-                                      </div>
-                                    ))}
+                                      ))}
+                                    </div>
                                   </div>
-                                </div>
-                              ))}
-                            </div>
+                                ))}
+                              </div>
+                            </ScrollArea>
                           </AccordionContent>
                         </AccordionItem>
                       </Accordion>
