@@ -23,13 +23,13 @@ const Index = () => {
           </div>
           <Button
             variant="outline"
-            className="absolute top-4 right-4"
+            className={`absolute top-4 right-4 transition-opacity duration-300 ${showAnalysis ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
             onClick={() => setShowAnalysis(true)}
           >
             Want more charts?
           </Button>
           {showAnalysis && (
-            <div className="fixed top-0 right-0 w-full md:w-1/2 h-full bg-background p-6 shadow-lg animate-slideIn">
+            <div className="fixed top-0 right-0 w-full md:w-1/2 h-full bg-background p-6 shadow-lg animate-slideIn z-50">
               <CategoryBreakdownChart showAnalysisPanel={true} />
             </div>
           )}
