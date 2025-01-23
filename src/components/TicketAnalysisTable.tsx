@@ -1,57 +1,26 @@
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Card } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useState } from "react";
 import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export const TicketAnalysisTable = () => {
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
-
   const { data, isLoading } = useQuery({
-    queryKey: ["tickets", currentPage, itemsPerPage],
+    queryKey: ["tickets"],
     queryFn: async () => {
-      const { count } = await supabase
-        .from("ticket_analysis")
-        .select("*", { count: "exact", head: true });
-
       const { data, error } = await supabase
         .from("ticket_analysis")
         .select("*")
-        .order("created_at", { ascending: false })
-        .range(
-          (currentPage - 1) * itemsPerPage,
-          currentPage * itemsPerPage - 1
-        );
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
-
-      return {
-        tickets: data,
-        totalCount: count || 0,
-        totalPages: Math.ceil((count || 0) / itemsPerPage),
-      };
+      return data;
     },
   });
 
@@ -63,93 +32,103 @@ export const TicketAnalysisTable = () => {
     );
   }
 
-  const tickets = data?.tickets || [];
-  const totalPages = data?.totalPages || 1;
-
-  const handleItemsPerPageChange = (value: string) => {
-    setItemsPerPage(Number(value));
-    setCurrentPage(1);
-  };
+  // Group tickets by category and count them
+  const ticketsByCategory = data?.reduce((acc, ticket) => {
+    const category = ticket.category || "Uncategorized";
+    if (!acc[category]) {
+      acc[category] = {
+        tickets: [],
+        count: 0,
+      };
+    }
+    acc[category].tickets.push(ticket);
+    acc[category].count += 1;
+    return acc;
+  }, {} as Record<string, { tickets: any[]; count: number }>);
 
   return (
-    <Card>
-      <div className="p-6 pb-0">
-        <h3 className="text-lg font-semibold">Ticket Analysis</h3>
-        <p className="text-sm text-muted-foreground">Overview of analyzed tickets</p>
-      </div>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Company</TableHead>
-            <TableHead>Category</TableHead>
-            <TableHead>Issue</TableHead>
-            <TableHead>Priority</TableHead>
-            <TableHead>Sentiment</TableHead>
-            <TableHead>Department</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {tickets.map((ticket) => (
-            <TableRow key={ticket.id}>
-              <TableCell>{ticket.company_name || "N/A"}</TableCell>
-              <TableCell>{ticket.category || "N/A"}</TableCell>
-              <TableCell>{ticket.issue_summary || "N/A"}</TableCell>
-              <TableCell>{ticket.priority || "N/A"}</TableCell>
-              <TableCell>{ticket.sentiment || "N/A"}</TableCell>
-              <TableCell>{ticket.responsible_department || "N/A"}</TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-      <div className="p-4 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground">Items per page:</span>
-          <Select
-            value={String(itemsPerPage)}
-            onValueChange={handleItemsPerPageChange}
-          >
-            <SelectTrigger className="w-[100px]">
-              <SelectValue placeholder="10" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="5">5</SelectItem>
-              <SelectItem value="10">10</SelectItem>
-              <SelectItem value="20">20</SelectItem>
-              <SelectItem value="50">50</SelectItem>
-            </SelectContent>
-          </Select>
+    <Card className="p-6">
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight">Ticket Analysis</h2>
+          <p className="text-muted-foreground">
+            Detailed overview of support tickets and their analysis
+          </p>
         </div>
-        <Pagination>
-          <PaginationContent>
-            {currentPage > 1 && (
-              <PaginationItem>
-                <PaginationPrevious
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setCurrentPage((prev) => Math.max(1, prev - 1));
-                  }}
-                />
-              </PaginationItem>
-            )}
-            <PaginationItem>
-              <span className="px-4 py-2">
-                Page {currentPage} of {totalPages}
-              </span>
-            </PaginationItem>
-            {currentPage < totalPages && (
-              <PaginationItem>
-                <PaginationNext
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setCurrentPage((prev) => Math.min(totalPages, prev + 1));
-                  }}
-                />
-              </PaginationItem>
-            )}
-          </PaginationContent>
-        </Pagination>
+
+        <ScrollArea className="h-[800px] pr-4">
+          {Object.entries(ticketsByCategory || {}).map(([category, { tickets, count }]) => (
+            <div key={category} className="mb-8">
+              <h3 className="text-xl font-semibold mb-4">
+                {category} ({count} total tickets)
+              </h3>
+
+              <Accordion type="single" collapsible className="space-y-4">
+                {tickets.map((ticket) => (
+                  <AccordionItem key={ticket.id} value={`ticket-${ticket.id}`}>
+                    <AccordionTrigger className="hover:no-underline">
+                      <div className="flex flex-col items-start text-left">
+                        <div className="font-medium">{ticket.issue_summary}</div>
+                        <div className="text-sm text-muted-foreground mt-1">
+                          Ticket #{ticket.id}
+                        </div>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="space-y-4 pt-4">
+                      <div>
+                        <div className="font-medium mb-2">Summary:</div>
+                        <p className="text-muted-foreground">
+                          {ticket.summary || "No summary available"}
+                        </p>
+                      </div>
+
+                      <div>
+                        <div className="font-medium mb-2">Responsible Department:</div>
+                        <Badge variant="secondary">
+                          {ticket.responsible_department || "Unassigned"}
+                        </Badge>
+                      </div>
+
+                      {ticket.responsible_department_justification && (
+                        <div>
+                          <div className="font-medium mb-2">Department Assignment Justification:</div>
+                          <p className="text-muted-foreground">
+                            {ticket.responsible_department_justification}
+                          </p>
+                        </div>
+                      )}
+
+                      <div className="flex gap-2 flex-wrap">
+                        {ticket.priority && (
+                          <Badge variant="outline">Priority: {ticket.priority}</Badge>
+                        )}
+                        {ticket.sentiment && (
+                          <Badge variant="outline">Sentiment: {ticket.sentiment}</Badge>
+                        )}
+                        {ticket.subcategory && (
+                          <Badge variant="outline">Subcategory: {ticket.subcategory}</Badge>
+                        )}
+                      </div>
+
+                      {ticket.link && (
+                        <div>
+                          <a
+                            href={ticket.link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary hover:underline"
+                          >
+                            View Issue
+                          </a>
+                        </div>
+                      )}
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+            </div>
+          ))}
+        </ScrollArea>
       </div>
     </Card>
   );
