@@ -9,8 +9,15 @@ import {
 } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { Search } from "lucide-react";
 
 export const TicketAnalysisTable = () => {
+  const [categoryFilter, setCategoryFilter] = useState("");
+  const [subcategoryFilter, setSubcategoryFilter] = useState("");
+  const [commonIssueFilter, setCommonIssueFilter] = useState("");
+
   const { data, isLoading } = useQuery({
     queryKey: ["tickets"],
     queryFn: async () => {
@@ -32,11 +39,28 @@ export const TicketAnalysisTable = () => {
     );
   }
 
-  // Group tickets by category, subcategory, and common_issue
+  // Filter and group tickets
   const groupedTickets = data?.reduce((categories, ticket) => {
     const category = ticket.category || "Uncategorized";
     const subcategory = ticket.subcategory || "Uncategorized";
     const commonIssue = ticket.common_issue || "Uncategorized";
+
+    // Apply filters
+    if (
+      categoryFilter &&
+      !category.toLowerCase().includes(categoryFilter.toLowerCase())
+    )
+      return categories;
+    if (
+      subcategoryFilter &&
+      !subcategory.toLowerCase().includes(subcategoryFilter.toLowerCase())
+    )
+      return categories;
+    if (
+      commonIssueFilter &&
+      !commonIssue.toLowerCase().includes(commonIssueFilter.toLowerCase())
+    )
+      return categories;
 
     if (!categories[category]) {
       categories[category] = {
@@ -86,15 +110,45 @@ export const TicketAnalysisTable = () => {
           </p>
         </div>
 
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="relative">
+            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Filter by category..."
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              className="pl-8"
+            />
+          </div>
+          <div className="relative">
+            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Filter by subcategory..."
+              value={subcategoryFilter}
+              onChange={(e) => setSubcategoryFilter(e.target.value)}
+              className="pl-8"
+            />
+          </div>
+          <div className="relative">
+            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Filter by common issue..."
+              value={commonIssueFilter}
+              onChange={(e) => setCommonIssueFilter(e.target.value)}
+              className="pl-8"
+            />
+          </div>
+        </div>
+
         <ScrollArea className="h-[800px] pr-4">
           <Accordion type="single" collapsible className="space-y-4">
             {Object.entries(groupedTickets || {}).map(([category, { subcategories, count }]) => (
-              <AccordionItem key={category} value={category}>
-                <AccordionTrigger className="hover:no-underline">
+              <AccordionItem key={category} value={category} className="border rounded-lg px-4">
+                <AccordionTrigger className="hover:no-underline py-4">
                   <div className="flex flex-col items-start text-left">
                     <div className="font-medium">{category}</div>
                     <div className="text-sm text-muted-foreground">
-                      {count} tickets
+                      {count} {count === 1 ? 'ticket' : 'tickets'}
                     </div>
                   </div>
                 </AccordionTrigger>
@@ -107,7 +161,7 @@ export const TicketAnalysisTable = () => {
                             <div className="flex flex-col items-start text-left">
                               <div className="font-medium">{subcategory}</div>
                               <div className="text-sm text-muted-foreground">
-                                {subCount} tickets
+                                {subCount} {subCount === 1 ? 'ticket' : 'tickets'}
                               </div>
                             </div>
                           </AccordionTrigger>
@@ -120,21 +174,21 @@ export const TicketAnalysisTable = () => {
                                       <div className="flex flex-col items-start text-left">
                                         <div className="font-medium">{commonIssue}</div>
                                         <div className="text-sm text-muted-foreground">
-                                          {issueCount} tickets
+                                          {issueCount} {issueCount === 1 ? 'ticket' : 'tickets'}
                                         </div>
                                       </div>
                                     </AccordionTrigger>
                                     <AccordionContent>
-                                      <div className="pl-4 space-y-4">
+                                      <div className="pl-4 space-y-6">
                                         {tickets.map((ticket) => (
-                                          <div key={ticket.id} className="border-l p-4">
+                                          <div key={ticket.id} className="border-l p-6 bg-accent/50 rounded-lg">
                                             <div className="space-y-4">
                                               <div>
-                                                <div className="font-medium mb-2">
-                                                  Ticket #{ticket.id}: {ticket.issue_summary}
+                                                <div className="font-medium mb-2 text-lg">
+                                                  Ticket #{ticket.id}
                                                 </div>
                                                 <p className="text-muted-foreground">
-                                                  {ticket.summary || "No summary available"}
+                                                  {ticket.issue_summary || "No summary available"}
                                                 </p>
                                               </div>
 
@@ -147,11 +201,11 @@ export const TicketAnalysisTable = () => {
 
                                               <div>
                                                 <div className="font-medium mb-2">Responsible Department:</div>
-                                                <Badge variant="secondary">
+                                                <Badge variant="secondary" className="mb-2">
                                                   {ticket.responsible_department || "Unassigned"}
                                                 </Badge>
                                                 {ticket.responsible_department_justification && (
-                                                  <p className="text-sm text-muted-foreground mt-2">
+                                                  <p className="text-sm text-muted-foreground">
                                                     {ticket.responsible_department_justification}
                                                   </p>
                                                 )}
@@ -172,7 +226,7 @@ export const TicketAnalysisTable = () => {
                                                     href={ticket.link}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="text-primary hover:underline"
+                                                    className="text-primary hover:underline inline-flex items-center gap-1"
                                                   >
                                                     View Issue
                                                   </a>
