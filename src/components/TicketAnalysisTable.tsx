@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/select";
 
 export const TicketAnalysisTable = () => {
-  const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [subcategoryFilter, setSubcategoryFilter] = useState("");
   const [commonIssueFilter, setCommonIssueFilter] = useState("");
 
@@ -53,7 +53,7 @@ export const TicketAnalysisTable = () => {
     const commonIssue = ticket.common_issue || "Uncategorized";
 
     // Apply filters
-    if (selectedCategory && category !== selectedCategory) return categories;
+    if (selectedCategory !== "all" && category !== selectedCategory) return categories;
     if (
       subcategoryFilter &&
       !subcategory.toLowerCase().includes(subcategoryFilter.toLowerCase())
@@ -125,7 +125,7 @@ export const TicketAnalysisTable = () => {
               <SelectValue placeholder="Select a category" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Categories</SelectItem>
+              <SelectItem value="all">All Categories</SelectItem>
               {uniqueCategories.map((category) => (
                 <SelectItem key={category} value={category}>
                   {category}
