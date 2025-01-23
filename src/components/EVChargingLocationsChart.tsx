@@ -125,15 +125,26 @@ export const EVChargingLocationsChart = () => {
                   <Label
                     content={({ viewBox }: { viewBox: { cx: number; cy: number } }) => {
                       return (
-                        <text
-                          x={viewBox.cx}
-                          y={viewBox.cy}
-                          textAnchor="middle"
-                          dominantBaseline="middle"
-                          className="fill-black font-medium text-2xl"
-                        >
-                          {selectedCount || categoryData?.[0]?.value || 0}
-                        </text>
+                        <>
+                          <text
+                            x={viewBox.cx}
+                            y={viewBox.cy - 10}
+                            textAnchor="middle"
+                            dominantBaseline="middle"
+                            className="fill-black font-medium text-2xl"
+                          >
+                            {selectedCount || categoryData?.[0]?.value || 0}
+                          </text>
+                          <text
+                            x={viewBox.cx}
+                            y={viewBox.cy + 15}
+                            textAnchor="middle"
+                            dominantBaseline="middle"
+                            className="fill-gray-500 text-sm"
+                          >
+                            tickets
+                          </text>
+                        </>
                       );
                     }}
                   />
