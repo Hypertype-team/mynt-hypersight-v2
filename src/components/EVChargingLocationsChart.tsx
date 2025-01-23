@@ -166,25 +166,6 @@ export const EVChargingLocationsChart = () => {
                 </PieChart>
               </ResponsiveContainer>
             </div>
-
-            <div className="grid grid-cols-1 gap-1.5 mt-4">
-              {categoryData?.map((item, index) => (
-                <div 
-                  key={index} 
-                  className="flex items-center gap-2 cursor-pointer hover:opacity-80 p-2 rounded-md transition-colors hover:bg-muted"
-                  onClick={() => handlePieClick(item)}
-                >
-                  <div
-                    className="w-3 h-3 rounded"
-                    style={{ 
-                      backgroundColor: COLORS[index % COLORS.length],
-                      opacity: item.name === selectedCategory ? ACTIVE_OPACITY : INACTIVE_OPACITY
-                    }}
-                  />
-                  <span className="text-sm">{item.name}</span>
-                </div>
-              ))}
-            </div>
           </div>
 
           {selectedCategory && (
