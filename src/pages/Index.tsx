@@ -30,17 +30,23 @@ const Index = () => {
             Want more charts?
           </Button>
           {showAnalysis && (
-            <div className="fixed top-0 right-0 w-full md:w-1/2 h-full bg-background p-6 shadow-lg animate-slideIn z-50">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="absolute right-4 top-4"
+            <>
+              <div 
+                className="fixed inset-0 bg-black/20 z-40"
                 onClick={() => setShowAnalysis(false)}
-              >
-                <X className="h-4 w-4" />
-              </Button>
-              <CategoryBreakdownChart showAnalysisPanel={true} />
-            </div>
+              />
+              <div className="fixed top-0 right-0 w-full md:w-1/2 h-full bg-background p-6 shadow-lg animate-slideIn z-50">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-4 top-4"
+                  onClick={() => setShowAnalysis(false)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+                <CategoryBreakdownChart showAnalysisPanel={true} />
+              </div>
+            </>
           )}
         </div>
         <TicketAnalysisTable />
