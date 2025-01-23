@@ -94,7 +94,7 @@ export const EVChargingLocationsChart = () => {
 
         <div className="flex gap-4">
           <div className="flex-1">
-            <div className="h-[280px]">
+            <div className="h-[240px]">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -149,7 +149,7 @@ export const EVChargingLocationsChart = () => {
               </ResponsiveContainer>
             </div>
 
-            <div className="grid grid-cols-2 gap-2 mt-4">
+            <div className="grid grid-cols-1 gap-1.5 mt-4">
               {categoryData?.map((item, index) => (
                 <div 
                   key={index} 
