@@ -6,9 +6,9 @@ import { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
-const COLORS = ["#E34F32", "#2B4C7E", "#567B95", "#1A936F", "#114B5F"];
+const COLORS = ["#2B4C7E", "#567B95", "#1A936F", "#114B5F", "#E34F32"];
 const ACTIVE_OPACITY = 1;
-const INACTIVE_OPACITY = 0.5;
+const INACTIVE_OPACITY = 0.6;
 
 export const EVChargingLocationsChart = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -105,13 +105,13 @@ export const EVChargingLocationsChart = () => {
                 onClick={() => handlePieClick(item)}
               >
                 <div
-                  className="w-2.5 h-2.5 rounded-sm"
+                  className="min-w-[10px] w-2.5 h-2.5 rounded-sm flex-shrink-0"
                   style={{ 
                     backgroundColor: COLORS[index % COLORS.length],
                     opacity: item.name === selectedCategory ? ACTIVE_OPACITY : INACTIVE_OPACITY
                   }}
                 />
-                <span className={`text-sm ${item.name === selectedCategory ? 'font-medium' : ''}`}>
+                <span className={`text-sm ${item.name === selectedCategory ? 'font-medium' : ''} truncate`}>
                   {item.name}
                 </span>
               </div>
