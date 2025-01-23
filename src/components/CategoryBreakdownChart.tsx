@@ -94,7 +94,7 @@ export const CategoryBreakdownChart = () => {
   };
 
   return (
-    <Card className="p-6 relative">
+    <div className="relative">
       <div className={`transition-all duration-300 ${showAnalysis ? 'md:w-1/2' : 'w-full'}`}>
         <div className="h-[300px]">
           {renderChart()}
@@ -143,6 +143,6 @@ export const CategoryBreakdownChart = () => {
           Want more charts?
         </Button>
       )}
-    </Card>
+    </div>
   );
 };
