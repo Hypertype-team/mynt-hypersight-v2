@@ -14,78 +14,84 @@ interface ChatPanelProps {
   onClose: () => void;
 }
 
+const QUICK_RESPONSES = [
+  "Show me common issues by category",
+  "What are the top priorities?",
+  "Summarize recent tickets",
+  "Show department responsibilities",
+];
+
+const INITIAL_MESSAGE: ChatMessage = {
+  text: `# 👋 Welcome to Your Ticket Analysis Assistant!
+
+I can help you analyze your ticket data quickly and efficiently. Here are some quick insights you can ask for:
+
+## 🔍 Quick Access:
+* 📊 Categories & Trends
+* 🎯 Priority Analysis
+* 👥 Department Overview
+* 📑 Recent Summaries
+
+Just click one of the quick response buttons below or type your own question!`,
+  isUser: false,
+  followUpQuestions: QUICK_RESPONSES,
+};
+
 export const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      text: `# 👋 Welcome to Your Ticket Analysis Assistant!
-
-I'm here to help you understand patterns and insights from your ticket data. I can analyze trends, summarize issues, and provide valuable insights to help you make informed decisions.
-
-## 💡 Try asking questions like:
-
-* 📊 "What are the most common issues we're seeing?"
-* 📑 "Can you summarize tickets by category?"
-* 🏢 "What are the department justifications for specific issues?"
-* 📚 "Are there any documentation links I should know about?"
-* 🔍 "How do categories and subcategories relate to each other?"
-
-I'll provide organized, easy-to-read responses with relevant insights from your ticket data. Feel free to ask anything!`,
-      isUser: false,
-    },
-  ]);
+  const [messages, setMessages] = useState<ChatMessage[]>([INITIAL_MESSAGE]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!input.trim()) return;
-
+  const handleAnalysis = async (query: string) => {
     setIsLoading(true);
-    setMessages((prev) => [...prev, { text: input, isUser: true }]);
+    setMessages((prev) => [...prev, { text: query, isUser: true }]);
     setInput("");
 
     try {
       const { data, error } = await supabase.functions.invoke('analyze-tickets', {
-        body: { query: input }
+        body: { query }
       });
 
       if (error) throw error;
+
+      const followUpQuestions = [
+        "What are the trends in this category?",
+        "Show me related issues",
+        "Compare with previous period",
+        "Any documentation available?",
+      ];
 
       setMessages((prev) => [
         ...prev,
         {
           text: data.answer,
           isUser: false,
-          followUpQuestions: [
-            "What are the most common issues?",
-            "Show me ticket summaries by category",
-            "What are the department justifications?",
-            "Are there any relevant documentation links?",
-          ],
+          followUpQuestions,
+          chartData: data.chartData,
+          chartType: data.chartType,
         },
       ]);
     } catch (error) {
       console.error('Error:', error);
       toast({
         title: "Analysis Failed",
-        description: "I couldn't analyze the data right now. Please try asking again.",
+        description: "Unable to analyze the data. Please try again.",
         variant: "destructive",
       });
-      setMessages((prev) => [
-        ...prev,
-        {
-          text: "I apologize, but I encountered an error while analyzing the data. Could you please try rephrasing your question or asking something else?",
-          isUser: false,
-        },
-      ]);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleFollowUpClick = (question: string) => {
-    setInput(question);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!input.trim()) return;
+    await handleAnalysis(input);
+  };
+
+  const handleQuickResponse = async (question: string) => {
+    await handleAnalysis(question);
   };
 
   return (
@@ -96,13 +102,26 @@ I'll provide organized, easy-to-read responses with relevant insights from your 
             <Message
               key={i}
               message={message}
-              onFollowUpClick={handleFollowUpClick}
+              onFollowUpClick={handleQuickResponse}
             />
           ))}
         </div>
       </ScrollArea>
 
-      <div className="border-t">
+      <div className="p-4 border-t space-y-4">
+        <div className="flex flex-wrap gap-2">
+          {QUICK_RESPONSES.map((question, index) => (
+            <Button
+              key={index}
+              variant="outline"
+              size="sm"
+              onClick={() => handleQuickResponse(question)}
+              disabled={isLoading}
+            >
+              {question}
+            </Button>
+          ))}
+        </div>
         <ChatInput
           input={input}
           isLoading={isLoading}
