@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
-import { Search, Layers, FolderTree, FileText, MessageSquare } from "lucide-react";
+import { Search, Layers, FolderTree, FileText, MessageSquare, ChevronDown, Folder, FolderOpen } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -48,7 +48,6 @@ export const TicketAnalysisTable = () => {
     );
   }
 
-  // Filter and group tickets
   const groupedTickets = data?.reduce((categories, ticket) => {
     const category = ticket.category || "Uncategorized";
     const subcategory = ticket.subcategory || "Uncategorized";
@@ -160,136 +159,89 @@ export const TicketAnalysisTable = () => {
         </div>
 
         <ScrollArea className="h-[800px] pr-4">
-          <Accordion type="single" collapsible className="space-y-4">
+          <div className="space-y-6">
             {Object.entries(groupedTickets || {}).map(([category, { subcategories, count }]) => (
-              <AccordionItem 
-                key={category} 
-                value={category} 
-                className="border rounded-lg px-4 hover:bg-accent/50 transition-colors"
-              >
-                <AccordionTrigger className="hover:no-underline py-4">
-                  <div className="flex flex-col items-start text-left">
-                    <div className="font-medium text-lg">{category}</div>
-                    <div className="text-sm text-muted-foreground flex items-center gap-1">
-                      <FileText className="h-4 w-4" />
-                      {count} {count === 1 ? 'ticket' : 'tickets'}
-                    </div>
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent>
-                  <div className="pl-4 space-y-4">
-                    {Object.entries(subcategories).map(([subcategory, { commonIssues, count: subCount }]) => (
-                      <Accordion key={subcategory} type="single" collapsible className="border-l">
+              <div key={category} className="space-y-4">
+                <div className="font-semibold text-lg flex items-center gap-2 text-primary">
+                  <Folder className="h-5 w-5" />
+                  {category}
+                  <Badge variant="outline" className="ml-2">
+                    {count} {count === 1 ? 'ticket' : 'tickets'}
+                  </Badge>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {Object.entries(subcategories).map(([subcategory, { commonIssues, count: subCount }]) => (
+                    <Card 
+                      key={subcategory}
+                      className="overflow-hidden transition-all duration-200 hover:shadow-lg border-2"
+                      style={{ backgroundColor: '#F1F0FB' }}
+                    >
+                      <Accordion type="single" collapsible>
                         <AccordionItem value={subcategory} className="border-none">
-                          <AccordionTrigger className="hover:no-underline rounded-md hover:bg-accent/30 px-4">
-                            <div className="flex flex-col items-start text-left">
-                              <div className="font-medium">{subcategory}</div>
-                              <div className="text-sm text-muted-foreground">
+                          <AccordionTrigger className="px-4 py-3 hover:no-underline group">
+                            <div className="flex flex-col items-start text-left space-y-1">
+                              <div className="font-medium text-primary flex items-center gap-2">
+                                {subcategory}
+                                <ChevronDown className="h-4 w-4 transition-transform duration-200 group-data-[state=open]:rotate-180" />
+                              </div>
+                              <div className="text-sm text-muted-foreground flex items-center gap-1">
+                                <FileText className="h-4 w-4" />
                                 {subCount} {subCount === 1 ? 'ticket' : 'tickets'}
                               </div>
                             </div>
                           </AccordionTrigger>
                           <AccordionContent>
-                            <div className="pl-4 space-y-4">
-                              {Object.entries(commonIssues).map(([commonIssue, { tickets, count: issueCount }]) => (
-                                <Accordion key={commonIssue} type="single" collapsible className="border-l">
-                                  <AccordionItem value={commonIssue} className="border-none">
-                                    <AccordionTrigger className="hover:no-underline rounded-md hover:bg-accent/20 px-4">
-                                      <div className="flex flex-col items-start text-left">
-                                        <div className="font-medium">{commonIssue}</div>
-                                        <div className="text-sm text-muted-foreground">
-                                          {issueCount} {issueCount === 1 ? 'ticket' : 'tickets'}
-                                        </div>
-                                      </div>
-                                    </AccordionTrigger>
-                                    <AccordionContent>
-                                      <div className="pl-4 space-y-6">
-                                        {tickets.map((ticket) => (
-                                          <div 
-                                            key={ticket.id} 
-                                            className="border-l p-6 bg-card hover:bg-accent/5 transition-colors rounded-lg shadow-sm"
+                            <div className="px-4 pb-4 space-y-3">
+                              {Object.entries(commonIssues).map(([commonIssue, { tickets }]) => (
+                                <div 
+                                  key={commonIssue}
+                                  className="p-3 rounded-lg bg-background/80 border shadow-sm hover:shadow-md transition-shadow"
+                                >
+                                  <h4 className="font-medium mb-2 text-primary">{commonIssue}</h4>
+                                  <div className="space-y-2">
+                                    {tickets.map((ticket) => (
+                                      <div 
+                                        key={ticket.id}
+                                        className="text-sm text-muted-foreground"
+                                      >
+                                        <div className="flex items-center gap-2 mb-1">
+                                          <Badge 
+                                            variant={ticket.priority?.toLowerCase() === 'high' ? 'destructive' : 'secondary'}
+                                            className="text-xs"
                                           >
-                                            <div className="space-y-4">
-                                              <div>
-                                                <div className="font-medium mb-2 text-lg flex items-center gap-2">
-                                                  Ticket #{ticket.id}
-                                                  {ticket.priority && (
-                                                    <Badge variant={ticket.priority.toLowerCase() === 'high' ? 'destructive' : 'secondary'}>
-                                                      {ticket.priority}
-                                                    </Badge>
-                                                  )}
-                                                </div>
-                                                <p className="text-muted-foreground">
-                                                  {ticket.issue_summary || "No summary available"}
-                                                </p>
-                                              </div>
-
-                                              <div>
-                                                <div className="font-medium mb-2">Issue Details:</div>
-                                                <p className="text-muted-foreground">
-                                                  {ticket.issue || "No issue details available"}
-                                                </p>
-                                              </div>
-
-                                              <div>
-                                                <div className="font-medium mb-2">Responsible Department:</div>
-                                                <Badge variant="outline" className="mb-2">
-                                                  {ticket.responsible_department || "Unassigned"}
-                                                </Badge>
-                                                {ticket.responsible_department_justification && (
-                                                  <p className="text-sm text-muted-foreground mt-2">
-                                                    {ticket.responsible_department_justification}
-                                                  </p>
-                                                )}
-                                              </div>
-
-                                              <div className="flex gap-2 flex-wrap">
-                                                {ticket.sentiment && (
-                                                  <Badge 
-                                                    variant="outline"
-                                                    className={
-                                                      ticket.sentiment.toLowerCase() === 'positive' 
-                                                        ? 'bg-green-500/10 text-green-700 border-green-300'
-                                                        : ticket.sentiment.toLowerCase() === 'negative'
-                                                        ? 'bg-red-500/10 text-red-700 border-red-300'
-                                                        : 'bg-yellow-500/10 text-yellow-700 border-yellow-300'
-                                                    }
-                                                  >
-                                                    {ticket.sentiment}
-                                                  </Badge>
-                                                )}
-                                              </div>
-
-                                              {ticket.link && (
-                                                <div>
-                                                  <a
-                                                    href={ticket.link}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="text-primary hover:underline inline-flex items-center gap-1"
-                                                  >
-                                                    View Issue
-                                                  </a>
-                                                </div>
-                                              )}
-                                            </div>
-                                          </div>
-                                        ))}
+                                            {ticket.priority || 'No Priority'}
+                                          </Badge>
+                                          {ticket.sentiment && (
+                                            <Badge 
+                                              variant="outline"
+                                              className={
+                                                ticket.sentiment.toLowerCase() === 'positive' 
+                                                  ? 'bg-green-500/10 text-green-700 border-green-300'
+                                                  : ticket.sentiment.toLowerCase() === 'negative'
+                                                  ? 'bg-red-500/10 text-red-700 border-red-300'
+                                                  : 'bg-yellow-500/10 text-yellow-700 border-yellow-300'
+                                              }
+                                            >
+                                              {ticket.sentiment}
+                                            </Badge>
+                                          )}
+                                        </div>
+                                        <p className="line-clamp-2">{ticket.issue_summary}</p>
                                       </div>
-                                    </AccordionContent>
-                                  </AccordionItem>
-                                </Accordion>
+                                    ))}
+                                  </div>
+                                </div>
                               ))}
                             </div>
                           </AccordionContent>
                         </AccordionItem>
                       </Accordion>
-                    ))}
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
+                    </Card>
+                  ))}
+                </div>
+              </div>
             ))}
-          </Accordion>
+          </div>
         </ScrollArea>
       </div>
     </Card>
