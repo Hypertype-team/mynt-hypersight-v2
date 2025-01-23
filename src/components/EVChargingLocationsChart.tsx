@@ -118,7 +118,7 @@ export const EVChargingLocationsChart = () => {
             ))}
           </div>
 
-          <div className="flex-1">
+          <div className="flex-1 relative">
             <div className="h-[240px]">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -173,6 +173,12 @@ export const EVChargingLocationsChart = () => {
                 </PieChart>
               </ResponsiveContainer>
             </div>
+            <Button 
+              onClick={() => setShowMoreCharts(true)}
+              className="absolute top-0 right-0 text-lg"
+            >
+              Want more charts?
+            </Button>
           </div>
 
           {selectedCategory && (
