@@ -32,19 +32,49 @@ export const TicketAnalysisTable = () => {
     );
   }
 
-  // Group tickets by category and count them
-  const ticketsByCategory = data?.reduce((acc, ticket) => {
+  // Group tickets by category, subcategory, and common_issue
+  const groupedTickets = data?.reduce((categories, ticket) => {
     const category = ticket.category || "Uncategorized";
-    if (!acc[category]) {
-      acc[category] = {
+    const subcategory = ticket.subcategory || "Uncategorized";
+    const commonIssue = ticket.common_issue || "Uncategorized";
+
+    if (!categories[category]) {
+      categories[category] = {
+        subcategories: {},
+        count: 0,
+      };
+    }
+    
+    if (!categories[category].subcategories[subcategory]) {
+      categories[category].subcategories[subcategory] = {
+        commonIssues: {},
+        count: 0,
+      };
+    }
+    
+    if (!categories[category].subcategories[subcategory].commonIssues[commonIssue]) {
+      categories[category].subcategories[subcategory].commonIssues[commonIssue] = {
         tickets: [],
         count: 0,
       };
     }
-    acc[category].tickets.push(ticket);
-    acc[category].count += 1;
-    return acc;
-  }, {} as Record<string, { tickets: any[]; count: number }>);
+
+    categories[category].count += 1;
+    categories[category].subcategories[subcategory].count += 1;
+    categories[category].subcategories[subcategory].commonIssues[commonIssue].count += 1;
+    categories[category].subcategories[subcategory].commonIssues[commonIssue].tickets.push(ticket);
+
+    return categories;
+  }, {} as Record<string, {
+    subcategories: Record<string, {
+      commonIssues: Record<string, {
+        tickets: any[];
+        count: number;
+      }>;
+      count: number;
+    }>;
+    count: number;
+  }>);
 
   return (
     <Card className="p-6">
@@ -52,82 +82,120 @@ export const TicketAnalysisTable = () => {
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Ticket Analysis</h2>
           <p className="text-muted-foreground">
-            Detailed overview of support tickets and their analysis
+            Hierarchical view of support tickets and their analysis
           </p>
         </div>
 
         <ScrollArea className="h-[800px] pr-4">
-          {Object.entries(ticketsByCategory || {}).map(([category, { tickets, count }]) => (
-            <div key={category} className="mb-8">
-              <h3 className="text-xl font-semibold mb-4">
-                {category} ({count} total tickets)
-              </h3>
+          <Accordion type="single" collapsible className="space-y-4">
+            {Object.entries(groupedTickets || {}).map(([category, { subcategories, count }]) => (
+              <AccordionItem key={category} value={category}>
+                <AccordionTrigger className="hover:no-underline">
+                  <div className="flex flex-col items-start text-left">
+                    <div className="font-medium">{category}</div>
+                    <div className="text-sm text-muted-foreground">
+                      {count} tickets
+                    </div>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="pl-4 space-y-4">
+                    {Object.entries(subcategories).map(([subcategory, { commonIssues, count: subCount }]) => (
+                      <Accordion key={subcategory} type="single" collapsible className="border-l">
+                        <AccordionItem value={subcategory}>
+                          <AccordionTrigger className="hover:no-underline">
+                            <div className="flex flex-col items-start text-left">
+                              <div className="font-medium">{subcategory}</div>
+                              <div className="text-sm text-muted-foreground">
+                                {subCount} tickets
+                              </div>
+                            </div>
+                          </AccordionTrigger>
+                          <AccordionContent>
+                            <div className="pl-4 space-y-4">
+                              {Object.entries(commonIssues).map(([commonIssue, { tickets, count: issueCount }]) => (
+                                <Accordion key={commonIssue} type="single" collapsible className="border-l">
+                                  <AccordionItem value={commonIssue}>
+                                    <AccordionTrigger className="hover:no-underline">
+                                      <div className="flex flex-col items-start text-left">
+                                        <div className="font-medium">{commonIssue}</div>
+                                        <div className="text-sm text-muted-foreground">
+                                          {issueCount} tickets
+                                        </div>
+                                      </div>
+                                    </AccordionTrigger>
+                                    <AccordionContent>
+                                      <div className="pl-4 space-y-4">
+                                        {tickets.map((ticket) => (
+                                          <div key={ticket.id} className="border-l p-4">
+                                            <div className="space-y-4">
+                                              <div>
+                                                <div className="font-medium mb-2">
+                                                  Ticket #{ticket.id}: {ticket.issue_summary}
+                                                </div>
+                                                <p className="text-muted-foreground">
+                                                  {ticket.summary || "No summary available"}
+                                                </p>
+                                              </div>
 
-              <Accordion type="single" collapsible className="space-y-4">
-                {tickets.map((ticket) => (
-                  <AccordionItem key={ticket.id} value={`ticket-${ticket.id}`}>
-                    <AccordionTrigger className="hover:no-underline">
-                      <div className="flex flex-col items-start text-left">
-                        <div className="font-medium">{ticket.issue_summary}</div>
-                        <div className="text-sm text-muted-foreground mt-1">
-                          Ticket #{ticket.id}
-                        </div>
-                      </div>
-                    </AccordionTrigger>
-                    <AccordionContent className="space-y-4 pt-4">
-                      <div>
-                        <div className="font-medium mb-2">Summary:</div>
-                        <p className="text-muted-foreground">
-                          {ticket.summary || "No summary available"}
-                        </p>
-                      </div>
+                                              <div>
+                                                <div className="font-medium mb-2">Issue Details:</div>
+                                                <p className="text-muted-foreground">
+                                                  {ticket.issue || "No issue details available"}
+                                                </p>
+                                              </div>
 
-                      <div>
-                        <div className="font-medium mb-2">Responsible Department:</div>
-                        <Badge variant="secondary">
-                          {ticket.responsible_department || "Unassigned"}
-                        </Badge>
-                      </div>
+                                              <div>
+                                                <div className="font-medium mb-2">Responsible Department:</div>
+                                                <Badge variant="secondary">
+                                                  {ticket.responsible_department || "Unassigned"}
+                                                </Badge>
+                                                {ticket.responsible_department_justification && (
+                                                  <p className="text-sm text-muted-foreground mt-2">
+                                                    {ticket.responsible_department_justification}
+                                                  </p>
+                                                )}
+                                              </div>
 
-                      {ticket.responsible_department_justification && (
-                        <div>
-                          <div className="font-medium mb-2">Department Assignment Justification:</div>
-                          <p className="text-muted-foreground">
-                            {ticket.responsible_department_justification}
-                          </p>
-                        </div>
-                      )}
+                                              <div className="flex gap-2 flex-wrap">
+                                                {ticket.priority && (
+                                                  <Badge variant="outline">Priority: {ticket.priority}</Badge>
+                                                )}
+                                                {ticket.sentiment && (
+                                                  <Badge variant="outline">Sentiment: {ticket.sentiment}</Badge>
+                                                )}
+                                              </div>
 
-                      <div className="flex gap-2 flex-wrap">
-                        {ticket.priority && (
-                          <Badge variant="outline">Priority: {ticket.priority}</Badge>
-                        )}
-                        {ticket.sentiment && (
-                          <Badge variant="outline">Sentiment: {ticket.sentiment}</Badge>
-                        )}
-                        {ticket.subcategory && (
-                          <Badge variant="outline">Subcategory: {ticket.subcategory}</Badge>
-                        )}
-                      </div>
-
-                      {ticket.link && (
-                        <div>
-                          <a
-                            href={ticket.link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-primary hover:underline"
-                          >
-                            View Issue
-                          </a>
-                        </div>
-                      )}
-                    </AccordionContent>
-                  </AccordionItem>
-                ))}
-              </Accordion>
-            </div>
-          ))}
+                                              {ticket.link && (
+                                                <div>
+                                                  <a
+                                                    href={ticket.link}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-primary hover:underline"
+                                                  >
+                                                    View Issue
+                                                  </a>
+                                                </div>
+                                              )}
+                                            </div>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </AccordionContent>
+                                  </AccordionItem>
+                                </Accordion>
+                              ))}
+                            </div>
+                          </AccordionContent>
+                        </AccordionItem>
+                      </Accordion>
+                    ))}
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
         </ScrollArea>
       </div>
     </Card>
