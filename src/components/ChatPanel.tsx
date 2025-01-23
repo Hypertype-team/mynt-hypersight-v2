@@ -14,27 +14,40 @@ interface ChatPanelProps {
   onClose: () => void;
 }
 
-const INITIAL_MESSAGE: ChatMessage = {
-  text: `# 👋 Welcome to Your Ticket Analysis Assistant!
-
-I can help you analyze your ticket data quickly and efficiently. Feel free to ask any questions about your tickets!`,
-  isUser: false,
-};
-
 export const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
-  const [messages, setMessages] = useState<ChatMessage[]>([INITIAL_MESSAGE]);
+  const [messages, setMessages] = useState<ChatMessage[]>([
+    {
+      text: `# 👋 Welcome to Your Ticket Analysis Assistant!
+
+I'm here to help you understand patterns and insights from your ticket data. I can analyze trends, summarize issues, and provide valuable insights to help you make informed decisions.
+
+## 💡 Try asking questions like:
+
+* 📊 "What are the most common issues we're seeing?"
+* 📑 "Can you summarize tickets by category?"
+* 🏢 "What are the department justifications for specific issues?"
+* 📚 "Are there any documentation links I should know about?"
+* 🔍 "How do categories and subcategories relate to each other?"
+
+I'll provide organized, easy-to-read responses with relevant insights from your ticket data. Feel free to ask anything!`,
+      isUser: false,
+    },
+  ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
-  const handleAnalysis = async (query: string) => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!input.trim()) return;
+
     setIsLoading(true);
-    setMessages((prev) => [...prev, { text: query, isUser: true }]);
+    setMessages((prev) => [...prev, { text: input, isUser: true }]);
     setInput("");
 
     try {
       const { data, error } = await supabase.functions.invoke('analyze-tickets', {
-        body: { query }
+        body: { query: input }
       });
 
       if (error) throw error;
@@ -44,26 +57,35 @@ export const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
         {
           text: data.answer,
           isUser: false,
-          chartData: data.chartData,
-          chartType: data.chartType,
+          followUpQuestions: [
+            "What are the most common issues?",
+            "Show me ticket summaries by category",
+            "What are the department justifications?",
+            "Are there any relevant documentation links?",
+          ],
         },
       ]);
     } catch (error) {
       console.error('Error:', error);
       toast({
         title: "Analysis Failed",
-        description: "Unable to analyze the data. Please try again.",
+        description: "I couldn't analyze the data right now. Please try asking again.",
         variant: "destructive",
       });
+      setMessages((prev) => [
+        ...prev,
+        {
+          text: "I apologize, but I encountered an error while analyzing the data. Could you please try rephrasing your question or asking something else?",
+          isUser: false,
+        },
+      ]);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!input.trim()) return;
-    await handleAnalysis(input);
+  const handleFollowUpClick = (question: string) => {
+    setInput(question);
   };
 
   return (
@@ -74,13 +96,13 @@ export const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
             <Message
               key={i}
               message={message}
-              onFollowUpClick={() => {}}
+              onFollowUpClick={handleFollowUpClick}
             />
           ))}
         </div>
       </ScrollArea>
 
-      <div className="p-4 border-t">
+      <div className="border-t">
         <ChatInput
           input={input}
           isLoading={isLoading}
