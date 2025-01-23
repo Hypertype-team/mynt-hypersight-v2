@@ -80,130 +80,128 @@ export const EVChargingLocationsChart = () => {
   }
 
   return (
-    <div className="relative">
-      <div className={`transition-all duration-300 ${selectedCategory ? 'md:w-1/2' : 'w-full'}`}>
-        <Card className="p-8 rounded-3xl h-full">
-          <div className="space-y-6">
-            <div className="space-y-2">
-              <div className="flex items-start justify-between">
-                <div className="space-y-1">
-                  <h3 className="text-xl font-medium text-black">
-                    Top Issue Categories Distribution
-                  </h3>
-                  <p className="text-base text-gray-600">Total issues analyzed</p>
-                </div>
-                <span className="text-sm text-gray-500">Count</span>
-              </div>
-              <p className="text-4xl font-semibold text-black">{total}</p>
+    <Card className="p-8 rounded-3xl">
+      <div className="space-y-6">
+        <div className="space-y-2">
+          <div className="flex items-start justify-between">
+            <div className="space-y-1">
+              <h3 className="text-xl font-medium text-black">
+                Top Issue Categories Distribution
+              </h3>
+              <p className="text-base text-gray-600">Total issues analyzed</p>
             </div>
+            <span className="text-sm text-gray-500">Count</span>
+          </div>
+          <p className="text-4xl font-semibold text-black">{total}</p>
+        </div>
 
-            <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={categoryData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius="70%"
-                    outerRadius="100%"
-                    paddingAngle={2}
-                    dataKey="value"
-                    startAngle={180}
-                    endAngle={-180}
-                    onClick={handlePieClick}
-                    cursor="pointer"
-                  >
-                    {categoryData?.map((entry, index) => (
-                      <Cell 
-                        key={`cell-${index}`} 
-                        fill={COLORS[index % COLORS.length]} 
-                        stroke="none"
-                        opacity={entry.name === selectedCategory ? ACTIVE_OPACITY : INACTIVE_OPACITY}
-                      />
-                    ))}
-                    <Label
-                      content={({ viewBox }: { viewBox: { cx: number; cy: number } }) => {
-                        return (
-                          <>
-                            <text
-                              x={viewBox.cx}
-                              y={viewBox.cy - 10}
-                              textAnchor="middle"
-                              dominantBaseline="middle"
-                              className="fill-black font-medium text-2xl"
-                            >
-                              {selectedCount || categoryData?.[0]?.value || 0}
-                            </text>
-                            <text
-                              x={viewBox.cx}
-                              y={viewBox.cy + 15}
-                              textAnchor="middle"
-                              dominantBaseline="middle"
-                              className="fill-gray-500 text-sm"
-                            >
-                              tickets
-                            </text>
-                          </>
-                        );
-                      }}
-                    />
-                  </Pie>
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              {categoryData?.map((item, index) => (
-                <div 
-                  key={index} 
-                  className="flex items-center gap-2 cursor-pointer hover:opacity-80"
-                  onClick={() => handlePieClick(item)}
+        <div className="flex gap-6">
+          <div className="h-[300px] flex-1">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={categoryData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius="70%"
+                  outerRadius="100%"
+                  paddingAngle={2}
+                  dataKey="value"
+                  startAngle={180}
+                  endAngle={-180}
+                  onClick={handlePieClick}
+                  cursor="pointer"
                 >
-                  <div
-                    className="w-3 h-3 rounded"
-                    style={{ 
-                      backgroundColor: COLORS[index % COLORS.length],
-                      opacity: item.name === selectedCategory ? ACTIVE_OPACITY : INACTIVE_OPACITY
+                  {categoryData?.map((entry, index) => (
+                    <Cell 
+                      key={`cell-${index}`} 
+                      fill={COLORS[index % COLORS.length]} 
+                      stroke="none"
+                      opacity={entry.name === selectedCategory ? ACTIVE_OPACITY : INACTIVE_OPACITY}
+                    />
+                  ))}
+                  <Label
+                    content={({ viewBox }: { viewBox: { cx: number; cy: number } }) => {
+                      return (
+                        <>
+                          <text
+                            x={viewBox.cx}
+                            y={viewBox.cy - 10}
+                            textAnchor="middle"
+                            dominantBaseline="middle"
+                            className="fill-black font-medium text-2xl"
+                          >
+                            {selectedCount || categoryData?.[0]?.value || 0}
+                          </text>
+                          <text
+                            x={viewBox.cx}
+                            y={viewBox.cy + 15}
+                            textAnchor="middle"
+                            dominantBaseline="middle"
+                            className="fill-gray-500 text-sm"
+                          >
+                            tickets
+                          </text>
+                        </>
+                      );
                     }}
                   />
-                  <span className="text-sm text-gray-600">{item.name}</span>
-                </div>
-              ))}
-            </div>
+                </Pie>
+              </PieChart>
+            </ResponsiveContainer>
           </div>
-        </Card>
-      </div>
 
-      {selectedCategory && (
-        <div className="fixed top-0 right-0 h-screen w-72 bg-background border-l animate-slideIn">
-          <div className="p-4 border-b border-gray-200">
-            <h4 className="font-medium text-gray-900">{selectedCategory}</h4>
-            <p className="text-sm text-gray-600 mt-1">
-              {selectedCount} tickets ({((selectedCount! / total) * 100).toFixed(1)}%)
-            </p>
-          </div>
-          <div className="p-4">
-            <h5 className="text-sm font-medium text-gray-700 mb-3">Subcategories</h5>
-            <ScrollArea className="h-[calc(100vh-180px)] pr-4">
-              {subcategories.length > 0 ? (
-                <div className="space-y-2">
-                  {subcategories.map((subcategory, index) => (
-                    <Badge
-                      key={index}
-                      variant="secondary"
-                      className="px-3 py-1 w-full justify-start font-normal text-sm"
-                    >
-                      {subcategory}
-                    </Badge>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-sm text-gray-500 italic">No subcategories found</p>
-              )}
-            </ScrollArea>
-          </div>
+          {selectedCategory && (
+            <div className="w-72 bg-gray-50 rounded-lg self-center">
+              <div className="p-4 border-b border-gray-200">
+                <h4 className="font-medium text-gray-900">{selectedCategory}</h4>
+                <p className="text-sm text-gray-600 mt-1">
+                  {selectedCount} tickets ({((selectedCount! / total) * 100).toFixed(1)}%)
+                </p>
+              </div>
+              <div className="p-4">
+                <h5 className="text-sm font-medium text-gray-700 mb-3">Subcategories</h5>
+                <ScrollArea className="h-[200px] pr-4">
+                  {subcategories.length > 0 ? (
+                    <div className="space-y-2">
+                      {subcategories.map((subcategory, index) => (
+                        <Badge
+                          key={index}
+                          variant="secondary"
+                          className="px-3 py-1 w-full justify-start font-normal text-sm"
+                        >
+                          {subcategory}
+                        </Badge>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-500 italic">No subcategories found</p>
+                  )}
+                </ScrollArea>
+              </div>
+            </div>
+          )}
         </div>
-      )}
-    </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          {categoryData?.map((item, index) => (
+            <div 
+              key={index} 
+              className="flex items-center gap-2 cursor-pointer hover:opacity-80"
+              onClick={() => handlePieClick(item)}
+            >
+              <div
+                className="w-3 h-3 rounded"
+                style={{ 
+                  backgroundColor: COLORS[index % COLORS.length],
+                  opacity: item.name === selectedCategory ? ACTIVE_OPACITY : INACTIVE_OPACITY
+                }}
+              />
+              <span className="text-sm text-gray-600">{item.name}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </Card>
   );
 };
