@@ -3,12 +3,6 @@ import { Card } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 
 const COLORS = ["#E88D7D", "#FDE1D3", "#FFDEE2", "#E5DEFF", "#D8E1FF"];
 const ACTIVE_OPACITY = 1;
@@ -18,7 +12,6 @@ export const EVChargingLocationsChart = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [topIssue, setTopIssue] = useState<string | null>(null);
   const [selectedCount, setSelectedCount] = useState<number | null>(null);
-  const [dialogOpen, setDialogOpen] = useState(false);
 
   const { data: categoryData, isLoading } = useQuery({
     queryKey: ['ticket-categories'],
@@ -30,6 +23,7 @@ export const EVChargingLocationsChart = () => {
 
       if (error) throw error;
 
+      // Count occurrences of each category
       const categoryCounts = data.reduce((acc, curr) => {
         if (curr.category) {
           acc[curr.category] = (acc[curr.category] || 0) + 1;
@@ -37,10 +31,11 @@ export const EVChargingLocationsChart = () => {
         return acc;
       }, {} as Record<string, number>);
 
+      // Convert to array format needed for chart
       const chartData = Object.entries(categoryCounts)
         .map(([name, value]) => ({ name, value }))
-        .sort((a, b) => b.value - a.value)
-        .slice(0, 5);
+        .sort((a, b) => b.value - a.value) // Sort by value descending
+        .slice(0, 5); // Take top 5 categories
 
       return chartData;
     }
@@ -49,8 +44,8 @@ export const EVChargingLocationsChart = () => {
   const handlePieClick = async (data: any) => {
     setSelectedCategory(data.name);
     setSelectedCount(data.value);
-    setDialogOpen(true);
 
+    // Fetch top issue for selected category
     const { data: issueData, error } = await supabase
       .from('ticket_analysis')
       .select('issue')
@@ -58,6 +53,7 @@ export const EVChargingLocationsChart = () => {
       .not('issue', 'is', null);
 
     if (!error && issueData.length > 0) {
+      // Count occurrences of each issue
       const issueCounts = issueData.reduce((acc, curr) => {
         if (curr.issue) {
           acc[curr.issue] = (acc[curr.issue] || 0) + 1;
@@ -65,6 +61,7 @@ export const EVChargingLocationsChart = () => {
         return acc;
       }, {} as Record<string, number>);
 
+      // Get the most common issue
       const topIssue = Object.entries(issueCounts)
         .sort((a, b) => b[1] - a[1])[0];
       
@@ -72,6 +69,7 @@ export const EVChargingLocationsChart = () => {
     }
   };
 
+  // Set default selection when data loads
   useEffect(() => {
     if (categoryData && categoryData.length > 0 && !selectedCategory) {
       handlePieClick(categoryData[0]);
@@ -104,48 +102,61 @@ export const EVChargingLocationsChart = () => {
           <p className="text-4xl font-semibold text-black">{total}</p>
         </div>
 
-        <div className="h-[300px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={categoryData}
-                cx="50%"
-                cy="50%"
-                innerRadius="70%"
-                outerRadius="100%"
-                paddingAngle={2}
-                dataKey="value"
-                startAngle={180}
-                endAngle={-180}
-                onClick={handlePieClick}
-                cursor="pointer"
-              >
-                {categoryData?.map((entry, index) => (
-                  <Cell 
-                    key={`cell-${index}`} 
-                    fill={COLORS[index % COLORS.length]} 
-                    stroke="none"
-                    opacity={entry.name === selectedCategory ? ACTIVE_OPACITY : INACTIVE_OPACITY}
+        <div className="flex gap-6">
+          <div className="h-[300px] flex-1">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={categoryData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius="70%"
+                  outerRadius="100%"
+                  paddingAngle={2}
+                  dataKey="value"
+                  startAngle={180}
+                  endAngle={-180}
+                  onClick={handlePieClick}
+                  cursor="pointer"
+                >
+                  {categoryData?.map((entry, index) => (
+                    <Cell 
+                      key={`cell-${index}`} 
+                      fill={COLORS[index % COLORS.length]} 
+                      stroke="none"
+                      opacity={entry.name === selectedCategory ? ACTIVE_OPACITY : INACTIVE_OPACITY}
+                    />
+                  ))}
+                  <Label
+                    content={({ viewBox }: { viewBox: { cx: number; cy: number } }) => {
+                      return (
+                        <text
+                          x={viewBox.cx}
+                          y={viewBox.cy}
+                          textAnchor="middle"
+                          dominantBaseline="middle"
+                          className="fill-black font-medium text-2xl"
+                        >
+                          {categoryData?.[0]?.value || 0}
+                        </text>
+                      );
+                    }}
                   />
-                ))}
-                <Label
-                  content={({ viewBox }: { viewBox: { cx: number; cy: number } }) => {
-                    return (
-                      <text
-                        x={viewBox.cx}
-                        y={viewBox.cy}
-                        textAnchor="middle"
-                        dominantBaseline="middle"
-                        className="fill-black font-medium text-2xl"
-                      >
-                        {categoryData?.[0]?.value || 0}
-                      </text>
-                    );
-                  }}
-                />
-              </Pie>
-            </PieChart>
-          </ResponsiveContainer>
+                </Pie>
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+
+          {selectedCategory && topIssue && (
+            <div className="w-64 p-4 bg-gray-50 rounded-lg self-center">
+              <h4 className="font-medium text-sm text-gray-600 mb-2">{selectedCategory}</h4>
+              <p className="text-sm font-semibold mb-2">Count: {selectedCount} tickets ({((selectedCount! / total) * 100).toFixed(1)}%)</p>
+              <div>
+                <h5 className="text-sm text-gray-600 mb-1">Top Issue:</h5>
+                <p className="text-sm text-gray-900">{topIssue}</p>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="grid grid-cols-2 gap-4">
@@ -164,27 +175,6 @@ export const EVChargingLocationsChart = () => {
           ))}
         </div>
       </div>
-
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="text-lg font-semibold">
-              {selectedCategory}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <p className="text-sm">
-              Count: {selectedCount} tickets ({((selectedCount! / total) * 100).toFixed(1)}%)
-            </p>
-            {topIssue && (
-              <div>
-                <h5 className="text-sm font-medium mb-1">Top Issue:</h5>
-                <p className="text-sm text-gray-700">{topIssue}</p>
-              </div>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
     </Card>
   );
 };
