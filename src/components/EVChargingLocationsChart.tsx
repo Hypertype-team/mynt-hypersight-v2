@@ -2,7 +2,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Label } from "recharts";
 import { Card } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const COLORS = ["#E88D7D", "#FDE1D3", "#FFDEE2", "#E5DEFF", "#D8E1FF"];
 
@@ -66,6 +66,13 @@ export const EVChargingLocationsChart = () => {
       setTopIssue(topIssue[0]);
     }
   };
+
+  // Set default selection when data loads
+  useEffect(() => {
+    if (categoryData && categoryData.length > 0 && !selectedCategory) {
+      handlePieClick(categoryData[0]);
+    }
+  }, [categoryData]);
 
   const total = categoryData?.reduce((sum, item) => sum + item.value, 0) || 0;
 
