@@ -176,7 +176,7 @@ export const EVChargingLocationsChart = () => {
           </div>
 
           {selectedCategory && (
-            <div className="w-56 bg-muted/30 rounded-lg self-stretch">
+            <div className="flex-1 bg-muted/30 rounded-lg self-stretch">
               <div className="p-3 border-b">
                 <h4 className="font-medium">{selectedCategory}</h4>
                 <p className="text-sm text-muted-foreground">
