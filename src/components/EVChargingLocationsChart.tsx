@@ -92,27 +92,34 @@ export const EVChargingLocationsChart = () => {
           </div>
         </div>
 
-        <div className="flex gap-4">
-          <div className="flex-1 flex gap-4">
-            <div className="w-48 space-y-1.5">
-              {categoryData?.map((item, index) => (
-                <div 
-                  key={index} 
-                  className="flex items-center gap-2 cursor-pointer hover:opacity-80 p-2 rounded-md transition-colors hover:bg-muted"
-                  onClick={() => handlePieClick(item)}
-                >
-                  <div
-                    className="w-3 h-3 rounded"
-                    style={{ 
-                      backgroundColor: COLORS[index % COLORS.length],
-                      opacity: item.name === selectedCategory ? ACTIVE_OPACITY : INACTIVE_OPACITY
-                    }}
-                  />
-                  <span className="text-sm">{item.name}</span>
-                </div>
-              ))}
-            </div>
-            <div className="flex-1 h-[240px]">
+        <div className="flex gap-6">
+          <div className="w-48 space-y-1 pt-4">
+            <p className="text-sm font-medium text-muted-foreground mb-3">Categories</p>
+            {categoryData?.map((item, index) => (
+              <div 
+                key={index} 
+                className={`flex items-center gap-2.5 cursor-pointer p-2 rounded-md transition-all
+                  ${item.name === selectedCategory 
+                    ? 'bg-muted/80 shadow-sm' 
+                    : 'hover:bg-muted/50'}`}
+                onClick={() => handlePieClick(item)}
+              >
+                <div
+                  className="w-2.5 h-2.5 rounded-sm"
+                  style={{ 
+                    backgroundColor: COLORS[index % COLORS.length],
+                    opacity: item.name === selectedCategory ? ACTIVE_OPACITY : INACTIVE_OPACITY
+                  }}
+                />
+                <span className={`text-sm ${item.name === selectedCategory ? 'font-medium' : ''}`}>
+                  {item.name}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex-1">
+            <div className="h-[240px]">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
