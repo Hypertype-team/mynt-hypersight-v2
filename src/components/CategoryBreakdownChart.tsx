@@ -21,6 +21,7 @@ export const CategoryBreakdownChart = () => {
   const [chartData, setChartData] = useState<any>(null);
   const [analysis, setAnalysis] = useState<string>("");
   const [chartType, setChartType] = useState<"bar" | "line">("bar");
+  const [showAnalysis, setShowAnalysis] = useState(false);
 
   const handleAnalyze = async () => {
     if (!prompt.trim()) return;
@@ -94,30 +95,43 @@ export const CategoryBreakdownChart = () => {
 
   return (
     <Card className="p-6">
-      <div className="mb-4">
-        <h3 className="text-lg font-semibold">Data Analysis</h3>
-        <p className="text-sm text-muted-foreground mb-4">
-          Ask questions about your ticket data
-        </p>
-        <div className="flex gap-2 mb-4">
-          <Input
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            placeholder="e.g., Show me ticket priorities distribution"
-            className="flex-1"
-            disabled={isLoading}
-          />
-          <Button onClick={handleAnalyze} disabled={isLoading}>
-            {isLoading ? "Analyzing..." : "Analyze"}
+      {!showAnalysis ? (
+        <div className="flex justify-center">
+          <Button 
+            onClick={() => setShowAnalysis(true)}
+            className="text-lg"
+          >
+            Want more charts?
           </Button>
         </div>
-        {analysis && (
-          <p className="text-sm text-muted-foreground mb-4">{analysis}</p>
-        )}
-      </div>
-      <div className="h-[300px]">
-        {renderChart()}
-      </div>
+      ) : (
+        <>
+          <div className="mb-4">
+            <h3 className="text-lg font-semibold">Data Analysis</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              Ask questions about your ticket data
+            </p>
+            <div className="flex gap-2 mb-4">
+              <Input
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                placeholder="e.g., Show me ticket priorities distribution"
+                className="flex-1"
+                disabled={isLoading}
+              />
+              <Button onClick={handleAnalyze} disabled={isLoading}>
+                {isLoading ? "Analyzing..." : "Analyze"}
+              </Button>
+            </div>
+            {analysis && (
+              <p className="text-sm text-muted-foreground mb-4">{analysis}</p>
+            )}
+          </div>
+          <div className="h-[300px]">
+            {renderChart()}
+          </div>
+        </>
+      )}
     </Card>
   );
 };
