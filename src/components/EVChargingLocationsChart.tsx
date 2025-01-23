@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Button } from "@/components/ui/button";
 
 const COLORS = ["#2B4C7E", "#567B95", "#1A936F", "#114B5F", "#E34F32"];
 const ACTIVE_OPACITY = 1;
@@ -14,6 +15,7 @@ export const EVChargingLocationsChart = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedCount, setSelectedCount] = useState<number | null>(null);
   const [subcategories, setSubcategories] = useState<string[]>([]);
+  const [showMoreCharts, setShowMoreCharts] = useState(false);
 
   const { data: categoryData, isLoading } = useQuery({
     queryKey: ['ticket-categories'],
@@ -71,14 +73,6 @@ export const EVChargingLocationsChart = () => {
 
   const total = categoryData?.reduce((sum, item) => sum + item.value, 0) || 0;
 
-  if (isLoading) {
-    return (
-      <Card className="p-6">
-        <div>Loading...</div>
-      </Card>
-    );
-  }
-
   return (
     <Card className="p-6 pt-8">
       <div className="space-y-4">
@@ -118,7 +112,7 @@ export const EVChargingLocationsChart = () => {
             ))}
           </div>
 
-          <div className="flex-1">
+          <div className="flex-1 relative">
             <div className="h-[240px]">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -173,6 +167,13 @@ export const EVChargingLocationsChart = () => {
                 </PieChart>
               </ResponsiveContainer>
             </div>
+            <Button
+              variant="outline"
+              className="absolute top-4 right-4"
+              onClick={() => setShowMoreCharts(!showMoreCharts)}
+            >
+              Want more charts?
+            </Button>
           </div>
 
           {selectedCategory && (
