@@ -12,9 +12,16 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export const TicketAnalysisTable = () => {
-  const [categoryFilter, setCategoryFilter] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [subcategoryFilter, setSubcategoryFilter] = useState("");
   const [commonIssueFilter, setCommonIssueFilter] = useState("");
 
@@ -46,11 +53,7 @@ export const TicketAnalysisTable = () => {
     const commonIssue = ticket.common_issue || "Uncategorized";
 
     // Apply filters
-    if (
-      categoryFilter &&
-      !category.toLowerCase().includes(categoryFilter.toLowerCase())
-    )
-      return categories;
+    if (selectedCategory && category !== selectedCategory) return categories;
     if (
       subcategoryFilter &&
       !subcategory.toLowerCase().includes(subcategoryFilter.toLowerCase())
@@ -100,6 +103,9 @@ export const TicketAnalysisTable = () => {
     count: number;
   }>);
 
+  // Get unique categories for the select dropdown
+  const uniqueCategories = Object.keys(groupedTickets || {});
+
   return (
     <Card className="p-6">
       <div className="space-y-6">
@@ -111,15 +117,22 @@ export const TicketAnalysisTable = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="relative">
-            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Filter by category..."
-              value={categoryFilter}
-              onChange={(e) => setCategoryFilter(e.target.value)}
-              className="pl-8"
-            />
-          </div>
+          <Select
+            value={selectedCategory}
+            onValueChange={setSelectedCategory}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select a category" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">All Categories</SelectItem>
+              {uniqueCategories.map((category) => (
+                <SelectItem key={category} value={category}>
+                  {category}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <div className="relative">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
