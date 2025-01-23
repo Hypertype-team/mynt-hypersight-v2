@@ -5,7 +5,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { FileText, ChevronDown } from "lucide-react";
+import { FileText } from "lucide-react";
 import { CommonIssueGroup } from "./CommonIssueGroup";
 
 interface Ticket {
@@ -43,7 +43,6 @@ export const SubcategoryCard = ({
             <div className="flex flex-col items-start text-left space-y-1">
               <div className="font-medium text-primary flex items-center gap-2">
                 {subcategory}
-                <ChevronDown className="h-4 w-4 transition-transform duration-200 group-data-[state=open]:rotate-180" />
               </div>
               <div className="text-sm text-muted-foreground flex items-center gap-1">
                 <FileText className="h-4 w-4" />
