@@ -3,11 +3,15 @@ import { Card } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { useState } from "react";
 
 const COLORS = ["#E88D7D", "#FDE1D3", "#FFDEE2", "#E5DEFF", "#D8E1FF"];
 
 export const EVChargingLocationsChart = () => {
   const { toast } = useToast();
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [topIssue, setTopIssue] = useState<string | null>(null);
+
   const { data: categoryData, isLoading } = useQuery({
     queryKey: ['ticket-categories'],
     queryFn: async () => {
@@ -36,14 +40,38 @@ export const EVChargingLocationsChart = () => {
     }
   });
 
-  const total = categoryData?.reduce((sum, item) => sum + item.value, 0) || 0;
-
-  const handlePieClick = (data: any) => {
+  const handlePieClick = async (data: any) => {
+    setSelectedCategory(data.name);
     toast({
       title: data.name,
       description: `Count: ${data.value} tickets (${((data.value / total) * 100).toFixed(1)}%)`,
     });
+
+    // Fetch top issue for selected category
+    const { data: issueData, error } = await supabase
+      .from('ticket_analysis')
+      .select('issue')
+      .eq('category', data.name)
+      .not('issue', 'is', null);
+
+    if (!error && issueData.length > 0) {
+      // Count occurrences of each issue
+      const issueCounts = issueData.reduce((acc, curr) => {
+        if (curr.issue) {
+          acc[curr.issue] = (acc[curr.issue] || 0) + 1;
+        }
+        return acc;
+      }, {} as Record<string, number>);
+
+      // Get the most common issue
+      const topIssue = Object.entries(issueCounts)
+        .sort((a, b) => b[1] - a[1])[0];
+      
+      setTopIssue(topIssue[0]);
+    }
   };
+
+  const total = categoryData?.reduce((sum, item) => sum + item.value, 0) || 0;
 
   if (isLoading) {
     return (
@@ -69,47 +97,56 @@ export const EVChargingLocationsChart = () => {
           <p className="text-4xl font-semibold text-black">{total}</p>
         </div>
 
-        <div className="h-[300px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={categoryData}
-                cx="50%"
-                cy="50%"
-                innerRadius="70%"
-                outerRadius="100%"
-                paddingAngle={2}
-                dataKey="value"
-                startAngle={180}
-                endAngle={-180}
-                onClick={handlePieClick}
-                cursor="pointer"
-              >
-                {categoryData?.map((entry, index) => (
-                  <Cell 
-                    key={`cell-${index}`} 
-                    fill={COLORS[index % COLORS.length]} 
-                    stroke="none"
+        <div className="flex gap-6">
+          <div className="h-[300px] flex-1">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={categoryData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius="70%"
+                  outerRadius="100%"
+                  paddingAngle={2}
+                  dataKey="value"
+                  startAngle={180}
+                  endAngle={-180}
+                  onClick={handlePieClick}
+                  cursor="pointer"
+                >
+                  {categoryData?.map((entry, index) => (
+                    <Cell 
+                      key={`cell-${index}`} 
+                      fill={COLORS[index % COLORS.length]} 
+                      stroke="none"
+                    />
+                  ))}
+                  <Label
+                    content={({ viewBox }: { viewBox: { cx: number; cy: number } }) => {
+                      return (
+                        <text
+                          x={viewBox.cx}
+                          y={viewBox.cy}
+                          textAnchor="middle"
+                          dominantBaseline="middle"
+                          className="fill-black font-medium text-2xl"
+                        >
+                          {categoryData?.[0]?.value || 0}
+                        </text>
+                      );
+                    }}
                   />
-                ))}
-                <Label
-                  content={({ viewBox }: { viewBox: { cx: number; cy: number } }) => {
-                    return (
-                      <text
-                        x={viewBox.cx}
-                        y={viewBox.cy}
-                        textAnchor="middle"
-                        dominantBaseline="middle"
-                        className="fill-black font-medium text-2xl"
-                      >
-                        {categoryData?.[0]?.value || 0}
-                      </text>
-                    );
-                  }}
-                />
-              </Pie>
-            </PieChart>
-          </ResponsiveContainer>
+                </Pie>
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+
+          {selectedCategory && topIssue && (
+            <div className="w-64 p-4 bg-gray-50 rounded-lg self-center">
+              <h4 className="font-medium text-sm text-gray-600 mb-2">Top Issue for {selectedCategory}</h4>
+              <p className="text-sm text-gray-900">{topIssue}</p>
+            </div>
+          )}
         </div>
 
         <div className="grid grid-cols-2 gap-4">
