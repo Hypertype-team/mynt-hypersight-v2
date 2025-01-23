@@ -6,7 +6,7 @@ import { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
-const COLORS = ["#8B5CF6", "#D946EF", "#F97316", "#0EA5E9", "#2DD4BF"];
+const COLORS = ["#E34F32", "#2B4C7E", "#567B95", "#1A936F", "#114B5F"];
 const ACTIVE_OPACITY = 1;
 const INACTIVE_OPACITY = 0.5;
 
@@ -73,36 +73,36 @@ export const EVChargingLocationsChart = () => {
 
   if (isLoading) {
     return (
-      <Card className="p-6 bg-gradient-to-br from-[#F1F0FB] to-[#FEF7CD]/20">
+      <Card className="p-6">
         <div>Loading...</div>
       </Card>
     );
   }
 
   return (
-    <Card className="p-6 bg-gradient-to-br from-[#F1F0FB] to-[#FEF7CD]/20">
+    <Card className="p-6">
       <div className="space-y-4">
-        <div className="bg-white/50 rounded-lg p-4">
-          <h3 className="text-xl font-medium text-[#222222]">
+        <div>
+          <h3 className="text-xl font-medium">
             Top Issue Categories Distribution
           </h3>
           <div className="flex items-baseline gap-2">
-            <p className="text-3xl font-semibold text-[#8B5CF6]">{total}</p>
-            <span className="text-sm text-[#8E9196]">total issues analyzed</span>
+            <p className="text-3xl font-semibold">{total}</p>
+            <span className="text-sm text-muted-foreground">total issues analyzed</span>
           </div>
         </div>
 
         <div className="flex gap-4">
-          <div className="flex-1 bg-white/30 rounded-lg p-4">
-            <div className="h-[260px]">
+          <div className="flex-1">
+            <div className="h-[280px]">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
                     data={categoryData}
                     cx="50%"
                     cy="50%"
-                    innerRadius="60%"
-                    outerRadius="85%"
+                    innerRadius="65%"
+                    outerRadius="90%"
                     paddingAngle={2}
                     dataKey="value"
                     startAngle={180}
@@ -127,7 +127,7 @@ export const EVChargingLocationsChart = () => {
                               y={viewBox.cy - 10}
                               textAnchor="middle"
                               dominantBaseline="middle"
-                              className="fill-[#222222] font-medium text-2xl"
+                              className="fill-foreground font-medium text-2xl"
                             >
                               {selectedCount || categoryData?.[0]?.value || 0}
                             </text>
@@ -136,7 +136,7 @@ export const EVChargingLocationsChart = () => {
                               y={viewBox.cy + 15}
                               textAnchor="middle"
                               dominantBaseline="middle"
-                              className="fill-[#8E9196] text-sm"
+                              className="fill-muted-foreground text-sm"
                             >
                               tickets
                             </text>
@@ -153,7 +153,7 @@ export const EVChargingLocationsChart = () => {
               {categoryData?.map((item, index) => (
                 <div 
                   key={index} 
-                  className="flex items-center gap-2 cursor-pointer hover:bg-white/50 p-2 rounded-md transition-all duration-200"
+                  className="flex items-center gap-2 cursor-pointer hover:opacity-80 p-2 rounded-md transition-colors hover:bg-muted"
                   onClick={() => handlePieClick(item)}
                 >
                   <div
@@ -163,22 +163,22 @@ export const EVChargingLocationsChart = () => {
                       opacity: item.name === selectedCategory ? ACTIVE_OPACITY : INACTIVE_OPACITY
                     }}
                   />
-                  <span className="text-sm text-[#222222]">{item.name}</span>
+                  <span className="text-sm">{item.name}</span>
                 </div>
               ))}
             </div>
           </div>
 
           {selectedCategory && (
-            <div className="w-64 bg-white/50 rounded-lg self-stretch backdrop-blur-sm">
-              <div className="p-3 border-b border-[#E5DEFF]">
-                <h4 className="font-medium text-[#222222]">{selectedCategory}</h4>
-                <p className="text-sm text-[#8E9196]">
+            <div className="w-64 bg-muted/30 rounded-lg self-stretch">
+              <div className="p-3 border-b">
+                <h4 className="font-medium">{selectedCategory}</h4>
+                <p className="text-sm text-muted-foreground">
                   {selectedCount} tickets ({((selectedCount! / total) * 100).toFixed(1)}%)
                 </p>
               </div>
               <div className="p-3">
-                <h5 className="text-sm font-medium mb-2 text-[#222222]">Subcategories</h5>
+                <h5 className="text-sm font-medium mb-2">Subcategories</h5>
                 <ScrollArea className="h-[180px] pr-4">
                   {subcategories.length > 0 ? (
                     <div className="space-y-1.5">
@@ -186,14 +186,14 @@ export const EVChargingLocationsChart = () => {
                         <Badge
                           key={index}
                           variant="secondary"
-                          className="px-2 py-1 w-full justify-start font-normal text-xs bg-white/70 hover:bg-white transition-colors"
+                          className="px-2 py-1 w-full justify-start font-normal text-xs"
                         >
                           {subcategory}
                         </Badge>
                       ))}
                     </div>
                   ) : (
-                    <p className="text-sm text-[#8E9196] italic">No subcategories found</p>
+                    <p className="text-sm text-muted-foreground italic">No subcategories found</p>
                   )}
                 </ScrollArea>
               </div>
