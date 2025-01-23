@@ -92,7 +92,7 @@ export const EVChargingLocationsChart = () => {
           </div>
         </div>
 
-        <div className="flex gap-6">
+        <div className="flex gap-4">
           <div className="w-48 space-y-1 pt-4">
             <p className="text-sm font-medium text-muted-foreground mb-3">Categories</p>
             {categoryData?.map((item, index) => (
@@ -176,7 +176,7 @@ export const EVChargingLocationsChart = () => {
           </div>
 
           {selectedCategory && (
-            <div className="w-64 bg-muted/30 rounded-lg self-stretch">
+            <div className="w-56 bg-muted/30 rounded-lg self-stretch">
               <div className="p-3 border-b">
                 <h4 className="font-medium">{selectedCategory}</h4>
                 <p className="text-sm text-muted-foreground">
