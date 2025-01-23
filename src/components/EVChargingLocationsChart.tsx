@@ -4,15 +4,14 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect } from "react";
 
-// Updated colors to darker, more distinct shades
 const COLORS = ["#E34F32", "#2B4C7E", "#567B95", "#1A936F", "#114B5F"];
 const ACTIVE_OPACITY = 1;
 const INACTIVE_OPACITY = 0.5;
 
 export const EVChargingLocationsChart = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [topIssue, setTopIssue] = useState<string | null>(null);
   const [selectedCount, setSelectedCount] = useState<number | null>(null);
+  const [subcategories, setSubcategories] = useState<string[]>([]);
 
   const { data: categoryData, isLoading } = useQuery({
     queryKey: ['ticket-categories'],
@@ -44,24 +43,22 @@ export const EVChargingLocationsChart = () => {
     setSelectedCategory(data.name);
     setSelectedCount(data.value);
 
-    const { data: issueData, error } = await supabase
+    const { data: subcategoryData, error } = await supabase
       .from('ticket_analysis')
-      .select('issue')
+      .select('subcategory')
       .eq('category', data.name)
-      .not('issue', 'is', null);
+      .not('subcategory', 'is', null);
 
-    if (!error && issueData.length > 0) {
-      const issueCounts = issueData.reduce((acc, curr) => {
-        if (curr.issue) {
-          acc[curr.issue] = (acc[curr.issue] || 0) + 1;
-        }
-        return acc;
-      }, {} as Record<string, number>);
-
-      const topIssue = Object.entries(issueCounts)
-        .sort((a, b) => b[1] - a[1])[0];
-      
-      setTopIssue(topIssue[0]);
+    if (!error && subcategoryData.length > 0) {
+      // Get unique subcategories
+      const uniqueSubcategories = Array.from(new Set(
+        subcategoryData
+          .map(item => item.subcategory)
+          .filter((subcategory): subcategory is string => subcategory !== null)
+      ));
+      setSubcategories(uniqueSubcategories);
+    } else {
+      setSubcategories([]);
     }
   };
 
@@ -153,13 +150,21 @@ export const EVChargingLocationsChart = () => {
             </ResponsiveContainer>
           </div>
 
-          {selectedCategory && topIssue && (
+          {selectedCategory && (
             <div className="w-64 p-4 bg-gray-50 rounded-lg self-center">
               <h4 className="font-medium text-sm text-gray-600 mb-2">{selectedCategory}</h4>
               <p className="text-sm font-semibold mb-2">Count: {selectedCount} tickets ({((selectedCount! / total) * 100).toFixed(1)}%)</p>
               <div>
-                <h5 className="text-sm text-gray-600 mb-1">Top Issue:</h5>
-                <p className="text-sm text-gray-900">{topIssue}</p>
+                <h5 className="text-sm text-gray-600 mb-1">Subcategories:</h5>
+                {subcategories.length > 0 ? (
+                  <ul className="text-sm text-gray-900 space-y-1">
+                    {subcategories.map((subcategory, index) => (
+                      <li key={index}>{subcategory}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-sm text-gray-900">No subcategories found</p>
+                )}
               </div>
             </div>
           )}
