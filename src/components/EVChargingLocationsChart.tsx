@@ -5,6 +5,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect } from "react";
 
 const COLORS = ["#E88D7D", "#FDE1D3", "#FFDEE2", "#E5DEFF", "#D8E1FF"];
+const ACTIVE_OPACITY = 1;
+const INACTIVE_OPACITY = 0.6;
 
 export const EVChargingLocationsChart = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -122,6 +124,7 @@ export const EVChargingLocationsChart = () => {
                       key={`cell-${index}`} 
                       fill={COLORS[index % COLORS.length]} 
                       stroke="none"
+                      opacity={entry.name === selectedCategory ? ACTIVE_OPACITY : INACTIVE_OPACITY}
                     />
                   ))}
                   <Label
