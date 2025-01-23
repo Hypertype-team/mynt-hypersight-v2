@@ -80,7 +80,7 @@ export const EVChargingLocationsChart = () => {
   }
 
   return (
-    <Card className="p-6">
+    <Card className="p-6 pt-8">
       <div className="space-y-4">
         <div>
           <h3 className="text-xl font-medium">
