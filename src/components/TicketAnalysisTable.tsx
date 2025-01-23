@@ -158,7 +158,7 @@ export const TicketAnalysisTable = () => {
           </div>
         </div>
 
-        <ScrollArea className="h-[800px] pr-4">
+        <ScrollArea className="h-[calc(100vh-300px)] pr-4 mt-6">
           <div className="space-y-6">
             {Object.entries(groupedTickets || {}).map(([category, { subcategories, count }]) => (
               <div key={category} className="space-y-4">
