@@ -2,15 +2,14 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Label } from "recharts";
 import { Card } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast";
 import { useState } from "react";
 
 const COLORS = ["#E88D7D", "#FDE1D3", "#FFDEE2", "#E5DEFF", "#D8E1FF"];
 
 export const EVChargingLocationsChart = () => {
-  const { toast } = useToast();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [topIssue, setTopIssue] = useState<string | null>(null);
+  const [selectedCount, setSelectedCount] = useState<number | null>(null);
 
   const { data: categoryData, isLoading } = useQuery({
     queryKey: ['ticket-categories'],
@@ -42,10 +41,7 @@ export const EVChargingLocationsChart = () => {
 
   const handlePieClick = async (data: any) => {
     setSelectedCategory(data.name);
-    toast({
-      title: data.name,
-      description: `Count: ${data.value} tickets (${((data.value / total) * 100).toFixed(1)}%)`,
-    });
+    setSelectedCount(data.value);
 
     // Fetch top issue for selected category
     const { data: issueData, error } = await supabase
@@ -143,8 +139,12 @@ export const EVChargingLocationsChart = () => {
 
           {selectedCategory && topIssue && (
             <div className="w-64 p-4 bg-gray-50 rounded-lg self-center">
-              <h4 className="font-medium text-sm text-gray-600 mb-2">Top Issue for {selectedCategory}</h4>
-              <p className="text-sm text-gray-900">{topIssue}</p>
+              <h4 className="font-medium text-sm text-gray-600 mb-2">{selectedCategory}</h4>
+              <p className="text-sm font-semibold mb-2">Count: {selectedCount} tickets ({((selectedCount! / total) * 100).toFixed(1)}%)</p>
+              <div>
+                <h5 className="text-sm text-gray-600 mb-1">Top Issue:</h5>
+                <p className="text-sm text-gray-900">{topIssue}</p>
+              </div>
             </div>
           )}
         </div>
