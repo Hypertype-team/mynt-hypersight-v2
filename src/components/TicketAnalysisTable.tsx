@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
+import { Search, Layers, FolderTree, FileText, MessageSquare } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -41,7 +41,9 @@ export const TicketAnalysisTable = () => {
   if (isLoading) {
     return (
       <Card className="p-6">
-        <p>Loading ticket analysis data...</p>
+        <div className="flex items-center justify-center h-64 text-muted-foreground">
+          <p>Loading ticket analysis data...</p>
+        </div>
       </Card>
     );
   }
@@ -103,38 +105,42 @@ export const TicketAnalysisTable = () => {
     count: number;
   }>);
 
-  // Get unique categories for the select dropdown
   const uniqueCategories = Object.keys(groupedTickets || {});
 
   return (
-    <Card className="p-6">
+    <Card className="p-6 border-2">
       <div className="space-y-6">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Ticket Analysis</h2>
+          <h2 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-primary/80 to-primary bg-clip-text text-transparent">
+            Ticket Analysis
+          </h2>
           <p className="text-muted-foreground">
             Hierarchical view of support tickets and their analysis
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Select
-            value={selectedCategory}
-            onValueChange={setSelectedCategory}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select a category" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
-              {uniqueCategories.map((category) => (
-                <SelectItem key={category} value={category}>
-                  {category}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
           <div className="relative">
-            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Layers className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Select
+              value={selectedCategory}
+              onValueChange={setSelectedCategory}
+            >
+              <SelectTrigger className="pl-8">
+                <SelectValue placeholder="Select a category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Categories</SelectItem>
+                {uniqueCategories.map((category) => (
+                  <SelectItem key={category} value={category}>
+                    {category}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="relative">
+            <FolderTree className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Filter by subcategory..."
               value={subcategoryFilter}
@@ -143,7 +149,7 @@ export const TicketAnalysisTable = () => {
             />
           </div>
           <div className="relative">
-            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+            <MessageSquare className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Filter by common issue..."
               value={commonIssueFilter}
@@ -156,11 +162,16 @@ export const TicketAnalysisTable = () => {
         <ScrollArea className="h-[800px] pr-4">
           <Accordion type="single" collapsible className="space-y-4">
             {Object.entries(groupedTickets || {}).map(([category, { subcategories, count }]) => (
-              <AccordionItem key={category} value={category} className="border rounded-lg px-4">
+              <AccordionItem 
+                key={category} 
+                value={category} 
+                className="border rounded-lg px-4 hover:bg-accent/50 transition-colors"
+              >
                 <AccordionTrigger className="hover:no-underline py-4">
                   <div className="flex flex-col items-start text-left">
-                    <div className="font-medium">{category}</div>
-                    <div className="text-sm text-muted-foreground">
+                    <div className="font-medium text-lg">{category}</div>
+                    <div className="text-sm text-muted-foreground flex items-center gap-1">
+                      <FileText className="h-4 w-4" />
                       {count} {count === 1 ? 'ticket' : 'tickets'}
                     </div>
                   </div>
@@ -169,8 +180,8 @@ export const TicketAnalysisTable = () => {
                   <div className="pl-4 space-y-4">
                     {Object.entries(subcategories).map(([subcategory, { commonIssues, count: subCount }]) => (
                       <Accordion key={subcategory} type="single" collapsible className="border-l">
-                        <AccordionItem value={subcategory}>
-                          <AccordionTrigger className="hover:no-underline">
+                        <AccordionItem value={subcategory} className="border-none">
+                          <AccordionTrigger className="hover:no-underline rounded-md hover:bg-accent/30 px-4">
                             <div className="flex flex-col items-start text-left">
                               <div className="font-medium">{subcategory}</div>
                               <div className="text-sm text-muted-foreground">
@@ -182,8 +193,8 @@ export const TicketAnalysisTable = () => {
                             <div className="pl-4 space-y-4">
                               {Object.entries(commonIssues).map(([commonIssue, { tickets, count: issueCount }]) => (
                                 <Accordion key={commonIssue} type="single" collapsible className="border-l">
-                                  <AccordionItem value={commonIssue}>
-                                    <AccordionTrigger className="hover:no-underline">
+                                  <AccordionItem value={commonIssue} className="border-none">
+                                    <AccordionTrigger className="hover:no-underline rounded-md hover:bg-accent/20 px-4">
                                       <div className="flex flex-col items-start text-left">
                                         <div className="font-medium">{commonIssue}</div>
                                         <div className="text-sm text-muted-foreground">
@@ -194,11 +205,19 @@ export const TicketAnalysisTable = () => {
                                     <AccordionContent>
                                       <div className="pl-4 space-y-6">
                                         {tickets.map((ticket) => (
-                                          <div key={ticket.id} className="border-l p-6 bg-accent/50 rounded-lg">
+                                          <div 
+                                            key={ticket.id} 
+                                            className="border-l p-6 bg-card hover:bg-accent/5 transition-colors rounded-lg shadow-sm"
+                                          >
                                             <div className="space-y-4">
                                               <div>
-                                                <div className="font-medium mb-2 text-lg">
+                                                <div className="font-medium mb-2 text-lg flex items-center gap-2">
                                                   Ticket #{ticket.id}
+                                                  {ticket.priority && (
+                                                    <Badge variant={ticket.priority.toLowerCase() === 'high' ? 'destructive' : 'secondary'}>
+                                                      {ticket.priority}
+                                                    </Badge>
+                                                  )}
                                                 </div>
                                                 <p className="text-muted-foreground">
                                                   {ticket.issue_summary || "No summary available"}
@@ -214,22 +233,30 @@ export const TicketAnalysisTable = () => {
 
                                               <div>
                                                 <div className="font-medium mb-2">Responsible Department:</div>
-                                                <Badge variant="secondary" className="mb-2">
+                                                <Badge variant="outline" className="mb-2">
                                                   {ticket.responsible_department || "Unassigned"}
                                                 </Badge>
                                                 {ticket.responsible_department_justification && (
-                                                  <p className="text-sm text-muted-foreground">
+                                                  <p className="text-sm text-muted-foreground mt-2">
                                                     {ticket.responsible_department_justification}
                                                   </p>
                                                 )}
                                               </div>
 
                                               <div className="flex gap-2 flex-wrap">
-                                                {ticket.priority && (
-                                                  <Badge variant="outline">Priority: {ticket.priority}</Badge>
-                                                )}
                                                 {ticket.sentiment && (
-                                                  <Badge variant="outline">Sentiment: {ticket.sentiment}</Badge>
+                                                  <Badge 
+                                                    variant="outline"
+                                                    className={
+                                                      ticket.sentiment.toLowerCase() === 'positive' 
+                                                        ? 'bg-green-500/10 text-green-700 border-green-300'
+                                                        : ticket.sentiment.toLowerCase() === 'negative'
+                                                        ? 'bg-red-500/10 text-red-700 border-red-300'
+                                                        : 'bg-yellow-500/10 text-yellow-700 border-yellow-300'
+                                                    }
+                                                  >
+                                                    {ticket.sentiment}
+                                                  </Badge>
                                                 )}
                                               </div>
 
