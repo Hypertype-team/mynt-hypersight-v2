@@ -82,6 +82,9 @@ export const TicketFilters = ({
               <SelectValue placeholder="Select period" />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="_all" className="hover:bg-purple-50">
+                All periods
+              </SelectItem>
               {reportPeriods.map(period => (
                 <SelectItem key={period} value={period} className="hover:bg-purple-50">
                   {period}
@@ -104,8 +107,8 @@ export const TicketFilters = ({
               <SelectValue placeholder="Select category" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="" className="hover:bg-purple-50">
-                Select category
+              <SelectItem value="_all" className="hover:bg-purple-50">
+                All categories
               </SelectItem>
               {categories.map(({ name, display }) => (
                 <SelectItem key={name} value={name} className="hover:bg-purple-50">
@@ -121,16 +124,16 @@ export const TicketFilters = ({
           <Select 
             value={selectedTheme} 
             onValueChange={setSelectedTheme}
-            disabled={!selectedCategory}
+            disabled={!selectedCategory || selectedCategory === "_all"}
           >
             <SelectTrigger className={`w-full bg-white border-gray-200 transition-colors ${
-              !selectedCategory ? 'opacity-50 cursor-not-allowed' : 'hover:border-purple-200'
+              !selectedCategory || selectedCategory === "_all" ? 'opacity-50 cursor-not-allowed' : 'hover:border-purple-200'
             }`}>
-              <SelectValue placeholder={!selectedCategory ? "Select a category first" : "Select theme"} />
+              <SelectValue placeholder={!selectedCategory || selectedCategory === "_all" ? "Select a category first" : "Select theme"} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="" className="hover:bg-purple-50">
-                Select theme
+              <SelectItem value="_all" className="hover:bg-purple-50">
+                All themes
               </SelectItem>
               {themes.map(({ name, display }) => (
                 <SelectItem key={name} value={name} className="hover:bg-purple-50">
