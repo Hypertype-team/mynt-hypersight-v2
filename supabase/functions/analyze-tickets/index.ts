@@ -8,7 +8,6 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -16,11 +15,9 @@ serve(async (req) => {
   try {
     const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
     if (!openAIApiKey) {
-      console.error('OpenAI API key not found');
       throw new Error('OpenAI API key not configured');
     }
 
-    // Parse the request body
     const { query } = await req.json();
     console.log('Received query:', query);
 
@@ -33,55 +30,63 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    console.log('Fetching ticket data...');
+    console.log('Fetching relevant tickets...');
 
-    // Fetch only the most recent tickets (limit to 100) and select only necessary fields
-    const { data: tickets, error: dbError } = await supabase
+    // Search for relevant tickets based on the query
+    const { data: relevantTickets, error: searchError } = await supabase
       .from('ticket_analysis')
-      .select('summary, common_issue, category, subcategory, responsible_department')
-      .order('created_at', { ascending: false })
-      .limit(100);
+      .select('*')
+      .or(`
+        summary.ilike.%${query}%,
+        issue.ilike.%${query}%,
+        common_issue.ilike.%${query}%,
+        category.ilike.%${query}%,
+        subcategory.ilike.%${query}%
+      `)
+      .limit(10);
 
-    if (dbError) {
-      console.error('Database query error:', dbError);
-      throw dbError;
+    if (searchError) {
+      console.error('Error searching tickets:', searchError);
+      throw searchError;
     }
 
-    console.log(`Retrieved ${tickets?.length} tickets for analysis`);
+    // Get statistics for context
+    const { data: stats, error: statsError } = await supabase
+      .from('ticket_analysis')
+      .select('category, subcategory, common_issue, responsible_department')
+      .limit(1000);
 
-    // Create a summarized context from the tickets
-    const ticketSummaries = tickets?.map(ticket => ({
-      issue: ticket.common_issue,
-      category: ticket.category,
-      department: ticket.responsible_department
-    }));
+    if (statsError) {
+      console.error('Error fetching statistics:', statsError);
+      throw statsError;
+    }
 
-    // Group tickets by category for a more concise context
-    const categorySummary = tickets?.reduce((acc, ticket) => {
+    // Process statistics
+    const categoryCounts = stats.reduce((acc, ticket) => {
       const category = ticket.category || 'Uncategorized';
-      if (!acc[category]) {
-        acc[category] = {
-          count: 0,
-          common_issues: new Set(),
-          departments: new Set()
-        };
-      }
-      acc[category].count++;
-      if (ticket.common_issue) acc[category].common_issues.add(ticket.common_issue);
-      if (ticket.responsible_department) acc[category].departments.add(ticket.responsible_department);
+      acc[category] = (acc[category] || 0) + 1;
       return acc;
     }, {});
 
-    // Convert the summary to a string format
-    const contextSummary = Object.entries(categorySummary)
-      .map(([category, data]) => `
-        Category: ${category}
-        Count: ${data.count}
-        Common Issues: ${Array.from(data.common_issues).join(', ')}
-        Departments: ${Array.from(data.departments).join(', ')}
-      `).join('\n');
+    // Create context from relevant tickets and statistics
+    const context = `
+    Based on the analysis of our ticket database:
 
-    console.log('Calling OpenAI API with optimized context...');
+    Relevant Tickets:
+    ${relevantTickets?.map(ticket => `
+    - Category: ${ticket.category}
+    - Issue: ${ticket.common_issue}
+    - Summary: ${ticket.summary}
+    - Department: ${ticket.responsible_department}
+    `).join('\n')}
+
+    Overall Statistics:
+    ${Object.entries(categoryCounts)
+      .map(([category, count]) => `${category}: ${count} tickets`)
+      .join('\n')}
+    `;
+
+    console.log('Calling OpenAI with context...');
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -94,18 +99,15 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: `You are a helpful assistant analyzing ticket data. Your task is to provide insights about the tickets based on the user's query.
-            
-            Guidelines for your responses:
-            1. Keep responses concise and focused
-            2. Use bullet points for better readability
-            3. Highlight key insights
-            4. Use markdown formatting
-            5. Focus on trends and patterns`
+            content: `You are a helpful ticket analysis assistant. Use the provided context to answer questions accurately. 
+            Format your responses using markdown.
+            If you're not confident about an answer, acknowledge the uncertainty.
+            Focus on trends and patterns in the data.
+            Keep responses concise and well-structured.`
           },
           {
             role: 'user',
-            content: `Based on this ticket summary:\n${contextSummary}\n\nAnswer this question: ${query}`
+            content: `Context:\n${context}\n\nQuestion: ${query}`
           }
         ],
         temperature: 0.7,
