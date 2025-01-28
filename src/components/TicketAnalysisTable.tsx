@@ -32,7 +32,8 @@ export const TicketAnalysisTable = () => {
       const { data, error } = await supabase
         .from("ticket_analysis")
         .select("*")
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .limit(10000); // Increased limit to handle all records
 
       if (error) throw error;
       return data;
