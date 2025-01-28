@@ -15,13 +15,13 @@ export const ChatInput = ({
   onSubmit,
 }: ChatInputProps) => {
   return (
-    <form onSubmit={onSubmit} className="border-t border-[#333] p-4 bg-[#1A1F2C]">
+    <form onSubmit={onSubmit} className="border-t border-[#333] p-4 bg-black">
       <div className="flex gap-2">
         <Input
           value={input}
           onChange={(e) => onInputChange(e.target.value)}
           placeholder="Ask about your ticket data..."
-          className="flex-1 bg-[#222] border-[#333] text-[#D6BCFA] placeholder:text-[#666]"
+          className="flex-1 bg-[#2A2A2A] border-[#333] text-[#D6BCFA] placeholder:text-[#666]"
           disabled={isLoading}
         />
         <Button 

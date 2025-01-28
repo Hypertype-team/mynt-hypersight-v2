@@ -17,7 +17,7 @@ export const Message = ({ message, onFollowUpClick }: MessageProps) => {
           "p-2 rounded-lg max-w-[90%] text-sm",
           message.isUser
             ? "bg-[#9b87f5] text-white ml-auto"
-            : "bg-[#1A1F2C] text-[#D6BCFA]"
+            : "bg-[#2A2A2A] text-[#D6BCFA]"
         )}
       >
         {message.isUser ? (
@@ -37,7 +37,7 @@ export const Message = ({ message, onFollowUpClick }: MessageProps) => {
                 </a>
               ),
               code: ({ children }) => (
-                <code className="bg-[#222] text-[#D6BCFA] px-1 py-0.5 rounded text-xs">
+                <code className="bg-[#333] text-[#D6BCFA] px-1 py-0.5 rounded text-xs">
                   {children}
                 </code>
               ),
