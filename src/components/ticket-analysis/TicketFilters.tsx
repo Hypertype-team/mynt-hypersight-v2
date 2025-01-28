@@ -1,13 +1,10 @@
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Filter, RefreshCw } from "lucide-react";
+import { PeriodFilter } from "./filters/PeriodFilter";
+import { CategoryFilter } from "./filters/CategoryFilter";
+import { ThemeFilter } from "./filters/ThemeFilter";
+import { DepartmentFilter } from "./filters/DepartmentFilter";
+import { SortToggle } from "./filters/SortToggle";
 
 interface TicketFiltersProps {
   totalTickets: number;
@@ -72,109 +69,34 @@ export const TicketFilters = ({
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="space-y-2">
-          <label className="text-sm font-medium block text-gray-700">Report Period</label>
-          <Select 
-            value={selectedPeriod} 
-            onValueChange={setSelectedPeriod}
-          >
-            <SelectTrigger className="w-full bg-white border-gray-200 hover:border-purple-200 transition-colors">
-              <SelectValue placeholder="Select period" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="_all" className="hover:bg-purple-50">
-                All periods
-              </SelectItem>
-              {reportPeriods.map(period => (
-                <SelectItem key={period} value={period} className="hover:bg-purple-50">
-                  {period}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-2">
-          <label className="text-sm font-medium block text-gray-700">Category</label>
-          <Select 
-            value={selectedCategory}
-            onValueChange={(value) => {
-              setSelectedCategory(value);
-              setSelectedTheme("");
-            }}
-          >
-            <SelectTrigger className="w-full bg-white border-gray-200 hover:border-purple-200 transition-colors">
-              <SelectValue placeholder="Select category" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="_all" className="hover:bg-purple-50">
-                All categories
-              </SelectItem>
-              {categories.map(({ name, display }) => (
-                <SelectItem key={name} value={name} className="hover:bg-purple-50">
-                  {display}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-2">
-          <label className="text-sm font-medium block text-gray-700">Theme</label>
-          <Select 
-            value={selectedTheme} 
-            onValueChange={setSelectedTheme}
-            disabled={!selectedCategory || selectedCategory === "_all"}
-          >
-            <SelectTrigger className={`w-full bg-white border-gray-200 transition-colors ${
-              !selectedCategory || selectedCategory === "_all" ? 'opacity-50 cursor-not-allowed' : 'hover:border-purple-200'
-            }`}>
-              <SelectValue placeholder={!selectedCategory || selectedCategory === "_all" ? "Select a category first" : "Select theme"} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="_all" className="hover:bg-purple-50">
-                All themes
-              </SelectItem>
-              {themes.map(({ name, display }) => (
-                <SelectItem key={name} value={name} className="hover:bg-purple-50">
-                  {display}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-2">
-          <label className="text-sm font-medium block text-gray-700">Department</label>
-          <Select 
-            value={selectedDepartment} 
-            onValueChange={setSelectedDepartment}
-          >
-            <SelectTrigger className="w-full bg-white border-gray-200 hover:border-purple-200 transition-colors">
-              <SelectValue placeholder="Select department" />
-            </SelectTrigger>
-            <SelectContent>
-              {departments.map(dept => (
-                <SelectItem key={dept} value={dept} className="hover:bg-purple-50">
-                  {dept}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      <div className="mt-6 flex items-center gap-2 border-t pt-4 border-gray-100">
-        <Checkbox
-          id="sortOrder"
-          checked={sortAscending}
-          onCheckedChange={(checked) => setSortAscending(checked as boolean)}
-          className="border-gray-300 data-[state=checked]:bg-purple-500 data-[state=checked]:border-purple-500"
+        <PeriodFilter
+          selectedPeriod={selectedPeriod}
+          setSelectedPeriod={setSelectedPeriod}
+          reportPeriods={reportPeriods}
         />
-        <label htmlFor="sortOrder" className="text-sm text-gray-600 select-none cursor-pointer">
-          Sort by Ticket Volume (Ascending)
-        </label>
+        <CategoryFilter
+          selectedCategory={selectedCategory}
+          setSelectedCategory={setSelectedCategory}
+          setSelectedTheme={setSelectedTheme}
+          categories={categories}
+        />
+        <ThemeFilter
+          selectedCategory={selectedCategory}
+          selectedTheme={selectedTheme}
+          setSelectedTheme={setSelectedTheme}
+          themes={themes}
+        />
+        <DepartmentFilter
+          selectedDepartment={selectedDepartment}
+          setSelectedDepartment={setSelectedDepartment}
+          departments={departments}
+        />
       </div>
+
+      <SortToggle
+        sortAscending={sortAscending}
+        setSortAscending={setSortAscending}
+      />
     </div>
   );
 };
