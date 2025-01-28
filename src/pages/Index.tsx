@@ -41,7 +41,6 @@ const Index = () => {
         <div className="space-y-4">
           {/* Dashboard Information - Always visible */}
           <Card className="p-6">
-            <h3 className="font-semibold mb-4">Dashboard Information</h3>
             <div className="grid grid-cols-3 gap-6">
               <div>
                 <p className="text-sm text-muted-foreground mb-1">Company Name</p>
@@ -65,7 +64,6 @@ const Index = () => {
             </div>
           </Card>
 
-          {/* Filters - Collapsible */}
           <Card className="p-6">
             <Collapsible open={isFiltersExpanded} onOpenChange={setIsFiltersExpanded}>
               <div className="flex justify-between items-center mb-4">
