@@ -33,16 +33,7 @@ const Index = () => {
       <div className="space-y-6">
         <h1 className="text-2xl font-bold">HyperSight Dashboard</h1>
         
-        <div className="space-y-4">
-          <div className="grid grid-cols-3 gap-6">
-            <div className="space-y-2">
-              <div>
-                <span className="font-medium">Total Tickets: </span>
-                <span>{totalTickets}</span>
-              </div>
-            </div>
-          </div>
-        </div>
+        <h2 className="font-medium">Total Tickets: {totalTickets}</h2>
 
         <TicketAnalysisTable />
 
