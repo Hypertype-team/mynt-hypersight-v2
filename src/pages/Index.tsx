@@ -39,29 +39,27 @@ const Index = () => {
         <h1 className="text-2xl font-bold">HyperSight Dashboard</h1>
         
         <div className="space-y-4">
-          <Card className="p-6">
-            <div className="grid grid-cols-3 gap-6">
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">Company Name</p>
-                <p className="font-medium">Demo</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">Total Tickets</p>
-                <p className="font-medium">{totalTickets}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">Report Period</p>
-                <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
-                  <SelectTrigger>
-                    <SelectValue>{selectedPeriod}</SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Dec 01 - Dec 15">Dec 01 - Dec 15</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+          <div className="grid grid-cols-3 gap-6">
+            <div>
+              <p className="text-sm text-muted-foreground mb-1">Company Name</p>
+              <p className="font-medium">Demo</p>
             </div>
-          </Card>
+            <div>
+              <p className="text-sm text-muted-foreground mb-1">Total Tickets</p>
+              <p className="font-medium">{totalTickets}</p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground mb-1">Report Period</p>
+              <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
+                <SelectTrigger>
+                  <SelectValue>{selectedPeriod}</SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Dec 01 - Dec 15">Dec 01 - Dec 15</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
 
           <Card className="p-6">
             <Collapsible open={isFiltersExpanded} onOpenChange={setIsFiltersExpanded}>
