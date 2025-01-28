@@ -19,6 +19,12 @@ I'm your Ticket Analysis Assistant. Ask me about:
 
 How can I help you today?`,
       isUser: false,
+      followUpQuestions: [
+        "What are the most common issues?",
+        "Show me ticket summaries by category",
+        "What are the department justifications?",
+        "Are there any relevant documentation links?",
+      ],
     },
   ]);
   const [input, setInput] = useState("");
@@ -36,13 +42,14 @@ How can I help you today?`,
     e.preventDefault();
     if (!input.trim()) return;
 
+    const userMessage = input.trim();
     setIsLoading(true);
-    setMessages((prev) => [...prev, { text: input, isUser: true }]);
+    setMessages((prev) => [...prev, { text: userMessage, isUser: true }]);
     setInput("");
 
     try {
       const { data, error } = await supabase.functions.invoke('analyze-tickets', {
-        body: { query: input }
+        body: { query: userMessage }
       });
 
       if (error) throw error;

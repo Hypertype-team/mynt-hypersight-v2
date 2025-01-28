@@ -6,6 +6,8 @@ interface ChatPanelProps {
 }
 
 export const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
+  if (!isOpen) return null;
+
   return (
     <div className="h-full">
       <ChatContainer />

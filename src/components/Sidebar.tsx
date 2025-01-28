@@ -7,11 +7,7 @@ export const Sidebar = () => {
 
   return (
     <div className="w-[450px] bg-black flex flex-col">
-      {isChatOpen && (
-        <div className="flex-1">
-          <ChatPanel isOpen={true} onClose={() => setIsChatOpen(false)} />
-        </div>
-      )}
+      <ChatPanel isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
     </div>
   );
 };
