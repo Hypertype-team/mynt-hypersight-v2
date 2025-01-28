@@ -6,8 +6,8 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 
 const Auth = () => {
-  const [email, setEmail] = useState("johan.wikstrom@greenely.se");
-  const [password, setPassword] = useState("greenely20hypersight");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
