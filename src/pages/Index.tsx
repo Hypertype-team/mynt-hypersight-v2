@@ -6,11 +6,9 @@ import { X } from "lucide-react";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const Index = () => {
   const [showAnalysis, setShowAnalysis] = useState(false);
-  const [selectedPeriod, setSelectedPeriod] = useState("Dec 01 - Dec 15");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [subcategoryFilter, setSubcategoryFilter] = useState("");
   const [commonIssueFilter, setCommonIssueFilter] = useState("");
@@ -42,18 +40,6 @@ const Index = () => {
                 <span className="font-medium">Total Tickets: </span>
                 <span>{totalTickets}</span>
               </div>
-            </div>
-            <div></div>
-            <div>
-              <p className="text-sm text-muted-foreground mb-1">Report Period</p>
-              <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
-                <SelectTrigger>
-                  <SelectValue>{selectedPeriod}</SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Dec 01 - Dec 15">Dec 01 - Dec 15</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
           </div>
         </div>
