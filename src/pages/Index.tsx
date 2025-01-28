@@ -1,12 +1,18 @@
 import { Layout } from "@/components/Layout";
 import { TicketAnalysisTable } from "@/components/TicketAnalysisTable";
-import { CategoryBreakdownChart } from "@/components/CategoryBreakdownChart";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useState } from "react";
 import { TicketFilters } from "@/components/ticket-analysis/TicketFilters";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Maximize2, Minimize2 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const Index = () => {
   const [selectedCategory, setSelectedCategory] = useState("all");
