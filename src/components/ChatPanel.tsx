@@ -103,6 +103,7 @@ How can I help you today?`,
         <ChatInput
           input={input}
           isLoading={isLoading}
+          onInputChange={setInput}
           onSubmit={handleSubmit}
         />
       </div>
