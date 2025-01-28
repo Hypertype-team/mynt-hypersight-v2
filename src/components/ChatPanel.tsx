@@ -1,5 +1,5 @@
 import { X } from "lucide-react";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
@@ -33,6 +33,14 @@ How can I help you today?`,
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll to bottom when new messages arrive
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -87,7 +95,7 @@ How can I help you today?`,
 
   return (
     <div className="flex flex-col h-full bg-gradient-to-b from-[#1a1a1a] to-[#2a2a2a] shadow-xl">
-      <ScrollArea className="flex-1">
+      <ScrollArea className="flex-1 overflow-y-auto">
         <div className="p-4 space-y-4">
           {messages.map((message, i) => (
             <Message
@@ -96,6 +104,7 @@ How can I help you today?`,
               onFollowUpClick={handleFollowUpClick}
             />
           ))}
+          <div ref={scrollRef} /> {/* Scroll anchor */}
         </div>
       </ScrollArea>
 
