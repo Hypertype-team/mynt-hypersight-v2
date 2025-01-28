@@ -90,7 +90,7 @@ export const TicketAnalysisTable = () => {
     return true;
   });
 
-  // Get categories with counts and sort
+  // Get categories with counts and sort (Batterier first, Andra last)
   const categories = [...new Set(filteredTickets?.map(ticket => ticket.category))]
     .map(category => ({
       name: category,
@@ -104,7 +104,7 @@ export const TicketAnalysisTable = () => {
       return a.name.localeCompare(b.name);
     });
 
-  // Get themes with counts for selected category
+  // Get themes with counts for selected category, sorted by count
   const themes = selectedCategory ? 
     [...new Set(filteredTickets?.filter(t => t.category === selectedCategory)
       .map(ticket => ticket.subcategory))]

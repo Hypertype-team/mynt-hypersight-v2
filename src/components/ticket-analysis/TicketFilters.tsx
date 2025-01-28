@@ -57,7 +57,7 @@ export const TicketFilters = ({
             <h2 className="text-lg font-semibold text-gray-900">Filter Tickets</h2>
           </div>
           <p className="text-sm text-gray-600">
-            Showing {filteredCount} of {totalTickets} total tickets
+            Total tickets: {totalTickets} | Filtered: {filteredCount}
           </p>
         </div>
         <Button
