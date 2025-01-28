@@ -95,7 +95,10 @@ export const TicketFilters = ({
           <label className="text-sm font-medium block text-gray-700">Category</label>
           <Select 
             value={selectedCategory} 
-            onValueChange={setSelectedCategory}
+            onValueChange={(value) => {
+              setSelectedCategory(value);
+              setSelectedTheme(""); // Reset theme when category changes
+            }}
           >
             <SelectTrigger className="w-full bg-white border-gray-200 hover:border-purple-200 transition-colors">
               <SelectValue placeholder="Select category" />
@@ -115,9 +118,12 @@ export const TicketFilters = ({
           <Select 
             value={selectedTheme} 
             onValueChange={setSelectedTheme}
+            disabled={!selectedCategory}
           >
-            <SelectTrigger className="w-full bg-white border-gray-200 hover:border-purple-200 transition-colors">
-              <SelectValue placeholder="Select theme" />
+            <SelectTrigger className={`w-full bg-white border-gray-200 transition-colors ${
+              !selectedCategory ? 'opacity-50 cursor-not-allowed' : 'hover:border-purple-200'
+            }`}>
+              <SelectValue placeholder={!selectedCategory ? "Select a category first" : "Select theme"} />
             </SelectTrigger>
             <SelectContent>
               {themes.map(({ name, display }) => (
