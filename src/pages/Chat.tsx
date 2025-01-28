@@ -1,11 +1,10 @@
 import { Layout } from "@/components/Layout";
-import { ChatPanel } from "@/components/ChatPanel";
 
 const Chat = () => {
   return (
     <Layout>
-      <div className="h-[calc(100vh-3rem)]">
-        <ChatPanel isOpen={true} onClose={() => {}} />
+      <div className="h-[calc(100vh-3rem)] flex items-center justify-center text-muted-foreground">
+        Chat is now available in the sidebar
       </div>
     </Layout>
   );
