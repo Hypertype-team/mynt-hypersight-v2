@@ -94,7 +94,8 @@ export const TicketAnalysisTable = () => {
   const categories = [...new Set(filteredTickets?.map(ticket => ticket.category))]
     .map(category => ({
       name: category,
-      count: filteredTickets?.filter(t => t.category === category).length || 0
+      count: filteredTickets?.filter(t => t.category === category).length || 0,
+      display: `${category} (${filteredTickets?.filter(t => t.category === category).length || 0} tickets)`
     }))
     .sort((a, b) => {
       if (a.name === "Batterier") return -1;
@@ -110,7 +111,8 @@ export const TicketAnalysisTable = () => {
       .map(ticket => ticket.subcategory))]
       .map(theme => ({
         name: theme,
-        count: filteredTickets?.filter(t => t.subcategory === theme).length || 0
+        count: filteredTickets?.filter(t => t.subcategory === theme).length || 0,
+        display: `${theme} (${filteredTickets?.filter(t => t.subcategory === theme).length || 0} tickets)`
       }))
       .sort((a, b) => sortAscending ? a.count - b.count : b.count - a.count)
     : [];

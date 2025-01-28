@@ -23,8 +23,8 @@ interface TicketFiltersProps {
   sortAscending: boolean;
   setSortAscending: (ascending: boolean) => void;
   reportPeriods: string[];
-  categories: { name: string; count: number }[];
-  themes: { name: string; count: number }[];
+  categories: { name: string; count: number; display: string }[];
+  themes: { name: string; count: number; display: string }[];
   departments: string[];
   onRefresh: () => void;
 }
@@ -101,9 +101,9 @@ export const TicketFilters = ({
               <SelectValue placeholder="Select category" />
             </SelectTrigger>
             <SelectContent>
-              {categories.map(({ name, count }) => (
+              {categories.map(({ name, display }) => (
                 <SelectItem key={name} value={name} className="hover:bg-purple-50">
-                  {name} ({count} tickets)
+                  {display}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -120,9 +120,9 @@ export const TicketFilters = ({
               <SelectValue placeholder="Select theme" />
             </SelectTrigger>
             <SelectContent>
-              {themes.map(({ name, count }) => (
+              {themes.map(({ name, display }) => (
                 <SelectItem key={name} value={name} className="hover:bg-purple-50">
-                  {name} ({count} tickets)
+                  {display}
                 </SelectItem>
               ))}
             </SelectContent>
