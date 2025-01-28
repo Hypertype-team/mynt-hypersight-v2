@@ -47,7 +47,7 @@ export const TicketAnalysisTable = () => {
       }
       
       console.log("Total tickets fetched:", data?.length);
-      return data;
+      return data || [];
     },
   });
 
