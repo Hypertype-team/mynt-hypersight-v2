@@ -32,17 +32,14 @@ serve(async (req) => {
 
     console.log('Fetching relevant tickets...');
 
-    // Search for relevant tickets based on the query
+    // Search for relevant tickets using textSearch
     const { data: relevantTickets, error: searchError } = await supabase
       .from('ticket_analysis')
       .select('*')
-      .or(`
-        summary.ilike.%${query}%,
-        issue.ilike.%${query}%,
-        common_issue.ilike.%${query}%,
-        category.ilike.%${query}%,
-        subcategory.ilike.%${query}%
-      `)
+      .textSearch('summary', query, {
+        type: 'plain',
+        config: 'english'
+      })
       .limit(10);
 
     if (searchError) {
