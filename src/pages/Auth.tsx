@@ -10,7 +10,7 @@ const Auth = () => {
   const [email, setEmail] = useState("johan.wikstrom@greenely.se");
   const [password, setPassword] = useState("greenely20hypersight");
   const [isLoading, setIsLoading] = useState(false);
-  const [isSignUp, setIsSignUp] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -19,23 +19,34 @@ const Auth = () => {
     setIsLoading(true);
 
     try {
-      const { error } = isSignUp 
-        ? await supabase.auth.signUp({ email, password })
-        : await supabase.auth.signInWithPassword({ email, password });
+      if (isSignUp) {
+        const { error: signUpError } = await supabase.auth.signUp({
+          email,
+          password,
+        });
 
-      if (error) throw error;
+        if (signUpError) throw signUpError;
 
-      toast({
-        title: isSignUp ? "Account created!" : "Welcome back!",
-        description: isSignUp 
-          ? "Please check your email to verify your account." 
-          : "You have been successfully logged in.",
-      });
+        toast({
+          title: "Account created!",
+          description: "Please check your email to verify your account.",
+        });
+      } else {
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
 
-      if (!isSignUp) {
+        if (signInError) throw signInError;
+
+        toast({
+          title: "Welcome back!",
+          description: "You have been successfully logged in.",
+        });
         navigate("/");
       }
     } catch (error: any) {
+      console.error("Auth error:", error);
       toast({
         variant: "destructive",
         title: "Error",
@@ -50,7 +61,9 @@ const Auth = () => {
     <div className="min-h-screen flex items-center justify-center bg-[#F1F0FB]">
       <div className="w-full max-w-md space-y-8 p-8 bg-white rounded-2xl shadow-lg border border-[#E5DEFF]">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-[#2D2D2D]">{isSignUp ? "Create Account" : "Welcome Back"}</h2>
+          <h2 className="text-2xl font-bold text-[#2D2D2D]">
+            {isSignUp ? "Create Account" : "Welcome Back"}
+          </h2>
           <p className="text-[#6B7280] mt-2">
             {isSignUp ? "Sign up to get started" : "Sign in to your account"}
           </p>
@@ -58,7 +71,9 @@ const Auth = () => {
 
         <form onSubmit={handleAuth} className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="email" className="text-[#4A4A4A]">Email</Label>
+            <Label htmlFor="email" className="text-[#4A4A4A]">
+              Email
+            </Label>
             <Input
               id="email"
               type="email"
@@ -71,7 +86,9 @@ const Auth = () => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password" className="text-[#4A4A4A]">Password</Label>
+            <Label htmlFor="password" className="text-[#4A4A4A]">
+              Password
+            </Label>
             <Input
               id="password"
               type="password"
@@ -83,8 +100,8 @@ const Auth = () => {
             />
           </div>
 
-          <Button 
-            type="submit" 
+          <Button
+            type="submit"
             className="w-full bg-[#9b87f5] hover:bg-[#8875e0] text-white transition-colors"
             disabled={isLoading}
           >
@@ -98,7 +115,9 @@ const Auth = () => {
             onClick={() => setIsSignUp(!isSignUp)}
             className="text-[#9b87f5] hover:text-[#7E69AB] transition-colors"
           >
-            {isSignUp ? "Already have an account? Sign in" : "Need an account? Sign up"}
+            {isSignUp
+              ? "Already have an account? Sign in"
+              : "Need an account? Sign up"}
           </button>
         </div>
       </div>
