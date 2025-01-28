@@ -12,6 +12,11 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ChevronDown, ChevronUp, ExternalLink } from "lucide-react";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 export const TicketAnalysisTable = () => {
   const [selectedPeriod, setSelectedPeriod] = useState<string>("");
@@ -19,6 +24,7 @@ export const TicketAnalysisTable = () => {
   const [selectedTheme, setSelectedTheme] = useState<string>("");
   const [selectedDepartment, setSelectedDepartment] = useState<string>("All");
   const [sortAscending, setSortAscending] = useState(false);
+  const [expandedTickets, setExpandedTickets] = useState<string[]>([]);
 
   const { data: allTickets, isLoading } = useQuery({
     queryKey: ["tickets"],
@@ -102,14 +108,22 @@ export const TicketAnalysisTable = () => {
   const sortedIssues = Object.entries(groupedByIssue || {})
     .sort(([, a], [, b]) => sortAscending ? a.count - b.count : b.count - a.count);
 
+  const toggleTickets = (issueId: string) => {
+    setExpandedTickets(prev => 
+      prev.includes(issueId) 
+        ? prev.filter(id => id !== issueId)
+        : [...prev, issueId]
+    );
+  };
+
   return (
-    <div className="space-y-6">
-      <Card className="p-6">
+    <div className="space-y-6 max-w-[1200px] mx-auto">
+      <Card className="p-6 bg-white shadow-sm">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
-            <label className="text-sm font-medium mb-2 block">Report Period</label>
+            <label className="text-sm font-medium mb-2 block text-gray-900">Report Period</label>
             <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
-              <SelectTrigger>
+              <SelectTrigger className="bg-white border-gray-300">
                 <SelectValue placeholder="Select period" />
               </SelectTrigger>
               <SelectContent>
@@ -123,9 +137,9 @@ export const TicketAnalysisTable = () => {
           </div>
 
           <div>
-            <label className="text-sm font-medium mb-2 block">Category</label>
+            <label className="text-sm font-medium mb-2 block text-gray-900">Category</label>
             <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-              <SelectTrigger>
+              <SelectTrigger className="bg-white border-gray-300">
                 <SelectValue placeholder="Select category" />
               </SelectTrigger>
               <SelectContent>
@@ -139,9 +153,9 @@ export const TicketAnalysisTable = () => {
           </div>
 
           <div>
-            <label className="text-sm font-medium mb-2 block">Theme</label>
+            <label className="text-sm font-medium mb-2 block text-gray-900">Theme</label>
             <Select value={selectedTheme} onValueChange={setSelectedTheme}>
-              <SelectTrigger>
+              <SelectTrigger className="bg-white border-gray-300">
                 <SelectValue placeholder="Select theme" />
               </SelectTrigger>
               <SelectContent>
@@ -155,9 +169,9 @@ export const TicketAnalysisTable = () => {
           </div>
 
           <div>
-            <label className="text-sm font-medium mb-2 block">Department</label>
+            <label className="text-sm font-medium mb-2 block text-gray-900">Department</label>
             <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
-              <SelectTrigger>
+              <SelectTrigger className="bg-white border-gray-300">
                 <SelectValue placeholder="Select department" />
               </SelectTrigger>
               <SelectContent>
@@ -177,62 +191,76 @@ export const TicketAnalysisTable = () => {
             checked={sortAscending}
             onCheckedChange={(checked) => setSortAscending(checked as boolean)}
           />
-          <label htmlFor="sortOrder" className="text-sm">
+          <label htmlFor="sortOrder" className="text-sm text-gray-700">
             Sort by Ticket Volume (Ascending)
           </label>
         </div>
       </Card>
 
-      <Card className="p-6">
-        <div className="space-y-6">
-          {selectedTheme && (
-            <h3 className="text-xl font-semibold">
-              {selectedTheme} ({filteredTickets?.length || 0} total tickets)
-            </h3>
-          )}
-          
-          {sortedIssues.map(([issue, { tickets, count, summary, department }], index) => (
-            <div key={issue} className="space-y-4">
-              <div className="border-b pb-2">
-                <h2 className="text-lg font-semibold">
+      <div className="space-y-6">
+        {selectedTheme && (
+          <h3 className="text-xl font-semibold text-gray-900">
+            {selectedTheme} ({filteredTickets?.length || 0} total tickets)
+          </h3>
+        )}
+        
+        {sortedIssues.map(([issue, { tickets, count, summary, department }], index) => (
+          <Card key={issue} className="p-6 bg-white shadow-sm">
+            <div className="space-y-4">
+              <div className="border-b pb-4">
+                <h2 className="text-lg font-semibold text-gray-900">
                   {index + 1}. {issue} ({count} tickets)
                 </h2>
-                <p className="text-muted-foreground mt-1">
+                <p className="text-gray-700 mt-2">
                   <span className="font-medium">Summary:</span> {summary}
                 </p>
-                <p className="text-muted-foreground">
-                  <span className="font-medium">Department:</span> {department}
+                <p className="text-gray-700">
+                  <span className="font-medium">Responsible Department:</span> {department}
                 </p>
               </div>
               
-              {tickets.map((ticket, ticketIndex) => (
-                <div key={ticket.id} className="pl-4 border-l-2 border-gray-200">
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="font-medium">Ticket {ticketIndex + 1}:</h3>
-                    {ticket.link && (
-                      <Button variant="link" size="sm" className="text-blue-600" asChild>
-                        <a href={ticket.link} target="_blank" rel="noopener noreferrer">
-                          View Issue <ExternalLink className="ml-1 h-4 w-4" />
-                        </a>
-                      </Button>
-                    )}
-                  </div>
-                  <div className="space-y-2">
-                    <div>
-                      <p className="font-medium">Ticket Issue:</p>
-                      <p className="text-muted-foreground">{ticket.issue}</p>
-                    </div>
-                    <div>
-                      <p className="font-medium">Ticket Summary:</p>
-                      <p className="text-muted-foreground">{ticket.summary}</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
+              <div className="pt-2">
+                <Button
+                  variant="ghost"
+                  className="text-gray-700 hover:text-gray-900"
+                  onClick={() => toggleTickets(issue)}
+                >
+                  View Tickets {expandedTickets.includes(issue) ? <ChevronUp className="ml-2 h-4 w-4" /> : <ChevronDown className="ml-2 h-4 w-4" />}
+                </Button>
+                
+                <Collapsible open={expandedTickets.includes(issue)}>
+                  <CollapsibleContent className="space-y-4 mt-4">
+                    {tickets.map((ticket, ticketIndex) => (
+                      <div key={ticket.id} className="pl-4 border-l-2 border-gray-200">
+                        <div className="flex justify-between items-start mb-2">
+                          <h3 className="font-medium text-gray-900">Ticket {ticketIndex + 1}:</h3>
+                          {ticket.link && (
+                            <Button variant="link" size="sm" className="text-blue-600 hover:text-blue-700" asChild>
+                              <a href={ticket.link} target="_blank" rel="noopener noreferrer">
+                                View Issue <ExternalLink className="ml-1 h-4 w-4" />
+                              </a>
+                            </Button>
+                          )}
+                        </div>
+                        <div className="space-y-2">
+                          <div>
+                            <p className="font-medium text-gray-900">Ticket Issue:</p>
+                            <p className="text-gray-700">{ticket.issue}</p>
+                          </div>
+                          <div>
+                            <p className="font-medium text-gray-900">Ticket Summary:</p>
+                            <p className="text-gray-700">{ticket.summary}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </CollapsibleContent>
+                </Collapsible>
+              </div>
             </div>
-          ))}
-        </div>
-      </Card>
+          </Card>
+        ))}
+      </div>
     </div>
   );
 };
