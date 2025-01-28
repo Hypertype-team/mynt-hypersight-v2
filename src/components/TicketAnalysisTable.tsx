@@ -32,9 +32,9 @@ export const TicketAnalysisTable = () => {
     queryKey: ["tickets"],
     queryFn: async () => {
       console.log("Fetching tickets...");
-      const { data, error } = await supabase
+      let { data, error, count } = await supabase
         .from("ticket_analysis")
-        .select("*")
+        .select("*", { count: 'exact' })
         .order("created_at", { ascending: false });
 
       if (error) {
@@ -46,7 +46,7 @@ export const TicketAnalysisTable = () => {
         throw error;
       }
       
-      console.log("Total tickets fetched:", data?.length);
+      console.log("Total tickets fetched:", count);
       return data || [];
     },
   });
