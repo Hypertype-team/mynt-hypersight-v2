@@ -6,7 +6,7 @@ export const Sidebar = () => {
   const [isChatOpen, setIsChatOpen] = useState(true);
 
   return (
-    <div className="w-[400px] border-r bg-background flex flex-col">
+    <div className="w-[450px] border-r bg-background flex flex-col">
       {isChatOpen && (
         <div className="flex-1 border-t">
           <ChatPanel isOpen={true} onClose={() => setIsChatOpen(false)} />
