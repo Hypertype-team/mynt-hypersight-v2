@@ -38,7 +38,7 @@ export const TicketAnalysisTable = () => {
   if (isLoading) return <LoadingState />;
 
   const allTickets = ticketsData?.tickets || [];
-  const totalTickets = 3539;
+  const totalTickets = allTickets.length;
 
   const reportPeriods = [...new Set(allTickets?.map(ticket => ticket.report_period))];
   const filteredTickets = getFilteredTickets(
@@ -61,7 +61,7 @@ export const TicketAnalysisTable = () => {
     <div className="space-y-6 max-w-[1200px] mx-auto">
       <Card className="overflow-hidden">
         <TicketFilters
-          totalTickets={3539}
+          totalTickets={totalTickets}
           filteredCount={filteredTickets.length}
           selectedPeriod={selectedPeriod}
           setSelectedPeriod={setSelectedPeriod}
