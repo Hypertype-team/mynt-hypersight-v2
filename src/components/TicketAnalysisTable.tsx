@@ -27,7 +27,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 
-const PAGE_SIZE = 50; // Number of tickets per page
+const PAGE_SIZE = 100; // Increased page size for more records per page
 
 export const TicketAnalysisTable = () => {
   const [selectedPeriod, setSelectedPeriod] = useState<string>("");
@@ -164,7 +164,7 @@ export const TicketAnalysisTable = () => {
                 <h2 className="text-lg font-semibold text-gray-900">Filter Tickets</h2>
               </div>
               <p className="text-sm text-gray-600">
-                Showing {filteredTickets?.length || 0} of {allTickets?.length || 0} total tickets
+                Showing {filteredTickets?.length || 0} of {totalTickets} total tickets
               </p>
             </div>
             <Button
@@ -358,10 +358,14 @@ export const TicketAnalysisTable = () => {
           <Pagination>
             <PaginationContent>
               <PaginationItem>
-                <PaginationPrevious
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                   disabled={currentPage === 1}
-                />
+                >
+                  Previous
+                </Button>
               </PaginationItem>
               
               {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
@@ -378,21 +382,26 @@ export const TicketAnalysisTable = () => {
 
                 return (
                   <PaginationItem key={pageNumber}>
-                    <PaginationLink
+                    <Button
+                      variant={currentPage === pageNumber ? "default" : "outline"}
+                      size="sm"
                       onClick={() => setCurrentPage(pageNumber)}
-                      isActive={currentPage === pageNumber}
                     >
                       {pageNumber}
-                    </PaginationLink>
+                    </Button>
                   </PaginationItem>
                 );
               })}
 
               <PaginationItem>
-                <PaginationNext
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                   disabled={currentPage === totalPages}
-                />
+                >
+                  Next
+                </Button>
               </PaginationItem>
             </PaginationContent>
           </Pagination>
