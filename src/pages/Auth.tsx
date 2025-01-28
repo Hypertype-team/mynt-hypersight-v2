@@ -10,7 +10,6 @@ const Auth = () => {
   const [email, setEmail] = useState("johan.wikstrom@greenely.se");
   const [password, setPassword] = useState("greenely20hypersight");
   const [isLoading, setIsLoading] = useState(false);
-  const [isSignUp, setIsSignUp] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -20,32 +19,24 @@ const Auth = () => {
 
     try {
       // Only allow specific credentials for sign in
-      if (!isSignUp) {
-        if (
-          email === "johan.wikstrom@greenely.se" &&
-          password === "greenely20hypersight"
-        ) {
-          const { error: signInError } = await supabase.auth.signInWithPassword({
-            email,
-            password,
-          });
-
-          if (signInError) throw signInError;
-
-          toast({
-            title: "Welcome back!",
-            description: "You have been successfully logged in.",
-          });
-          navigate("/");
-        } else {
-          throw new Error("Invalid credentials. Please use the provided test account.");
-        }
-      } else {
-        toast({
-          variant: "destructive",
-          title: "Sign up disabled",
-          description: "Please use the provided test account to sign in.",
+      if (
+        email === "johan.wikstrom@greenely.se" &&
+        password === "greenely20hypersight"
+      ) {
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email,
+          password,
         });
+
+        if (signInError) throw signInError;
+
+        toast({
+          title: "Welcome back!",
+          description: "You have been successfully logged in.",
+        });
+        navigate("/");
+      } else {
+        throw new Error("Invalid credentials. Please use the provided test account.");
       }
     } catch (error: any) {
       console.error("Auth error:", error);
@@ -63,12 +54,8 @@ const Auth = () => {
     <div className="min-h-screen flex items-center justify-center bg-[#F1F0FB]">
       <div className="w-full max-w-md space-y-8 p-8 bg-white rounded-2xl shadow-lg border border-[#E5DEFF]">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-[#2D2D2D]">
-            {isSignUp ? "Create Account" : "Welcome Back"}
-          </h2>
-          <p className="text-[#6B7280] mt-2">
-            {isSignUp ? "Sign up to get started" : "Sign in to your account"}
-          </p>
+          <h2 className="text-2xl font-bold text-[#2D2D2D]">Welcome Back</h2>
+          <p className="text-[#6B7280] mt-2">Sign in to your account</p>
         </div>
 
         <form onSubmit={handleAuth} className="space-y-6">
@@ -107,21 +94,9 @@ const Auth = () => {
             className="w-full bg-[#9b87f5] hover:bg-[#8875e0] text-white transition-colors"
             disabled={isLoading}
           >
-            {isLoading ? "Loading..." : isSignUp ? "Sign Up" : "Sign In"}
+            {isLoading ? "Loading..." : "Sign In"}
           </Button>
         </form>
-
-        <div className="text-center">
-          <button
-            type="button"
-            onClick={() => setIsSignUp(!isSignUp)}
-            className="text-[#9b87f5] hover:text-[#7E69AB] transition-colors"
-          >
-            {isSignUp
-              ? "Already have an account? Sign in"
-              : "Need an account? Sign up"}
-          </button>
-        </div>
       </div>
     </div>
   );
