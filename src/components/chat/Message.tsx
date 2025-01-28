@@ -16,28 +16,28 @@ export const Message = ({ message, onFollowUpClick }: MessageProps) => {
         className={cn(
           "p-2 rounded-lg max-w-[90%] text-sm",
           message.isUser
-            ? "bg-primary text-primary-foreground ml-auto"
-            : "bg-muted"
+            ? "bg-[#9b87f5] text-white ml-auto"
+            : "bg-[#1A1F2C] text-[#D6BCFA]"
         )}
       >
         {message.isUser ? (
           message.text
         ) : (
           <ReactMarkdown
-            className="prose prose-sm dark:prose-invert max-w-none"
+            className="prose prose-sm prose-invert max-w-none"
             components={{
-              h1: ({ children }) => <h1 className="text-lg font-bold mb-1">{children}</h1>,
-              h2: ({ children }) => <h2 className="text-base font-bold mb-1">{children}</h2>,
-              h3: ({ children }) => <h3 className="text-sm font-bold mb-1">{children}</h3>,
+              h1: ({ children }) => <h1 className="text-lg font-bold mb-1 text-[#8B5CF6]">{children}</h1>,
+              h2: ({ children }) => <h2 className="text-base font-bold mb-1 text-[#8B5CF6]">{children}</h2>,
+              h3: ({ children }) => <h3 className="text-sm font-bold mb-1 text-[#8B5CF6]">{children}</h3>,
               ul: ({ children }) => <ul className="list-disc pl-4 mb-1">{children}</ul>,
               ol: ({ children }) => <ol className="list-decimal pl-4 mb-1">{children}</ol>,
               a: ({ href, children }) => (
-                <a href={href} className="text-blue-500 hover:underline" target="_blank" rel="noopener noreferrer">
+                <a href={href} className="text-[#9b87f5] hover:underline" target="_blank" rel="noopener noreferrer">
                   {children}
                 </a>
               ),
               code: ({ children }) => (
-                <code className="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-xs">
+                <code className="bg-[#222] text-[#D6BCFA] px-1 py-0.5 rounded text-xs">
                   {children}
                 </code>
               ),
