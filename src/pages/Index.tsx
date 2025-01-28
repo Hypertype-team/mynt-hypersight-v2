@@ -16,7 +16,7 @@ const Index = () => {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [subcategoryFilter, setSubcategoryFilter] = useState("");
   const [commonIssueFilter, setCommonIssueFilter] = useState("");
-  const [isFiltersExpanded, setIsFiltersExpanded] = useState(false); // Changed to false for initial collapsed state
+  const [isFiltersExpanded, setIsFiltersExpanded] = useState(false);
 
   const { data: dashboardData } = useQuery({
     queryKey: ["dashboard-info"],
@@ -42,7 +42,7 @@ const Index = () => {
           {/* Dashboard Information - Always visible */}
           <Card className="p-6">
             <h3 className="font-semibold mb-4">Dashboard Information</h3>
-            <div className="space-y-4">
+            <div className="grid grid-cols-3 gap-6">
               <div>
                 <p className="text-sm text-muted-foreground mb-1">Company Name</p>
                 <p className="font-medium">Demo</p>
