@@ -6,7 +6,6 @@ import { ChevronDown, ChevronUp, Maximize2, Minimize2, X } from "lucide-react";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
@@ -60,66 +59,64 @@ const Index = () => {
             </div>
           </div>
 
-          <Card className="p-4">
-            <Collapsible open={isFiltersExpanded} onOpenChange={setIsFiltersExpanded}>
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="font-semibold">Filters</h3>
-                <CollapsibleTrigger asChild>
-                  <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
-                    {isFiltersExpanded ? (
-                      <Minimize2 className="h-4 w-4" />
-                    ) : (
-                      <Maximize2 className="h-4 w-4" />
-                    )}
-                  </Button>
-                </CollapsibleTrigger>
+          <Collapsible open={isFiltersExpanded} onOpenChange={setIsFiltersExpanded}>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="font-semibold">Filters</h3>
+              <CollapsibleTrigger asChild>
+                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+                  {isFiltersExpanded ? (
+                    <Minimize2 className="h-4 w-4" />
+                  ) : (
+                    <Maximize2 className="h-4 w-4" />
+                  )}
+                </Button>
+              </CollapsibleTrigger>
+            </div>
+            <CollapsibleContent className="space-y-4">
+              <div>
+                <p className="text-sm text-muted-foreground mb-1">Category</p>
+                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                  <SelectTrigger>
+                    <SelectValue>All Categories</SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Categories</SelectItem>
+                    {categories.map((category) => (
+                      <SelectItem key={category} value={category}>
+                        {category}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-              <CollapsibleContent className="space-y-4">
-                <div>
-                  <p className="text-sm text-muted-foreground mb-1">Category</p>
-                  <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                    <SelectTrigger>
-                      <SelectValue>All Categories</SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Categories</SelectItem>
-                      {categories.map((category) => (
-                        <SelectItem key={category} value={category}>
-                          {category}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground mb-1">Theme</p>
-                  <Select defaultValue="all">
-                    <SelectTrigger>
-                      <SelectValue>All Themes</SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Themes</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground mb-1">Responsible Department</p>
-                  <Select defaultValue="all">
-                    <SelectTrigger>
-                      <SelectValue>All</SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <input type="checkbox" id="sortByVolume" className="rounded border-gray-300" />
-                  <label htmlFor="sortByVolume">Sort by Ticket Volume (Ascending)</label>
-                </div>
-              </CollapsibleContent>
-            </Collapsible>
-          </Card>
+              <div>
+                <p className="text-sm text-muted-foreground mb-1">Theme</p>
+                <Select defaultValue="all">
+                  <SelectTrigger>
+                    <SelectValue>All Themes</SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Themes</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground mb-1">Responsible Department</p>
+                <Select defaultValue="all">
+                  <SelectTrigger>
+                    <SelectValue>All</SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <input type="checkbox" id="sortByVolume" className="rounded border-gray-300" />
+                <label htmlFor="sortByVolume">Sort by Ticket Volume (Ascending)</label>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
         </div>
 
         <TicketAnalysisTable />
