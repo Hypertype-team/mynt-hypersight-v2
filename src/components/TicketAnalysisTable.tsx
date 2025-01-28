@@ -85,7 +85,7 @@ export const TicketAnalysisTable = () => {
     return true;
   });
 
-  // Get categories with counts
+  // Get categories with counts and sort (Batterier first, Andra last)
   const categories = [...new Set(filteredTickets?.map(ticket => ticket.category))]
     .map(category => ({
       name: category,
@@ -113,19 +113,6 @@ export const TicketAnalysisTable = () => {
   // Get departments
   const departments = ["All", ...new Set(filteredTickets?.map(ticket => ticket.responsible_department))];
 
-  const handleSelectChange = (value: string, setter: (value: string) => void) => {
-    setter(value);
-    // Keep dropdown open by simulating a click
-    setTimeout(() => {
-      const event = new MouseEvent('click', {
-        bubbles: true,
-        cancelable: true,
-        view: window
-      });
-      document.querySelector('[role="combobox"]')?.dispatchEvent(event);
-    }, 0);
-  };
-
   // Group tickets by common issue
   const groupedByIssue = filteredTickets?.reduce((acc, ticket) => {
     const issue = ticket.common_issue || "Uncategorized";
@@ -144,14 +131,6 @@ export const TicketAnalysisTable = () => {
 
   const sortedIssues = Object.entries(groupedByIssue || {})
     .sort(([, a], [, b]) => sortAscending ? a.count - b.count : b.count - a.count);
-
-  const toggleTickets = (issueId: string) => {
-    setExpandedTickets(prev => 
-      prev.includes(issueId) 
-        ? prev.filter(id => id !== issueId)
-        : [...prev, issueId]
-    );
-  };
 
   return (
     <div className="space-y-6 max-w-[1200px] mx-auto">
@@ -183,7 +162,7 @@ export const TicketAnalysisTable = () => {
               <label className="text-sm font-medium block text-gray-700">Report Period</label>
               <Select 
                 value={selectedPeriod} 
-                onValueChange={(value) => handleSelectChange(value, setSelectedPeriod)}
+                onValueChange={setSelectedPeriod}
               >
                 <SelectTrigger className="w-full bg-white border-gray-200 hover:border-purple-200 transition-colors">
                   <SelectValue placeholder="Select period" />
@@ -202,7 +181,7 @@ export const TicketAnalysisTable = () => {
               <label className="text-sm font-medium block text-gray-700">Category</label>
               <Select 
                 value={selectedCategory} 
-                onValueChange={(value) => handleSelectChange(value, setSelectedCategory)}
+                onValueChange={setSelectedCategory}
               >
                 <SelectTrigger className="w-full bg-white border-gray-200 hover:border-purple-200 transition-colors">
                   <SelectValue placeholder="Select category" />
@@ -221,7 +200,7 @@ export const TicketAnalysisTable = () => {
               <label className="text-sm font-medium block text-gray-700">Theme</label>
               <Select 
                 value={selectedTheme} 
-                onValueChange={(value) => handleSelectChange(value, setSelectedTheme)}
+                onValueChange={setSelectedTheme}
               >
                 <SelectTrigger className="w-full bg-white border-gray-200 hover:border-purple-200 transition-colors">
                   <SelectValue placeholder="Select theme" />
@@ -240,7 +219,7 @@ export const TicketAnalysisTable = () => {
               <label className="text-sm font-medium block text-gray-700">Department</label>
               <Select 
                 value={selectedDepartment} 
-                onValueChange={(value) => handleSelectChange(value, setSelectedDepartment)}
+                onValueChange={setSelectedDepartment}
               >
                 <SelectTrigger className="w-full bg-white border-gray-200 hover:border-purple-200 transition-colors">
                   <SelectValue placeholder="Select department" />
@@ -301,7 +280,11 @@ export const TicketAnalysisTable = () => {
                 <Button
                   variant="ghost"
                   className="text-gray-700 hover:text-gray-900"
-                  onClick={() => toggleTickets(issue)}
+                  onClick={() => setExpandedTickets(prev => 
+                    prev.includes(issue) 
+                      ? prev.filter(id => id !== issue)
+                      : [...prev, issue]
+                  )}
                 >
                   View Tickets {expandedTickets.includes(issue) ? <ChevronUp className="ml-2 h-4 w-4" /> : <ChevronDown className="ml-2 h-4 w-4" />}
                 </Button>
