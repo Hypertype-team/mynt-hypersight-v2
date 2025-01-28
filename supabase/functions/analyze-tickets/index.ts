@@ -35,34 +35,55 @@ serve(async (req) => {
 
     console.log('Fetching ticket data...');
 
-    // Fetch relevant data from ticket_analysis
+    // Fetch only the most recent tickets (limit to 100) and select only necessary fields
     const { data: tickets, error: dbError } = await supabase
       .from('ticket_analysis')
-      .select('*');
+      .select('summary, common_issue, category, subcategory, responsible_department')
+      .order('created_at', { ascending: false })
+      .limit(100);
 
     if (dbError) {
       console.error('Database query error:', dbError);
       throw dbError;
     }
 
-    console.log(`Retrieved ${tickets?.length} tickets`);
+    console.log(`Retrieved ${tickets?.length} tickets for analysis`);
 
-    // Format the context for OpenAI
-    const context = tickets?.map(ticket => ({
-      summary: ticket.summary,
-      issue: ticket.issue,
-      common_issue: ticket.common_issue,
+    // Create a summarized context from the tickets
+    const ticketSummaries = tickets?.map(ticket => ({
+      issue: ticket.common_issue,
       category: ticket.category,
-      subcategory: ticket.subcategory,
-      responsible_department: ticket.responsible_department,
-      responsible_department_justification: ticket.responsible_department_justification,
-      report_period: ticket.report_period
+      department: ticket.responsible_department
     }));
 
-    console.log('Calling OpenAI API...');
+    // Group tickets by category for a more concise context
+    const categorySummary = tickets?.reduce((acc, ticket) => {
+      const category = ticket.category || 'Uncategorized';
+      if (!acc[category]) {
+        acc[category] = {
+          count: 0,
+          common_issues: new Set(),
+          departments: new Set()
+        };
+      }
+      acc[category].count++;
+      if (ticket.common_issue) acc[category].common_issues.add(ticket.common_issue);
+      if (ticket.responsible_department) acc[category].departments.add(ticket.responsible_department);
+      return acc;
+    }, {});
 
-    // Call OpenAI API with better error handling
-    const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+    // Convert the summary to a string format
+    const contextSummary = Object.entries(categorySummary)
+      .map(([category, data]) => `
+        Category: ${category}
+        Count: ${data.count}
+        Common Issues: ${Array.from(data.common_issues).join(', ')}
+        Departments: ${Array.from(data.departments).join(', ')}
+      `).join('\n');
+
+    console.log('Calling OpenAI API with optimized context...');
+
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${openAIApiKey}`,
@@ -76,23 +97,15 @@ serve(async (req) => {
             content: `You are a helpful assistant analyzing ticket data. Your task is to provide insights about the tickets based on the user's query.
             
             Guidelines for your responses:
-            1. Always summarize information into clear, readable points
+            1. Keep responses concise and focused
             2. Use bullet points for better readability
-            3. Group related information together
-            4. Highlight key insights at the beginning
-            5. When mentioning statistics, round numbers for clarity
-            6. Keep responses concise but informative
-            7. Use markdown formatting for better readability
-            
-            When analyzing categories or issues:
-            - Group similar issues together
-            - Identify patterns and trends
-            - Highlight the most significant findings first
-            - Provide brief explanations where helpful`
+            3. Highlight key insights
+            4. Use markdown formatting
+            5. Focus on trends and patterns`
           },
           {
             role: 'user',
-            content: `Based on this ticket data: ${JSON.stringify(context)}\n\nAnswer this question: ${query}`
+            content: `Based on this ticket summary:\n${contextSummary}\n\nAnswer this question: ${query}`
           }
         ],
         temperature: 0.7,
@@ -100,13 +113,13 @@ serve(async (req) => {
       }),
     });
 
-    if (!openAIResponse.ok) {
-      const errorText = await openAIResponse.text();
+    if (!response.ok) {
+      const errorText = await response.text();
       console.error('OpenAI API error response:', errorText);
-      throw new Error(`OpenAI API error: ${openAIResponse.status} - ${errorText}`);
+      throw new Error(`OpenAI API error: ${response.status} - ${errorText}`);
     }
 
-    const result = await openAIResponse.json();
+    const result = await response.json();
     const answer = result.choices[0].message.content;
 
     console.log('Successfully generated response');
