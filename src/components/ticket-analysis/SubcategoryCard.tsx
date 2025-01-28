@@ -53,11 +53,12 @@ export const SubcategoryCard = ({
           <AccordionContent>
             <ScrollArea className="h-[300px]">
               <div className="px-4 pb-4 space-y-3">
-                {Object.entries(commonIssues).map(([commonIssue, { tickets }]) => (
+                {Object.entries(commonIssues).map(([commonIssue, { tickets, count }]) => (
                   <CommonIssueGroup
                     key={commonIssue}
-                    commonIssue={commonIssue}
+                    issue={commonIssue}
                     tickets={tickets}
+                    count={count}
                   />
                 ))}
               </div>
