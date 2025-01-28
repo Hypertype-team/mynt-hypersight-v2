@@ -9,10 +9,14 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { TicketFilters } from "@/components/ticket-analysis/TicketFilters";
 
 const Index = () => {
   const [showAnalysis, setShowAnalysis] = useState(false);
   const [selectedPeriod, setSelectedPeriod] = useState("Dec 01 - Dec 15");
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [subcategoryFilter, setSubcategoryFilter] = useState("");
+  const [commonIssueFilter, setCommonIssueFilter] = useState("");
 
   const { data: dashboardData } = useQuery({
     queryKey: ["dashboard-info"],
@@ -27,6 +31,7 @@ const Index = () => {
   });
 
   const totalTickets = dashboardData?.length || 0;
+  const categories = [...new Set(dashboardData?.map(ticket => ticket.category) || [])];
 
   const handleOverlayClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
@@ -64,48 +69,6 @@ const Index = () => {
                 </div>
               </div>
             </div>
-
-            <div className="space-y-4">
-              <h3 className="font-semibold">Filters</h3>
-              
-              <div>
-                <p className="text-sm text-muted-foreground mb-2">Category</p>
-                <Select defaultValue="batteries">
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="batteries">Batterier (290 tickets)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <p className="text-sm text-muted-foreground mb-2">Theme</p>
-                <Select defaultValue="battery-connection">
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select theme" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="battery-connection">
-                      Batterifunktion och Anslutningsproblem (80 tickets)
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <p className="text-sm text-muted-foreground mb-2">Responsible Department</p>
-                <Select defaultValue="all">
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select department" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
           </Card>
 
           {/* Main Content Area */}
@@ -141,7 +104,21 @@ const Index = () => {
                 </>
               )}
             </div>
-            <TicketAnalysisTable />
+            
+            <Card className="p-6">
+              <div className="space-y-6">
+                <TicketFilters
+                  selectedCategory={selectedCategory}
+                  setSelectedCategory={setSelectedCategory}
+                  subcategoryFilter={subcategoryFilter}
+                  setSubcategoryFilter={setSubcategoryFilter}
+                  commonIssueFilter={commonIssueFilter}
+                  setCommonIssueFilter={setCommonIssueFilter}
+                  categories={categories}
+                />
+                <TicketAnalysisTable />
+              </div>
+            </Card>
           </div>
         </div>
       </div>
