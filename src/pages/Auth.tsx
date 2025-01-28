@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 
 const Auth = () => {
   const [email, setEmail] = useState("johan.wikstrom@greenely.se");
@@ -23,13 +22,6 @@ const Auth = () => {
         email === "johan.wikstrom@greenely.se" &&
         password === "greenely20hypersight"
       ) {
-        const { error: signInError } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-
-        if (signInError) throw signInError;
-
         toast({
           title: "Welcome back!",
           description: "You have been successfully logged in.",
