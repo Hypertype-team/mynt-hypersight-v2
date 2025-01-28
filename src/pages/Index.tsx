@@ -42,10 +42,6 @@ const Index = () => {
           <div className="grid grid-cols-3 gap-6">
             <div className="space-y-2">
               <div>
-                <span className="font-medium">Company Name: </span>
-                <span>Demo</span>
-              </div>
-              <div>
                 <span className="font-medium">Total Tickets: </span>
                 <span>{totalTickets}</span>
               </div>
