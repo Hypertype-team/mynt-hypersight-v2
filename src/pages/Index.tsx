@@ -60,18 +60,6 @@ const Index = () => {
           </div>
 
           <Collapsible open={isFiltersExpanded} onOpenChange={setIsFiltersExpanded}>
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="font-semibold">Filters</h3>
-              <CollapsibleTrigger asChild>
-                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
-                  {isFiltersExpanded ? (
-                    <Minimize2 className="h-4 w-4" />
-                  ) : (
-                    <Maximize2 className="h-4 w-4" />
-                  )}
-                </Button>
-              </CollapsibleTrigger>
-            </div>
             <CollapsibleContent className="space-y-4">
               <div>
                 <p className="text-sm text-muted-foreground mb-1">Category</p>
