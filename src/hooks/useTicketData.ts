@@ -15,23 +15,43 @@ export const useTicketData = () => {
     queryKey: ["tickets"],
     queryFn: async () => {
       console.log("Fetching all tickets...");
+      const tickets: Ticket[] = [];
+      const pageSize = 1000;
+      let start = 0;
 
-      const { data, error, count } = await supabase
-        .from("ticket_analysis")
-        .select("*", { count: 'exact' })
-        .order("created_at", { ascending: false })
-        .limit(10000);
+      while (true) {
+        console.log(`Fetching tickets from ${start} to ${start + pageSize - 1}`);
+        const { data, error, count } = await supabase
+          .from("ticket_analysis")
+          .select("*", { count: 'exact' })
+          .range(start, start + pageSize - 1)
+          .order("created_at", { ascending: false });
 
-      if (error) {
-        toast({
-          title: "Error fetching tickets",
-          description: error.message,
-          variant: "destructive",
-        });
-        throw error;
+        if (error) {
+          toast({
+            title: "Error fetching tickets",
+            description: error.message,
+            variant: "destructive",
+          });
+          throw error;
+        }
+
+        if (!data || data.length === 0) {
+          break;
+        }
+
+        tickets.push(...data);
+        console.log(`Fetched ${tickets.length} tickets so far`);
+
+        if (data.length < pageSize) {
+          break;
+        }
+
+        start += pageSize;
       }
-      
-      return { tickets: (data as Ticket[]) || [], totalCount: count || 0 };
+
+      console.log(`Total tickets fetched: ${tickets.length}`);
+      return { tickets, totalCount: tickets.length };
     },
   });
 };
