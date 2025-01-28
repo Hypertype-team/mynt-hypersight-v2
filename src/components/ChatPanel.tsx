@@ -86,8 +86,8 @@ How can I help you today?`,
   };
 
   return (
-    <div className="flex flex-col h-full bg-background">
-      <ScrollArea className="flex-1">
+    <div className="flex flex-col h-full bg-black">
+      <ScrollArea className="flex-1 bg-black">
         <div className="p-4 space-y-4">
           {messages.map((message, i) => (
             <Message
@@ -103,7 +103,6 @@ How can I help you today?`,
         <ChatInput
           input={input}
           isLoading={isLoading}
-          onInputChange={setInput}
           onSubmit={handleSubmit}
         />
       </div>
