@@ -52,7 +52,14 @@ How can I help you today?`,
         body: { query: userMessage }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Function error:', error);
+        throw error;
+      }
+
+      if (!data?.answer) {
+        throw new Error('No answer received from analysis');
+      }
 
       setMessages((prev) => [
         ...prev,
@@ -71,14 +78,20 @@ How can I help you today?`,
       console.error('Error:', error);
       toast({
         title: "Analysis Failed",
-        description: "I couldn't analyze the data right now. Please try asking again.",
+        description: "I couldn't analyze the data right now. Please try again in a moment.",
         variant: "destructive",
       });
       setMessages((prev) => [
         ...prev,
         {
-          text: "I apologize, but I encountered an error while analyzing the data. Could you please try rephrasing your question or asking something else?",
+          text: "I apologize, but I encountered an error while analyzing the data. Please try asking your question again, or rephrase it slightly differently.",
           isUser: false,
+          followUpQuestions: [
+            "What are the most common issues?",
+            "Show me ticket summaries by category",
+            "What are the department justifications?",
+            "Are there any relevant documentation links?",
+          ],
         },
       ]);
     } finally {

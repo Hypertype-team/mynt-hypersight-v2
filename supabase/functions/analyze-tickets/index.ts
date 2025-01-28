@@ -19,6 +19,7 @@ serve(async (req) => {
   try {
     // Parse the request body
     const { query } = await req.json();
+    console.log('Received query:', query);
 
     if (!query) {
       throw new Error('Query is required');
@@ -29,103 +30,85 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    console.log('Fetching ticket data for query:', query);
+    console.log('Fetching ticket data...');
 
     // Fetch relevant data from ticket_analysis
-    const { data: tickets, error } = await supabase
+    const { data: tickets, error: dbError } = await supabase
       .from('ticket_analysis')
-      .select('summary, issue, common_issue, category, subcategory, link, responsible_department_justification');
+      .select('*');
 
-    if (error) {
-      console.error('Database query error:', error);
-      throw error;
+    if (dbError) {
+      console.error('Database query error:', dbError);
+      throw dbError;
     }
 
-    console.log('Retrieved ticket count:', tickets?.length);
-
-    // Get all valid links from the database
-    const validLinks = new Set(
-      tickets
-        .filter(ticket => ticket.link)
-        .map(ticket => ticket.link)
-    );
+    console.log(`Retrieved ${tickets?.length} tickets`);
 
     // Format the context for OpenAI
-    const context = tickets.map(ticket => ({
+    const context = tickets?.map(ticket => ({
       summary: ticket.summary,
       issue: ticket.issue,
       common_issue: ticket.common_issue,
       category: ticket.category,
       subcategory: ticket.subcategory,
-      link: ticket.link,
-      justification: ticket.responsible_department_justification
+      responsible_department: ticket.responsible_department,
+      responsible_department_justification: ticket.responsible_department_justification,
+      report_period: ticket.report_period
     }));
 
-    console.log('Calling OpenAI API');
+    console.log('Calling OpenAI API...');
 
     // Call OpenAI API
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4-turbo-preview',
+        model: 'gpt-4o-mini',
         messages: [
           {
             role: 'system',
-            content: `You are a helpful assistant analyzing ticket data. Use the provided context to give insightful, well-organized answers.
+            content: `You are a helpful assistant analyzing ticket data. Your task is to provide insights about the tickets based on the user's query.
             
             Guidelines for your responses:
-            1. Always summarize and organize information into clear, readable points
-            2. Use bullet points or numbered lists for better readability
+            1. Always summarize information into clear, readable points
+            2. Use bullet points for better readability
             3. Group related information together
             4. Highlight key insights at the beginning
-            5. If mentioning statistics, round numbers and present them clearly
-            6. Only include links that are present in this list: ${Array.from(validLinks).join(', ')}
-            7. Keep responses concise but informative
-            8. Use markdown formatting for better readability
+            5. When mentioning statistics, round numbers for clarity
+            6. Keep responses concise but informative
+            7. Use markdown formatting for better readability
             
             When analyzing categories or issues:
             - Group similar issues together
             - Identify patterns and trends
             - Highlight the most significant findings first
-            - Provide brief explanations where helpful
-            
-            Never dump raw data. Instead, process and present it in a way that's immediately useful to the reader.
-            
-            IMPORTANT: When including links in your response, ONLY use links from the validated list provided. Do not make up or suggest any links that aren't in the database.`
+            - Provide brief explanations where helpful`
           },
           {
             role: 'user',
-            content: `Context: ${JSON.stringify(context)}\n\nQuestion: ${query}`
+            content: `Based on this ticket data: ${JSON.stringify(context)}\n\nAnswer this question: ${query}`
           }
         ],
         temperature: 0.7,
-        max_tokens: 500,
+        max_tokens: 1000,
       }),
     });
 
-    if (!response.ok) {
-      console.error('OpenAI API error:', await response.text());
+    if (!openAIResponse.ok) {
+      console.error('OpenAI API error:', await openAIResponse.text());
       throw new Error('Failed to get response from OpenAI');
     }
 
-    const result = await response.json();
+    const result = await openAIResponse.json();
     const answer = result.choices[0].message.content;
 
     console.log('Successfully generated response');
 
-    // Post-process the answer to ensure only valid links are included
-    let processedAnswer = answer;
-    const markdownLinkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
-    processedAnswer = processedAnswer.replace(markdownLinkRegex, (match, text, url) => {
-      return validLinks.has(url) ? match : text;
-    });
-
     return new Response(
-      JSON.stringify({ answer: processedAnswer }),
+      JSON.stringify({ answer }),
       { 
         headers: { 
           ...corsHeaders, 
@@ -138,8 +121,8 @@ serve(async (req) => {
     console.error('Error in analyze-tickets function:', error);
     return new Response(
       JSON.stringify({ 
-        error: error.message,
-        details: error.stack 
+        error: 'Failed to analyze tickets. Please try again.',
+        details: error.message 
       }),
       { 
         status: 500,
