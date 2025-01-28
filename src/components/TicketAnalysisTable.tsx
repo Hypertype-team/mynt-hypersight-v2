@@ -11,12 +11,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ChevronDown, ChevronUp, ExternalLink, Filter } from "lucide-react";
+import { ChevronDown, ChevronUp, ExternalLink, Filter, RefreshCw } from "lucide-react";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { useToast } from "@/hooks/use-toast";
 
 export const TicketAnalysisTable = () => {
   const [selectedPeriod, setSelectedPeriod] = useState<string>("");
@@ -25,19 +26,42 @@ export const TicketAnalysisTable = () => {
   const [selectedDepartment, setSelectedDepartment] = useState<string>("All");
   const [sortAscending, setSortAscending] = useState(false);
   const [expandedTickets, setExpandedTickets] = useState<string[]>([]);
+  const { toast } = useToast();
 
-  const { data: allTickets, isLoading } = useQuery({
+  const { data: allTickets, isLoading, refetch } = useQuery({
     queryKey: ["tickets"],
     queryFn: async () => {
+      console.log("Fetching tickets...");
       const { data, error } = await supabase
         .from("ticket_analysis")
         .select("*")
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        toast({
+          title: "Error fetching tickets",
+          description: error.message,
+          variant: "destructive",
+        });
+        throw error;
+      }
+      
+      console.log("Total tickets fetched:", data?.length);
       return data;
     },
   });
+
+  const handleRefresh = async () => {
+    toast({
+      title: "Refreshing tickets",
+      description: "Fetching latest ticket data...",
+    });
+    await refetch();
+    toast({
+      title: "Tickets refreshed",
+      description: "Latest ticket data has been loaded",
+    });
+  };
 
   if (isLoading) {
     return (
@@ -133,9 +157,20 @@ export const TicketAnalysisTable = () => {
     <div className="space-y-6 max-w-[1200px] mx-auto">
       <Card className="overflow-hidden">
         <div className="p-6 bg-gradient-to-br from-purple-50 to-white">
-          <div className="flex items-center gap-2 mb-6">
-            <Filter className="w-5 h-5 text-purple-500" />
-            <h2 className="text-lg font-semibold text-gray-900">Filter Tickets</h2>
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-2">
+              <Filter className="w-5 h-5 text-purple-500" />
+              <h2 className="text-lg font-semibold text-gray-900">Filter Tickets</h2>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleRefresh}
+              className="text-purple-600 hover:text-purple-700 hover:bg-purple-50"
+            >
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Refresh Data
+            </Button>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
