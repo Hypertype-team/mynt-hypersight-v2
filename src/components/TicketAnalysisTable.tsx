@@ -18,6 +18,16 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { useToast } from "@/hooks/use-toast";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+
+const PAGE_SIZE = 50; // Number of tickets per page
 
 export const TicketAnalysisTable = () => {
   const [selectedPeriod, setSelectedPeriod] = useState<string>("");
@@ -26,17 +36,23 @@ export const TicketAnalysisTable = () => {
   const [selectedDepartment, setSelectedDepartment] = useState<string>("All");
   const [sortAscending, setSortAscending] = useState(false);
   const [expandedTickets, setExpandedTickets] = useState<string[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
   const { toast } = useToast();
 
-  const { data: allTickets, isLoading, refetch } = useQuery({
-    queryKey: ["tickets"],
+  const { data: ticketsData, isLoading, refetch } = useQuery({
+    queryKey: ["tickets", currentPage],
     queryFn: async () => {
       console.log("Fetching tickets...");
-      let { data, error, count } = await supabase
+      const startRange = (currentPage - 1) * PAGE_SIZE;
+      const endRange = startRange + PAGE_SIZE - 1;
+
+      let query = supabase
         .from("ticket_analysis")
         .select("*", { count: 'exact' })
-        .limit(10000)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .range(startRange, endRange);
+
+      const { data, error, count } = await query;
 
       if (error) {
         toast({
@@ -48,9 +64,13 @@ export const TicketAnalysisTable = () => {
       }
       
       console.log("Total tickets fetched:", count);
-      return data || [];
+      return { tickets: data || [], totalCount: count || 0 };
     },
   });
+
+  const allTickets = ticketsData?.tickets || [];
+  const totalTickets = ticketsData?.totalCount || 0;
+  const totalPages = Math.ceil(totalTickets / PAGE_SIZE);
 
   const handleRefresh = async () => {
     toast({
@@ -332,6 +352,52 @@ export const TicketAnalysisTable = () => {
           </Card>
         ))}
       </div>
+
+      {totalPages > 1 && (
+        <div className="flex justify-center mt-6">
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                />
+              </PaginationItem>
+              
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                let pageNumber;
+                if (totalPages <= 5) {
+                  pageNumber = i + 1;
+                } else if (currentPage <= 3) {
+                  pageNumber = i + 1;
+                } else if (currentPage >= totalPages - 2) {
+                  pageNumber = totalPages - 4 + i;
+                } else {
+                  pageNumber = currentPage - 2 + i;
+                }
+
+                return (
+                  <PaginationItem key={pageNumber}>
+                    <PaginationLink
+                      onClick={() => setCurrentPage(pageNumber)}
+                      isActive={currentPage === pageNumber}
+                    >
+                      {pageNumber}
+                    </PaginationLink>
+                  </PaginationItem>
+                );
+              })}
+
+              <PaginationItem>
+                <PaginationNext
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
+      )}
     </div>
   );
 };
