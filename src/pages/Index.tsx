@@ -2,12 +2,13 @@ import { Layout } from "@/components/Layout";
 import { TicketAnalysisTable } from "@/components/TicketAnalysisTable";
 import { CategoryBreakdownChart } from "@/components/CategoryBreakdownChart";
 import { Button } from "@/components/ui/button";
-import { ChevronDown, ChevronUp, X } from "lucide-react";
+import { ChevronDown, ChevronUp, Maximize2, Minimize2, X } from "lucide-react";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 const Index = () => {
   const [showAnalysis, setShowAnalysis] = useState(false);
@@ -37,106 +38,95 @@ const Index = () => {
       <div className="space-y-6">
         <h1 className="text-2xl font-bold">HyperSight Dashboard</h1>
         
-        <Card className="p-6 space-y-6">
-          <div className="flex justify-between items-center">
-            <h3 className="font-semibold">Dashboard Settings</h3>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsFiltersExpanded(!isFiltersExpanded)}
-              className="text-muted-foreground hover:text-foreground"
-            >
-              {isFiltersExpanded ? (
-                <ChevronUp className="h-4 w-4" />
-              ) : (
-                <ChevronDown className="h-4 w-4" />
-              )}
-            </Button>
-          </div>
-
-          {isFiltersExpanded && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Dashboard Information */}
-              <div className="space-y-6">
-                <div>
-                  <h3 className="font-semibold mb-4">Dashboard Information</h3>
-                  <div className="space-y-4">
-                    <div>
-                      <p className="text-sm text-muted-foreground mb-1">Company Name</p>
-                      <p className="font-medium">Demo</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground mb-1">Report Period</p>
-                      <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
-                        <SelectTrigger>
-                          <SelectValue>{selectedPeriod}</SelectValue>
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Dec 01 - Dec 15">Dec 01 - Dec 15</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground mb-1">Total Tickets</p>
-                      <p className="font-medium">{totalTickets}</p>
-                    </div>
-                  </div>
-                </div>
+        <div className="space-y-4">
+          {/* Dashboard Information - Always visible */}
+          <Card className="p-6">
+            <h3 className="font-semibold mb-4">Dashboard Information</h3>
+            <div className="space-y-4">
+              <div>
+                <p className="text-sm text-muted-foreground mb-1">Company Name</p>
+                <p className="font-medium">Demo</p>
               </div>
-
-              {/* Filters */}
-              <div className="space-y-6">
-                <div>
-                  <h3 className="font-semibold mb-4">Filters</h3>
-                  <div className="space-y-4">
-                    <div>
-                      <p className="text-sm text-muted-foreground mb-1">Category</p>
-                      <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                        <SelectTrigger>
-                          <SelectValue>All Categories</SelectValue>
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All Categories</SelectItem>
-                          {categories.map((category) => (
-                            <SelectItem key={category} value={category}>
-                              {category}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground mb-1">Theme</p>
-                      <Select defaultValue="all">
-                        <SelectTrigger>
-                          <SelectValue>All Themes</SelectValue>
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All Themes</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground mb-1">Responsible Department</p>
-                      <Select defaultValue="all">
-                        <SelectTrigger>
-                          <SelectValue>All</SelectValue>
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <input type="checkbox" id="sortByVolume" className="rounded border-gray-300" />
-                      <label htmlFor="sortByVolume">Sort by Ticket Volume (Ascending)</label>
-                    </div>
-                  </div>
-                </div>
+              <div>
+                <p className="text-sm text-muted-foreground mb-1">Report Period</p>
+                <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
+                  <SelectTrigger>
+                    <SelectValue>{selectedPeriod}</SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Dec 01 - Dec 15">Dec 01 - Dec 15</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground mb-1">Total Tickets</p>
+                <p className="font-medium">{totalTickets}</p>
               </div>
             </div>
-          )}
-        </Card>
+          </Card>
+
+          {/* Filters - Collapsible */}
+          <Card className="p-6">
+            <Collapsible open={isFiltersExpanded} onOpenChange={setIsFiltersExpanded}>
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="font-semibold">Filters</h3>
+                <CollapsibleTrigger asChild>
+                  <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+                    {isFiltersExpanded ? (
+                      <Minimize2 className="h-4 w-4" />
+                    ) : (
+                      <Maximize2 className="h-4 w-4" />
+                    )}
+                  </Button>
+                </CollapsibleTrigger>
+              </div>
+              <CollapsibleContent className="space-y-4">
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">Category</p>
+                  <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                    <SelectTrigger>
+                      <SelectValue>All Categories</SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Categories</SelectItem>
+                      {categories.map((category) => (
+                        <SelectItem key={category} value={category}>
+                          {category}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">Theme</p>
+                  <Select defaultValue="all">
+                    <SelectTrigger>
+                      <SelectValue>All Themes</SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Themes</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">Responsible Department</p>
+                  <Select defaultValue="all">
+                    <SelectTrigger>
+                      <SelectValue>All</SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <input type="checkbox" id="sortByVolume" className="rounded border-gray-300" />
+                  <label htmlFor="sortByVolume">Sort by Ticket Volume (Ascending)</label>
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+          </Card>
+        </div>
 
         <TicketAnalysisTable />
 
