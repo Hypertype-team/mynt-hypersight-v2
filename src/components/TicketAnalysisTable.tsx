@@ -25,6 +25,7 @@ export const TicketAnalysisTable = () => {
   const [selectedDepartment, setSelectedDepartment] = useState<string>("All");
   const [sortAscending, setSortAscending] = useState(false);
   const [expandedTickets, setExpandedTickets] = useState<string[]>([]);
+  const [totalCount, setTotalCount] = useState<number>(0);
 
   const { data: allTickets, isLoading } = useQuery({
     queryKey: ["tickets"],
@@ -41,6 +42,9 @@ export const TicketAnalysisTable = () => {
       }
       
       console.log("Total tickets fetched:", count);
+      if (count !== null) {
+        setTotalCount(count);
+      }
       return data;
     },
   });
@@ -143,7 +147,7 @@ export const TicketAnalysisTable = () => {
             <Filter className="w-5 h-5 text-purple-500" />
             <h2 className="text-lg font-semibold text-gray-900">Filter Tickets</h2>
             <span className="ml-auto text-sm text-muted-foreground">
-              Total Tickets: {allTickets?.length || 0}
+              Total Tickets: {totalCount}
             </span>
           </div>
           
