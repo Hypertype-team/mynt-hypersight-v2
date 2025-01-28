@@ -32,20 +32,22 @@ serve(async (req) => {
 
     console.log('Fetching relevant tickets...');
 
-    // Search for relevant tickets using textSearch
+    // First try to find exact matches
     const { data: relevantTickets, error: searchError } = await supabase
       .from('ticket_analysis')
       .select('*')
-      .textSearch('summary', query, {
-        type: 'plain',
-        config: 'english'
-      })
+      .or(
+        `summary.ilike.%${query.replace(/[%_]/g, '')}%,` +
+        `issue.ilike.%${query.replace(/[%_]/g, '')}%`
+      )
       .limit(10);
 
     if (searchError) {
       console.error('Error searching tickets:', searchError);
       throw searchError;
     }
+
+    console.log(`Found ${relevantTickets?.length || 0} relevant tickets`);
 
     // Get statistics for context
     const { data: stats, error: statsError } = await supabase
