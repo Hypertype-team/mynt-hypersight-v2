@@ -178,13 +178,13 @@ export const TicketAnalysisTable = () => {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium block text-gray-700">Theme</label>
+              <label className="text-sm font-medium block text-gray-700">Subcategory</label>
               <Select 
                 value={selectedTheme} 
                 onValueChange={(value) => handleSelectChange(value, setSelectedTheme)}
               >
                 <SelectTrigger className="w-full bg-white border-gray-200 hover:border-purple-200 transition-colors">
-                  <SelectValue placeholder="Select theme" />
+                  <SelectValue placeholder="Select subcategory" />
                 </SelectTrigger>
                 <SelectContent>
                   {themes.map(({ name, count }) => (
