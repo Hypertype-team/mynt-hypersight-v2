@@ -86,8 +86,8 @@ How can I help you today?`,
   };
 
   return (
-    <div className="flex flex-col h-full bg-black">
-      <ScrollArea className="flex-1 bg-black">
+    <div className="flex flex-col h-full bg-[#1e1e1e]">
+      <ScrollArea className="flex-1 bg-[#1e1e1e]">
         <div className="p-4 space-y-4">
           {messages.map((message, i) => (
             <Message
@@ -99,7 +99,7 @@ How can I help you today?`,
         </div>
       </ScrollArea>
 
-      <div className="border-t">
+      <div className="border-t border-[#2A2A2A]">
         <ChatInput
           input={input}
           isLoading={isLoading}
