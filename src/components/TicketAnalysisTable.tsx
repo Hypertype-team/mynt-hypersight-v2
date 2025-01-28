@@ -1,33 +1,18 @@
 import { Card } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { ChevronDown, ChevronUp, ExternalLink, Filter, RefreshCw } from "lucide-react";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
 import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
 import {
   Pagination,
   PaginationContent,
   PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
 } from "@/components/ui/pagination";
+import { TicketFilters } from "./ticket-analysis/TicketFilters";
+import { CommonIssueGroup } from "./ticket-analysis/CommonIssueGroup";
 
-const PAGE_SIZE = 100; // Increased page size for more records per page
+const PAGE_SIZE = 100;
 
 export const TicketAnalysisTable = () => {
   const [selectedPeriod, setSelectedPeriod] = useState<string>("");
@@ -63,7 +48,6 @@ export const TicketAnalysisTable = () => {
         throw error;
       }
       
-      console.log("Total tickets fetched:", count);
       return { tickets: data || [], totalCount: count || 0 };
     },
   });
@@ -106,7 +90,7 @@ export const TicketAnalysisTable = () => {
     return true;
   });
 
-  // Get categories with counts and sort (Batterier first, Andra last)
+  // Get categories with counts and sort
   const categories = [...new Set(filteredTickets?.map(ticket => ticket.category))]
     .map(category => ({
       name: category,
@@ -156,118 +140,25 @@ export const TicketAnalysisTable = () => {
   return (
     <div className="space-y-6 max-w-[1200px] mx-auto">
       <Card className="overflow-hidden">
-        <div className="p-6 bg-gradient-to-br from-purple-50 to-white">
-          <div className="flex items-center justify-between mb-6">
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <Filter className="w-5 h-5 text-purple-500" />
-                <h2 className="text-lg font-semibold text-gray-900">Filter Tickets</h2>
-              </div>
-              <p className="text-sm text-gray-600">
-                Showing {filteredTickets?.length || 0} of {totalTickets} total tickets
-              </p>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleRefresh}
-              className="text-purple-600 hover:text-purple-700 hover:bg-purple-50"
-            >
-              <RefreshCw className="w-4 h-4 mr-2" />
-              Refresh Data
-            </Button>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="space-y-2">
-              <label className="text-sm font-medium block text-gray-700">Report Period</label>
-              <Select 
-                value={selectedPeriod} 
-                onValueChange={setSelectedPeriod}
-              >
-                <SelectTrigger className="w-full bg-white border-gray-200 hover:border-purple-200 transition-colors">
-                  <SelectValue placeholder="Select period" />
-                </SelectTrigger>
-                <SelectContent>
-                  {reportPeriods.map(period => (
-                    <SelectItem key={period} value={period} className="hover:bg-purple-50">
-                      {period}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium block text-gray-700">Category</label>
-              <Select 
-                value={selectedCategory} 
-                onValueChange={setSelectedCategory}
-              >
-                <SelectTrigger className="w-full bg-white border-gray-200 hover:border-purple-200 transition-colors">
-                  <SelectValue placeholder="Select category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map(({ name, count }) => (
-                    <SelectItem key={name} value={name} className="hover:bg-purple-50">
-                      {name} ({count} tickets)
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium block text-gray-700">Theme</label>
-              <Select 
-                value={selectedTheme} 
-                onValueChange={setSelectedTheme}
-              >
-                <SelectTrigger className="w-full bg-white border-gray-200 hover:border-purple-200 transition-colors">
-                  <SelectValue placeholder="Select theme" />
-                </SelectTrigger>
-                <SelectContent>
-                  {themes.map(({ name, count }) => (
-                    <SelectItem key={name} value={name} className="hover:bg-purple-50">
-                      {name} ({count} tickets)
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium block text-gray-700">Department</label>
-              <Select 
-                value={selectedDepartment} 
-                onValueChange={setSelectedDepartment}
-              >
-                <SelectTrigger className="w-full bg-white border-gray-200 hover:border-purple-200 transition-colors">
-                  <SelectValue placeholder="Select department" />
-                </SelectTrigger>
-                <SelectContent>
-                  {departments.map(dept => (
-                    <SelectItem key={dept} value={dept} className="hover:bg-purple-50">
-                      {dept}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="mt-6 flex items-center gap-2 border-t pt-4 border-gray-100">
-            <Checkbox
-              id="sortOrder"
-              checked={sortAscending}
-              onCheckedChange={(checked) => setSortAscending(checked as boolean)}
-              className="border-gray-300 data-[state=checked]:bg-purple-500 data-[state=checked]:border-purple-500"
-            />
-            <label htmlFor="sortOrder" className="text-sm text-gray-600 select-none cursor-pointer">
-              Sort by Ticket Volume (Ascending)
-            </label>
-          </div>
-        </div>
+        <TicketFilters
+          totalTickets={totalTickets}
+          filteredCount={filteredTickets?.length || 0}
+          selectedPeriod={selectedPeriod}
+          setSelectedPeriod={setSelectedPeriod}
+          selectedCategory={selectedCategory}
+          setSelectedCategory={setSelectedCategory}
+          selectedTheme={selectedTheme}
+          setSelectedTheme={setSelectedTheme}
+          selectedDepartment={selectedDepartment}
+          setSelectedDepartment={setSelectedDepartment}
+          sortAscending={sortAscending}
+          setSortAscending={setSortAscending}
+          reportPeriods={reportPeriods}
+          categories={categories}
+          themes={themes}
+          departments={departments}
+          onRefresh={handleRefresh}
+        />
       </Card>
 
       <div className="space-y-6">
@@ -283,72 +174,21 @@ export const TicketAnalysisTable = () => {
         )}
         
         {sortedIssues.map(([issue, { tickets, count, summary, department }], index) => (
-          <Card key={issue} className="p-6 bg-white shadow-sm">
-            <div className="space-y-4">
-              <div className="border-b pb-4">
-                <h2 className="text-lg font-semibold text-gray-900">
-                  {index + 1}. {issue} ({count} tickets)
-                </h2>
-                <p className="text-gray-700 mt-2">
-                  <span className="font-medium">Summary:</span> {summary}
-                </p>
-                <p className="text-gray-700">
-                  <span className="font-medium">Responsible Department:</span> {department}
-                </p>
-              </div>
-              
-              <div className="pt-2">
-                <Button
-                  variant="ghost"
-                  className="text-gray-700 hover:text-gray-900"
-                  onClick={() => setExpandedTickets(prev => 
-                    prev.includes(issue) 
-                      ? prev.filter(id => id !== issue)
-                      : [...prev, issue]
-                  )}
-                >
-                  View Tickets {expandedTickets.includes(issue) ? <ChevronUp className="ml-2 h-4 w-4" /> : <ChevronDown className="ml-2 h-4 w-4" />}
-                </Button>
-                
-                <Collapsible open={expandedTickets.includes(issue)}>
-                  <CollapsibleContent className="space-y-4 mt-4">
-                    {tickets.map((ticket, ticketIndex) => (
-                      <div key={ticket.id} className="pl-6 border-l-2 border-purple-200 bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
-                        <div className="flex justify-between items-start mb-3">
-                          <h3 className="font-medium text-gray-900 flex items-center gap-2">
-                            <span className="bg-purple-100 text-purple-800 text-sm px-2 py-1 rounded-full">
-                              Ticket {ticketIndex + 1}
-                            </span>
-                          </h3>
-                          {ticket.link && (
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className="text-purple-600 hover:text-purple-700 hover:bg-purple-50" 
-                              asChild
-                            >
-                              <a href={ticket.link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1">
-                                View Issue <ExternalLink className="h-4 w-4" />
-                              </a>
-                            </Button>
-                          )}
-                        </div>
-                        <div className="space-y-3">
-                          <div className="bg-gray-50 p-3 rounded-md">
-                            <p className="font-medium text-gray-900 mb-1">Ticket Issue:</p>
-                            <p className="text-gray-700">{ticket.issue}</p>
-                          </div>
-                          <div className="bg-gray-50 p-3 rounded-md">
-                            <p className="font-medium text-gray-900 mb-1">Ticket Summary:</p>
-                            <p className="text-gray-700">{ticket.summary}</p>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </CollapsibleContent>
-                </Collapsible>
-              </div>
-            </div>
+          <Card key={issue}>
+            <CommonIssueGroup
+              issue={issue}
+              count={count}
+              summary={summary}
+              department={department}
+              tickets={tickets}
+              index={index}
+              isExpanded={expandedTickets.includes(issue)}
+              onToggleExpand={() => setExpandedTickets(prev => 
+                prev.includes(issue) 
+                  ? prev.filter(id => id !== issue)
+                  : [...prev, issue]
+              )}
+            />
           </Card>
         ))}
       </div>
