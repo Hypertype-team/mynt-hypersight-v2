@@ -21,7 +21,8 @@ export const EVChargingLocationsChart = () => {
       const { data, error } = await supabase
         .from('ticket_analysis')
         .select('category')
-        .not('category', 'is', null);
+        .not('category', 'is', null)
+        .limit(10000); // Increased limit to handle all records
 
       if (error) throw error;
 
