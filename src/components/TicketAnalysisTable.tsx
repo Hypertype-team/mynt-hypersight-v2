@@ -89,6 +89,19 @@ export const TicketAnalysisTable = () => {
   // Get departments
   const departments = ["All", ...new Set(filteredTickets?.map(ticket => ticket.responsible_department))];
 
+  const handleSelectChange = (value: string, setter: (value: string) => void) => {
+    setter(value);
+    // Keep dropdown open by simulating a click
+    setTimeout(() => {
+      const event = new MouseEvent('click', {
+        bubbles: true,
+        cancelable: true,
+        view: window
+      });
+      document.querySelector('[role="combobox"]')?.dispatchEvent(event);
+    }, 0);
+  };
+
   // Group tickets by common issue
   const groupedByIssue = filteredTickets?.reduce((acc, ticket) => {
     const issue = ticket.common_issue || "Uncategorized";
@@ -122,7 +135,10 @@ export const TicketAnalysisTable = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
             <label className="text-sm font-medium mb-2 block text-gray-900">Report Period</label>
-            <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
+            <Select 
+              value={selectedPeriod} 
+              onValueChange={(value) => handleSelectChange(value, setSelectedPeriod)}
+            >
               <SelectTrigger className="bg-white border-gray-300">
                 <SelectValue placeholder="Select period" />
               </SelectTrigger>
@@ -138,7 +154,10 @@ export const TicketAnalysisTable = () => {
 
           <div>
             <label className="text-sm font-medium mb-2 block text-gray-900">Category</label>
-            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+            <Select 
+              value={selectedCategory} 
+              onValueChange={(value) => handleSelectChange(value, setSelectedCategory)}
+            >
               <SelectTrigger className="bg-white border-gray-300">
                 <SelectValue placeholder="Select category" />
               </SelectTrigger>
@@ -154,7 +173,10 @@ export const TicketAnalysisTable = () => {
 
           <div>
             <label className="text-sm font-medium mb-2 block text-gray-900">Theme</label>
-            <Select value={selectedTheme} onValueChange={setSelectedTheme}>
+            <Select 
+              value={selectedTheme} 
+              onValueChange={(value) => handleSelectChange(value, setSelectedTheme)}
+            >
               <SelectTrigger className="bg-white border-gray-300">
                 <SelectValue placeholder="Select theme" />
               </SelectTrigger>
@@ -170,7 +192,10 @@ export const TicketAnalysisTable = () => {
 
           <div>
             <label className="text-sm font-medium mb-2 block text-gray-900">Department</label>
-            <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
+            <Select 
+              value={selectedDepartment} 
+              onValueChange={(value) => handleSelectChange(value, setSelectedDepartment)}
+            >
               <SelectTrigger className="bg-white border-gray-300">
                 <SelectValue placeholder="Select department" />
               </SelectTrigger>
