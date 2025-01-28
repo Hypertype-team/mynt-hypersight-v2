@@ -16,8 +16,8 @@ export const Message = ({ message, onFollowUpClick }: MessageProps) => {
         className={cn(
           "p-2 rounded-lg max-w-[90%] text-sm",
           message.isUser
-            ? "bg-[#9b87f5] text-white ml-auto"
-            : "bg-[#1e1e1e] text-white"
+            ? "bg-[#4A5568] text-white ml-auto rounded-br-none"
+            : "bg-[#1e1e1e] text-white rounded-bl-none border border-[#2A2A2A]"
         )}
       >
         {message.isUser ? (
@@ -32,12 +32,12 @@ export const Message = ({ message, onFollowUpClick }: MessageProps) => {
               ul: ({ children }) => <ul className="list-disc pl-4 mb-1">{children}</ul>,
               ol: ({ children }) => <ol className="list-decimal pl-4 mb-1">{children}</ol>,
               a: ({ href, children }) => (
-                <a href={href} className="text-[#9b87f5] hover:underline" target="_blank" rel="noopener noreferrer">
+                <a href={href} className="text-[#63B3ED] hover:underline" target="_blank" rel="noopener noreferrer">
                   {children}
                 </a>
               ),
               code: ({ children }) => (
-                <code className="bg-[#333] text-[#D6BCFA] px-1 py-0.5 rounded text-xs">
+                <code className="bg-[#333] text-[#63B3ED] px-1 py-0.5 rounded text-xs">
                   {children}
                 </code>
               ),
