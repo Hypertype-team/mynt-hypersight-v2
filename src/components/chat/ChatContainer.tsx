@@ -41,11 +41,25 @@ How can I help you today?`,
     setInput("");
 
     try {
+      console.log('Sending request to analyze-tickets function');
       const { data, error } = await supabase.functions.invoke('analyze-tickets', {
-        body: { query: input }
+        body: { query: input },
+        headers: {
+          'Content-Type': 'application/json',
+        }
       });
 
-      if (error) throw error;
+      console.log('Response from analyze-tickets:', { data, error });
+
+      if (error) {
+        console.error('Supabase function error:', error);
+        throw error;
+      }
+
+      if (!data || !data.answer) {
+        console.error('Invalid response format:', data);
+        throw new Error('Invalid response format from server');
+      }
 
       setMessages((prev) => [
         ...prev,
@@ -61,16 +75,16 @@ How can I help you today?`,
         },
       ]);
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error in chat submission:', error);
       toast({
-        title: "Analysis Failed",
-        description: "I couldn't analyze the data right now. Please try asking again.",
+        title: "Chat Error",
+        description: "I couldn't process your message right now. Please try again.",
         variant: "destructive",
       });
       setMessages((prev) => [
         ...prev,
         {
-          text: "I apologize, but I encountered an error while analyzing the data. Could you please try rephrasing your question or asking something else?",
+          text: "I apologize, but I encountered an error while processing your message. Could you please try again?",
           isUser: false,
         },
       ]);
