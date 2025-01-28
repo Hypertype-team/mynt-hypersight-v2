@@ -47,18 +47,18 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#1A1F2C]">
-      <div className="w-full max-w-md space-y-8 p-8 bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl">
+    <div className="min-h-screen flex items-center justify-center bg-[#F1F0FB]">
+      <div className="w-full max-w-md space-y-8 p-8 bg-white rounded-2xl shadow-lg border border-[#E5DEFF]">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-white">{isSignUp ? "Create Account" : "Welcome Back"}</h2>
-          <p className="text-[#8E9196] mt-2">
+          <h2 className="text-2xl font-bold text-[#2D2D2D]">{isSignUp ? "Create Account" : "Welcome Back"}</h2>
+          <p className="text-[#6B7280] mt-2">
             {isSignUp ? "Sign up to get started" : "Sign in to your account"}
           </p>
         </div>
 
         <form onSubmit={handleAuth} className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="email" className="text-white">Email</Label>
+            <Label htmlFor="email" className="text-[#4A4A4A]">Email</Label>
             <Input
               id="email"
               type="email"
@@ -66,12 +66,12 @@ const Auth = () => {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Enter your email"
               required
-              className="bg-white/5 border-white/10 text-white placeholder:text-[#8E9196]"
+              className="bg-[#F8F7FF] border-[#E5DEFF] text-[#2D2D2D] placeholder:text-[#9CA3AF] focus-visible:ring-[#9b87f5]"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password" className="text-white">Password</Label>
+            <Label htmlFor="password" className="text-[#4A4A4A]">Password</Label>
             <Input
               id="password"
               type="password"
@@ -79,13 +79,13 @@ const Auth = () => {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter your password"
               required
-              className="bg-white/5 border-white/10 text-white placeholder:text-[#8E9196]"
+              className="bg-[#F8F7FF] border-[#E5DEFF] text-[#2D2D2D] placeholder:text-[#9CA3AF] focus-visible:ring-[#9b87f5]"
             />
           </div>
 
           <Button 
             type="submit" 
-            className="w-full bg-[#9b87f5] hover:bg-[#7E69AB] text-white transition-colors"
+            className="w-full bg-[#9b87f5] hover:bg-[#8875e0] text-white transition-colors"
             disabled={isLoading}
           >
             {isLoading ? "Loading..." : isSignUp ? "Sign Up" : "Sign In"}
@@ -96,7 +96,7 @@ const Auth = () => {
           <button
             type="button"
             onClick={() => setIsSignUp(!isSignUp)}
-            className="text-[#D6BCFA] hover:text-[#9b87f5] transition-colors"
+            className="text-[#9b87f5] hover:text-[#7E69AB] transition-colors"
           >
             {isSignUp ? "Already have an account? Sign in" : "Need an account? Sign up"}
           </button>
