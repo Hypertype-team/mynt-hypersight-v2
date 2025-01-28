@@ -64,7 +64,7 @@ const Index = () => {
             </div>
           </div>
 
-          <Card className="p-6">
+          <Card className="p-4">
             <Collapsible open={isFiltersExpanded} onOpenChange={setIsFiltersExpanded}>
               <div className="flex justify-between items-center mb-4">
                 <h3 className="font-semibold">Filters</h3>
