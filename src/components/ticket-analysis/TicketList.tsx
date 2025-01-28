@@ -18,6 +18,14 @@ export const TicketList = ({
   expandedTickets,
   setExpandedTickets,
 }: TicketListProps) => {
+  const handleToggleExpand = (issue: string) => {
+    if (expandedTickets.includes(issue)) {
+      setExpandedTickets(expandedTickets.filter(id => id !== issue));
+    } else {
+      setExpandedTickets([...expandedTickets, issue]);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {selectedTheme && (
@@ -41,11 +49,7 @@ export const TicketList = ({
             tickets={tickets}
             index={index}
             isExpanded={expandedTickets.includes(issue)}
-            onToggleExpand={() => setExpandedTickets(prev => 
-              prev.includes(issue) 
-                ? prev.filter(id => id !== issue)
-                : [...prev, issue]
-            )}
+            onToggleExpand={() => handleToggleExpand(issue)}
           />
         </Card>
       ))}
