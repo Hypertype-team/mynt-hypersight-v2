@@ -23,7 +23,7 @@ export const CategoryFilter = ({
     <div className="space-y-2">
       <label className="text-sm font-medium block text-gray-700">Category</label>
       <Select 
-        value={selectedCategory || ""}
+        value={selectedCategory}
         onValueChange={(value) => {
           setSelectedCategory(value);
           setSelectedTheme("");
@@ -34,7 +34,11 @@ export const CategoryFilter = ({
         </SelectTrigger>
         <SelectContent className="bg-white">
           {categories.map(({ name, display }) => (
-            <SelectItem key={name} value={name} className="hover:bg-purple-50">
+            <SelectItem 
+              key={name} 
+              value={name} 
+              className="hover:bg-purple-50 cursor-pointer"
+            >
               {display}
             </SelectItem>
           ))}
