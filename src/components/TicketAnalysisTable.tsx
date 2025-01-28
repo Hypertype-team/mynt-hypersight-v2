@@ -13,8 +13,14 @@ import {
   getThemesWithCounts,
   groupTicketsByIssue 
 } from "./ticket-analysis/TicketFilterLogic";
+import { Ticket, TicketGroups } from "@/types/ticket";
 
 const PAGE_SIZE = 100;
+
+interface TicketData {
+  tickets: Ticket[];
+  totalCount: number;
+}
 
 export const TicketAnalysisTable = () => {
   const [selectedPeriod, setSelectedPeriod] = useState<string>("");
@@ -26,7 +32,7 @@ export const TicketAnalysisTable = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const { toast } = useToast();
 
-  const { data: ticketsData, isLoading, refetch } = useQuery({
+  const { data: ticketsData, isLoading, refetch } = useQuery<TicketData>({
     queryKey: ["tickets", currentPage],
     queryFn: async () => {
       console.log("Fetching tickets...");
@@ -48,7 +54,7 @@ export const TicketAnalysisTable = () => {
         throw error;
       }
       
-      return { tickets: data || [], totalCount: count || 0 };
+      return { tickets: (data as Ticket[]) || [], totalCount: count || 0 };
     },
   });
 
