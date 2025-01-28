@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Navigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,17 +12,11 @@ const Auth = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Check if user is authenticated and logout if needed
-  useEffect(() => {
-    const token = localStorage.getItem("authToken");
-    if (token) {
-      localStorage.removeItem("authToken");
-      toast({
-        title: "Logged out",
-        description: "You have been successfully logged out.",
-      });
-    }
-  }, [toast]);
+  // Check if user is already authenticated
+  const token = localStorage.getItem("authToken");
+  if (token) {
+    return <Navigate to="/" replace />;
+  }
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
