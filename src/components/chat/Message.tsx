@@ -26,9 +26,9 @@ export const Message = ({ message, onFollowUpClick }: MessageProps) => {
           <ReactMarkdown
             className="prose prose-sm prose-invert max-w-none"
             components={{
-              h1: ({ children }) => <h1 className="text-lg font-bold mb-1 text-[#8B5CF6]">{children}</h1>,
-              h2: ({ children }) => <h2 className="text-base font-bold mb-1 text-[#8B5CF6]">{children}</h2>,
-              h3: ({ children }) => <h3 className="text-sm font-bold mb-1 text-[#8B5CF6]">{children}</h3>,
+              h1: ({ children }) => <h1 className="text-lg font-bold mb-1 text-white">{children}</h1>,
+              h2: ({ children }) => <h2 className="text-base font-bold mb-1 text-white">{children}</h2>,
+              h3: ({ children }) => <h3 className="text-sm font-bold mb-1 text-white">{children}</h3>,
               ul: ({ children }) => <ul className="list-disc pl-4 mb-1">{children}</ul>,
               ol: ({ children }) => <ol className="list-decimal pl-4 mb-1">{children}</ol>,
               a: ({ href, children }) => (
