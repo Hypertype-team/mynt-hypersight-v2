@@ -238,33 +238,50 @@ export const TicketAnalysisTable = () => {
         )}
         
         {sortedIssues.map(([issue, { tickets, count, summary, department }], index) => (
-          <Card key={issue} className="p-6 bg-white shadow-sm">
+          <Card key={issue} className="overflow-hidden bg-gradient-to-br from-white to-purple-50/30 border-purple-100/50">
             <div className="space-y-4">
-              <div className="border-b pb-4">
-                <h2 className="text-lg font-semibold text-gray-900">
-                  {index + 1}. {issue} ({count} tickets)
-                </h2>
-                <p className="text-gray-700 mt-2">
-                  <span className="font-medium">Summary:</span> {summary}
-                </p>
-                <p className="text-gray-700">
-                  <span className="font-medium">Responsible Department:</span> {department}
+              <div className="border-b border-purple-100/50 p-6">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="space-y-2">
+                    <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                      <span className="bg-purple-100 text-purple-800 text-sm px-2 py-1 rounded-full">
+                        Issue {index + 1}
+                      </span>
+                      {issue}
+                    </h2>
+                    <div className="flex items-center gap-2 text-sm text-purple-600">
+                      <span className="font-medium">{count} {count === 1 ? 'ticket' : 'tickets'}</span>
+                      •
+                      <span className="text-gray-600">{department}</span>
+                    </div>
+                  </div>
+                </div>
+                <p className="text-gray-700 mt-4 leading-relaxed">
+                  <span className="font-medium text-purple-900">Summary:</span> {summary}
                 </p>
               </div>
               
-              <div className="pt-2">
+              <div className="px-6 pb-4">
                 <Button
                   variant="ghost"
-                  className="text-gray-700 hover:text-gray-900"
+                  className="text-purple-600 hover:text-purple-700 hover:bg-purple-50 transition-colors"
                   onClick={() => toggleTickets(issue)}
                 >
-                  View Tickets {expandedTickets.includes(issue) ? <ChevronUp className="ml-2 h-4 w-4" /> : <ChevronDown className="ml-2 h-4 w-4" />}
+                  {expandedTickets.includes(issue) ? (
+                    <ChevronUp className="mr-2 h-4 w-4" />
+                  ) : (
+                    <ChevronDown className="mr-2 h-4 w-4" />
+                  )}
+                  {expandedTickets.includes(issue) ? 'Hide Tickets' : 'View Tickets'}
                 </Button>
                 
                 <Collapsible open={expandedTickets.includes(issue)}>
                   <CollapsibleContent className="space-y-4 mt-4">
                     {tickets.map((ticket, ticketIndex) => (
-                      <div key={ticket.id} className="pl-6 border-l-2 border-purple-200 bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
+                      <div 
+                        key={ticket.id} 
+                        className="pl-6 border-l-2 border-purple-200 bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition-all duration-200 hover:border-purple-300"
+                      >
                         <div className="flex justify-between items-start mb-3">
                           <h3 className="font-medium text-gray-900 flex items-center gap-2">
                             <span className="bg-purple-100 text-purple-800 text-sm px-2 py-1 rounded-full">
@@ -285,13 +302,13 @@ export const TicketAnalysisTable = () => {
                           )}
                         </div>
                         <div className="space-y-3">
-                          <div className="bg-gray-50 p-3 rounded-md">
-                            <p className="font-medium text-gray-900 mb-1">Ticket Issue:</p>
-                            <p className="text-gray-700">{ticket.issue}</p>
+                          <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                            <p className="font-medium text-purple-900 mb-2">Ticket Issue</p>
+                            <p className="text-gray-700 leading-relaxed">{ticket.issue}</p>
                           </div>
-                          <div className="bg-gray-50 p-3 rounded-md">
-                            <p className="font-medium text-gray-900 mb-1">Ticket Summary:</p>
-                            <p className="text-gray-700">{ticket.summary}</p>
+                          <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                            <p className="font-medium text-purple-900 mb-2">Ticket Summary</p>
+                            <p className="text-gray-700 leading-relaxed">{ticket.summary}</p>
                           </div>
                         </div>
                       </div>
