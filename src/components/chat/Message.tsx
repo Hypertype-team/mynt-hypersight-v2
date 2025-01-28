@@ -14,7 +14,7 @@ export const Message = ({ message, onFollowUpClick }: MessageProps) => {
     <div className="break-words">
       <div
         className={cn(
-          "p-3 rounded-lg max-w-[80%]",
+          "p-2 rounded-lg max-w-[90%] text-sm",
           message.isUser
             ? "bg-primary text-primary-foreground ml-auto"
             : "bg-muted"
@@ -26,22 +26,18 @@ export const Message = ({ message, onFollowUpClick }: MessageProps) => {
           <ReactMarkdown
             className="prose prose-sm dark:prose-invert max-w-none"
             components={{
-              // Customize heading styles
-              h1: ({ children }) => <h1 className="text-xl font-bold mb-2">{children}</h1>,
-              h2: ({ children }) => <h2 className="text-lg font-bold mb-2">{children}</h2>,
-              h3: ({ children }) => <h3 className="text-md font-bold mb-2">{children}</h3>,
-              // Style lists
-              ul: ({ children }) => <ul className="list-disc pl-4 mb-2">{children}</ul>,
-              ol: ({ children }) => <ol className="list-decimal pl-4 mb-2">{children}</ol>,
-              // Style links
+              h1: ({ children }) => <h1 className="text-lg font-bold mb-1">{children}</h1>,
+              h2: ({ children }) => <h2 className="text-base font-bold mb-1">{children}</h2>,
+              h3: ({ children }) => <h3 className="text-sm font-bold mb-1">{children}</h3>,
+              ul: ({ children }) => <ul className="list-disc pl-4 mb-1">{children}</ul>,
+              ol: ({ children }) => <ol className="list-decimal pl-4 mb-1">{children}</ol>,
               a: ({ href, children }) => (
                 <a href={href} className="text-blue-500 hover:underline" target="_blank" rel="noopener noreferrer">
                   {children}
                 </a>
               ),
-              // Style code blocks
               code: ({ children }) => (
-                <code className="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded">
+                <code className="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-xs">
                   {children}
                 </code>
               ),
