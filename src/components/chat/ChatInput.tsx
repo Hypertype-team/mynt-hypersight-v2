@@ -16,19 +16,19 @@ export const ChatInput = ({
   onSubmit,
 }: ChatInputProps) => {
   return (
-    <form onSubmit={onSubmit} className="p-4">
+    <form onSubmit={onSubmit} className="p-4 border-t bg-white">
       <div className="flex gap-2">
         <Input
           value={input}
           onChange={(e) => onInputChange(e.target.value)}
           placeholder="Ask about your ticket data..."
-          className="flex-1 bg-[#2a2a2a]/50 border-[#333] text-purple-100 placeholder:text-gray-500 focus:ring-purple-500/30 focus:border-purple-500/30"
+          className="flex-1 bg-purple-50/50 border-purple-100 text-purple-900 placeholder:text-purple-400 focus:ring-purple-200 focus:border-purple-300"
           disabled={isLoading}
         />
         <Button 
           type="submit" 
           disabled={isLoading}
-          className="bg-purple-500/20 hover:bg-purple-500/30 text-purple-100 border border-purple-500/30"
+          className="bg-purple-500 hover:bg-purple-600 text-white border-none shadow-md hover:shadow-lg transition-all"
         >
           {isLoading ? (
             "Analyzing..."

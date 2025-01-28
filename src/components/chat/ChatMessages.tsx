@@ -10,8 +10,8 @@ interface ChatMessagesProps {
 
 export const ChatMessages = ({ messages, onFollowUpClick, scrollRef }: ChatMessagesProps) => {
   return (
-    <ScrollArea className="flex-1 overflow-y-auto">
-      <div className="p-4 space-y-4">
+    <ScrollArea className="flex-1 overflow-y-auto bg-gradient-to-b from-white to-purple-50/30">
+      <div className="p-4 space-y-6">
         {messages.map((message, i) => (
           <Message
             key={i}
