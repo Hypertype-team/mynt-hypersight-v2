@@ -27,7 +27,7 @@ export const ChatInput = ({
         <Button 
           type="submit" 
           disabled={isLoading}
-          className="bg-[#9b87f5] hover:bg-[#7E69AB] text-white"
+          className="bg-[#2A2A2A] hover:bg-[#333] text-white"
         >
           {isLoading ? "Analyzing..." : "Send"}
         </Button>
