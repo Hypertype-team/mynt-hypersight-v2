@@ -1,7 +1,6 @@
 import { Layout } from "@/components/Layout";
 import { TicketAnalysisTable } from "@/components/TicketAnalysisTable";
 import { CategoryBreakdownChart } from "@/components/CategoryBreakdownChart";
-import { EVChargingLocationsChart } from "@/components/EVChargingLocationsChart";
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
 import { useState } from "react";
@@ -74,12 +73,9 @@ const Index = () => {
           {/* Main Content Area */}
           <div className="col-span-2 space-y-6">
             <div className="relative">
-              <div className={`transition-all duration-300 ${showAnalysis ? 'md:w-1/2' : 'w-full'}`}>
-                <EVChargingLocationsChart />
-              </div>
               <Button
                 variant="outline"
-                className={`absolute top-4 right-4 transition-opacity duration-300 ${showAnalysis ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+                className="absolute top-4 right-4"
                 onClick={() => setShowAnalysis(true)}
               >
                 Want more charts?
