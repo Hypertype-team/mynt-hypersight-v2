@@ -7,6 +7,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 interface TicketFiltersProps {
   selectedCategory: string;
@@ -15,10 +17,6 @@ interface TicketFiltersProps {
   setSubcategoryFilter: (filter: string) => void;
   commonIssueFilter: string;
   setCommonIssueFilter: (filter: string) => void;
-  categories: Array<{
-    name: string;
-    count: number;
-  }>;
 }
 
 export const TicketFilters = ({
@@ -28,21 +26,42 @@ export const TicketFilters = ({
   setSubcategoryFilter,
   commonIssueFilter,
   setCommonIssueFilter,
-  categories,
 }: TicketFiltersProps) => {
+  const { data: categories } = useQuery({
+    queryKey: ["categories"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("ticket_analysis")
+        .select("category")
+        .not("category", "is", null);
+
+      if (error) throw error;
+
+      // Count tickets per category
+      const categoryCounts = data.reduce((acc: Record<string, number>, item) => {
+        const category = item.category || "Uncategorized";
+        acc[category] = (acc[category] || 0) + 1;
+        return acc;
+      }, {});
+
+      return Object.entries(categoryCounts)
+        .map(([name, count]) => ({ name, count }))
+        .sort((a, b) => b.count - a.count); // Sort by count in descending order
+    },
+  });
+
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-semibold">Filters</h2>
+      <h2 className="text-2xl font-semibold">Theme</h2>
       <div className="space-y-2">
-        <label className="text-base font-medium">Category</label>
         <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-          <SelectTrigger className="w-full border border-gray-200 bg-white text-base">
+          <SelectTrigger className="w-full border border-pink-500 rounded-xl bg-white text-base h-12">
             <SelectValue placeholder="Select a category" />
           </SelectTrigger>
           <SelectContent className="bg-white">
             <SelectItem value="all">All Categories</SelectItem>
-            {categories.map(({ name, count }) => (
-              <SelectItem key={name} value={name} className="py-2">
+            {categories?.map(({ name, count }) => (
+              <SelectItem key={name} value={name} className="py-3 px-4">
                 {name} ({count} tickets)
               </SelectItem>
             ))}
