@@ -34,10 +34,6 @@ const Index = () => {
         <h1 className="text-2xl font-bold">HyperSight Dashboard</h1>
         
         <div className="space-y-4">
-          <div>
-            <span className="font-medium">Total Tickets: </span>
-            <span>{totalTickets}</span>
-          </div>
         </div>
 
         <TicketAnalysisTable />
