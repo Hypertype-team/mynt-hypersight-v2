@@ -2,12 +2,11 @@ import { Layout } from "@/components/Layout";
 import { TicketAnalysisTable } from "@/components/TicketAnalysisTable";
 import { CategoryBreakdownChart } from "@/components/CategoryBreakdownChart";
 import { Button } from "@/components/ui/button";
-import { ChevronDown, ChevronUp, Maximize2, Minimize2, X } from "lucide-react";
+import { X } from "lucide-react";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 const Index = () => {
   const [showAnalysis, setShowAnalysis] = useState(false);
@@ -15,7 +14,6 @@ const Index = () => {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [subcategoryFilter, setSubcategoryFilter] = useState("");
   const [commonIssueFilter, setCommonIssueFilter] = useState("");
-  const [isFiltersExpanded, setIsFiltersExpanded] = useState(false);
 
   const { data: dashboardData } = useQuery({
     queryKey: ["dashboard-info"],
@@ -58,53 +56,6 @@ const Index = () => {
               </Select>
             </div>
           </div>
-
-          <Collapsible open={isFiltersExpanded} onOpenChange={setIsFiltersExpanded}>
-            <CollapsibleContent className="space-y-4">
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">Category</p>
-                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                  <SelectTrigger>
-                    <SelectValue>All Categories</SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Categories</SelectItem>
-                    {categories.map((category) => (
-                      <SelectItem key={category} value={category}>
-                        {category}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">Theme</p>
-                <Select defaultValue="all">
-                  <SelectTrigger>
-                    <SelectValue>All Themes</SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Themes</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">Responsible Department</p>
-                <Select defaultValue="all">
-                  <SelectTrigger>
-                    <SelectValue>All</SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <input type="checkbox" id="sortByVolume" className="rounded border-gray-300" />
-                <label htmlFor="sortByVolume">Sort by Ticket Volume (Ascending)</label>
-              </div>
-            </CollapsibleContent>
-          </Collapsible>
         </div>
 
         <TicketAnalysisTable />
