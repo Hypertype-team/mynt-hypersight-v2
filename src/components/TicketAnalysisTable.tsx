@@ -158,9 +158,14 @@ export const TicketAnalysisTable = () => {
       <Card className="overflow-hidden">
         <div className="p-6 bg-gradient-to-br from-purple-50 to-white">
           <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-2">
-              <Filter className="w-5 h-5 text-purple-500" />
-              <h2 className="text-lg font-semibold text-gray-900">Filter Tickets</h2>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Filter className="w-5 h-5 text-purple-500" />
+                <h2 className="text-lg font-semibold text-gray-900">Filter Tickets</h2>
+              </div>
+              <p className="text-sm text-gray-600">
+                Showing {filteredTickets?.length || 0} of {allTickets?.length || 0} total tickets
+              </p>
             </div>
             <Button
               variant="outline"
@@ -267,9 +272,14 @@ export const TicketAnalysisTable = () => {
 
       <div className="space-y-6">
         {selectedTheme && (
-          <h3 className="text-xl font-semibold text-gray-900">
-            {selectedTheme} ({filteredTickets?.length || 0} total tickets)
-          </h3>
+          <div className="flex items-center justify-between">
+            <h3 className="text-xl font-semibold text-gray-900">
+              {selectedTheme}
+            </h3>
+            <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-medium">
+              {filteredTickets?.length || 0} tickets
+            </span>
+          </div>
         )}
         
         {sortedIssues.map(([issue, { tickets, count, summary, department }], index) => (
