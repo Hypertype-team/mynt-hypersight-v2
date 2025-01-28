@@ -2,15 +2,10 @@ import { Card } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useState } from "react";
-import { TicketFilters } from "./ticket-analysis/TicketFilters";
-import { CategoryGroup } from "./ticket-analysis/CategoryGroup";
+import { Button } from "@/components/ui/button";
+import { ChevronDown } from "lucide-react";
 
 export const TicketAnalysisTable = () => {
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
-  const [subcategoryFilter, setSubcategoryFilter] = useState("");
-  const [commonIssueFilter, setCommonIssueFilter] = useState("");
-
   const { data, isLoading } = useQuery({
     queryKey: ["tickets"],
     queryFn: async () => {
@@ -34,99 +29,56 @@ export const TicketAnalysisTable = () => {
     );
   }
 
-  const groupedTickets = data?.reduce((categories, ticket) => {
+  // Group tickets by category and subcategory
+  const groupedTickets = data?.reduce((acc, ticket) => {
     const category = ticket.category || "Uncategorized";
-    const subcategory = ticket.subcategory || "Uncategorized";
-    const commonIssue = ticket.common_issue || "Uncategorized";
-
-    if (selectedCategory !== "all" && category !== selectedCategory) return categories;
-    if (
-      subcategoryFilter &&
-      !subcategory.toLowerCase().includes(subcategoryFilter.toLowerCase())
-    )
-      return categories;
-    if (
-      commonIssueFilter &&
-      !commonIssue.toLowerCase().includes(commonIssueFilter.toLowerCase())
-    )
-      return categories;
-
-    if (!categories[category]) {
-      categories[category] = {
-        subcategories: {},
-        count: 0,
-      };
-    }
-
-    if (!categories[category].subcategories[subcategory]) {
-      categories[category].subcategories[subcategory] = {
-        commonIssues: {},
-        count: 0,
-      };
-    }
-
-    if (!categories[category].subcategories[subcategory].commonIssues[commonIssue]) {
-      categories[category].subcategories[subcategory].commonIssues[commonIssue] = {
+    if (!acc[category]) {
+      acc[category] = {
         tickets: [],
         count: 0,
       };
     }
-
-    categories[category].count += 1;
-    categories[category].subcategories[subcategory].count += 1;
-    categories[category].subcategories[subcategory].commonIssues[commonIssue].count += 1;
-    categories[category].subcategories[subcategory].commonIssues[commonIssue].tickets.push(
-      ticket
-    );
-
-    return categories;
-  }, {} as Record<string, {
-    subcategories: Record<string, {
-      commonIssues: Record<string, {
-        tickets: any[];
-        count: number;
-      }>;
-      count: number;
-    }>;
-    count: number;
-  }>);
-
-  const uniqueCategories = Object.keys(groupedTickets || {});
+    acc[category].tickets.push(ticket);
+    acc[category].count += 1;
+    return acc;
+  }, {} as Record<string, { tickets: any[]; count: number }>);
 
   return (
-    <Card className="p-6 border-2">
+    <Card className="p-6">
       <div className="space-y-6">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-primary/80 to-primary bg-clip-text text-transparent">
-            Ticket Analysis
-          </h2>
-          <p className="text-muted-foreground">
-            Hierarchical view of support tickets and their analysis
-          </p>
-        </div>
-
-        <TicketFilters
-          selectedCategory={selectedCategory}
-          setSelectedCategory={setSelectedCategory}
-          subcategoryFilter={subcategoryFilter}
-          setSubcategoryFilter={setSubcategoryFilter}
-          commonIssueFilter={commonIssueFilter}
-          setCommonIssueFilter={setCommonIssueFilter}
-          categories={uniqueCategories}
-        />
-
-        <ScrollArea className="h-[calc(100vh-300px)] pr-4 mt-6">
-          <div className="space-y-6">
-            {Object.entries(groupedTickets || {}).map(([category, { subcategories, count }]) => (
-              <CategoryGroup
-                key={category}
-                category={category}
-                count={count}
-                subcategories={subcategories}
-              />
+        {Object.entries(groupedTickets || {}).map(([category, { tickets, count }]) => (
+          <div key={category} className="space-y-4">
+            <div className="border-b pb-4">
+              <h2 className="text-xl font-semibold">
+                {category} ({count} total tickets)
+              </h2>
+            </div>
+            
+            {tickets.map((ticket, index) => (
+              <div key={ticket.id} className="space-y-4">
+                <div>
+                  <div className="flex justify-between items-start mb-2">
+                    <h3 className="font-medium">Ticket {index + 1}:</h3>
+                    <Button variant="ghost" size="sm">
+                      View Issue
+                    </Button>
+                  </div>
+                  <div className="space-y-2">
+                    <div>
+                      <p className="font-medium">Ticket Issue:</p>
+                      <p className="text-muted-foreground">{ticket.issue}</p>
+                    </div>
+                    <div>
+                      <p className="font-medium">Ticket Summary:</p>
+                      <p className="text-muted-foreground">{ticket.issue_summary}</p>
+                    </div>
+                  </div>
+                </div>
+                {index < tickets.length - 1 && <hr className="my-4" />}
+              </div>
             ))}
           </div>
-        </ScrollArea>
+        ))}
       </div>
     </Card>
   );
