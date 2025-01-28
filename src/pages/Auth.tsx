@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,18 @@ const Auth = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  // Check if user is authenticated and logout if needed
+  useEffect(() => {
+    const token = localStorage.getItem("authToken");
+    if (token) {
+      localStorage.removeItem("authToken");
+      toast({
+        title: "Logged out",
+        description: "You have been successfully logged out.",
+      });
+    }
+  }, [toast]);
+
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -22,6 +34,7 @@ const Auth = () => {
         email === "johan.wikstrom@greenely.se" &&
         password === "greenely20hypersight"
       ) {
+        localStorage.setItem("authToken", "test-token");
         toast({
           title: "Welcome back!",
           description: "You have been successfully logged in.",
