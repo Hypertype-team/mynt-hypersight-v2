@@ -6,7 +6,6 @@ import { useToast } from "@/hooks/use-toast";
 import { TicketFilters } from "./ticket-analysis/TicketFilters";
 import { CommonIssueGroup } from "./ticket-analysis/CommonIssueGroup";
 import { LoadingState } from "./ticket-analysis/LoadingState";
-import { TablePagination } from "./ticket-analysis/TablePagination";
 import { 
   getFilteredTickets, 
   getCategoriesWithCounts, 
@@ -14,8 +13,6 @@ import {
   groupTicketsByIssue 
 } from "./ticket-analysis/TicketFilterLogic";
 import { Ticket, TicketGroups } from "@/types/ticket";
-
-const PAGE_SIZE = 100;
 
 interface TicketData {
   tickets: Ticket[];
@@ -29,21 +26,17 @@ export const TicketAnalysisTable = () => {
   const [selectedDepartment, setSelectedDepartment] = useState<string>("All");
   const [sortAscending, setSortAscending] = useState(false);
   const [expandedTickets, setExpandedTickets] = useState<string[]>([]);
-  const [currentPage, setCurrentPage] = useState(1);
   const { toast } = useToast();
 
   const { data: ticketsData, isLoading, refetch } = useQuery<TicketData>({
-    queryKey: ["tickets", currentPage],
+    queryKey: ["tickets"],
     queryFn: async () => {
-      console.log("Fetching tickets...");
-      const startRange = (currentPage - 1) * PAGE_SIZE;
-      const endRange = startRange + PAGE_SIZE - 1;
+      console.log("Fetching all tickets...");
 
       const { data, error, count } = await supabase
         .from("ticket_analysis")
         .select("*", { count: 'exact' })
-        .order("created_at", { ascending: false })
-        .range(startRange, endRange);
+        .order("created_at", { ascending: false });
 
       if (error) {
         toast({
@@ -60,7 +53,6 @@ export const TicketAnalysisTable = () => {
 
   const allTickets = ticketsData?.tickets || [];
   const totalTickets = ticketsData?.totalCount || 0;
-  const totalPages = Math.ceil(totalTickets / PAGE_SIZE);
 
   const handleRefresh = async () => {
     toast({
@@ -148,12 +140,6 @@ export const TicketAnalysisTable = () => {
           </Card>
         ))}
       </div>
-
-      <TablePagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        setCurrentPage={setCurrentPage}
-      />
     </div>
   );
 };
