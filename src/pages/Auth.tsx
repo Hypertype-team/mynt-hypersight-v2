@@ -10,7 +10,7 @@ const Auth = () => {
   const [email, setEmail] = useState("johan.wikstrom@greenely.se");
   const [password, setPassword] = useState("greenely20hypersight");
   const [isLoading, setIsLoading] = useState(false);
-  const [isSignUp, setIsSignUp] = useState(true);
+  const [isSignUp, setIsSignUp] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -19,31 +19,33 @@ const Auth = () => {
     setIsLoading(true);
 
     try {
-      if (isSignUp) {
-        const { error: signUpError } = await supabase.auth.signUp({
-          email,
-          password,
-        });
+      // Only allow specific credentials for sign in
+      if (!isSignUp) {
+        if (
+          email === "johan.wikstrom@greenely.se" &&
+          password === "greenely20hypersight"
+        ) {
+          const { error: signInError } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+          });
 
-        if (signUpError) throw signUpError;
+          if (signInError) throw signInError;
 
-        toast({
-          title: "Account created!",
-          description: "Please check your email to verify your account.",
-        });
+          toast({
+            title: "Welcome back!",
+            description: "You have been successfully logged in.",
+          });
+          navigate("/");
+        } else {
+          throw new Error("Invalid credentials. Please use the provided test account.");
+        }
       } else {
-        const { error: signInError } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-
-        if (signInError) throw signInError;
-
         toast({
-          title: "Welcome back!",
-          description: "You have been successfully logged in.",
+          variant: "destructive",
+          title: "Sign up disabled",
+          description: "Please use the provided test account to sign in.",
         });
-        navigate("/");
       }
     } catch (error: any) {
       console.error("Auth error:", error);
