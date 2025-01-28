@@ -264,24 +264,33 @@ export const TicketAnalysisTable = () => {
                 <Collapsible open={expandedTickets.includes(issue)}>
                   <CollapsibleContent className="space-y-4 mt-4">
                     {tickets.map((ticket, ticketIndex) => (
-                      <div key={ticket.id} className="pl-4 border-l-2 border-gray-200">
-                        <div className="flex justify-between items-start mb-2">
-                          <h3 className="font-medium text-gray-900">Ticket {ticketIndex + 1}:</h3>
+                      <div key={ticket.id} className="pl-6 border-l-2 border-purple-200 bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
+                        <div className="flex justify-between items-start mb-3">
+                          <h3 className="font-medium text-gray-900 flex items-center gap-2">
+                            <span className="bg-purple-100 text-purple-800 text-sm px-2 py-1 rounded-full">
+                              Ticket {ticketIndex + 1}
+                            </span>
+                          </h3>
                           {ticket.link && (
-                            <Button variant="link" size="sm" className="text-blue-600 hover:text-blue-700" asChild>
-                              <a href={ticket.link} target="_blank" rel="noopener noreferrer">
-                                View Issue <ExternalLink className="ml-1 h-4 w-4" />
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="text-purple-600 hover:text-purple-700 hover:bg-purple-50" 
+                              asChild
+                            >
+                              <a href={ticket.link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1">
+                                View Issue <ExternalLink className="h-4 w-4" />
                               </a>
                             </Button>
                           )}
                         </div>
-                        <div className="space-y-2">
-                          <div>
-                            <p className="font-medium text-gray-900">Ticket Issue:</p>
+                        <div className="space-y-3">
+                          <div className="bg-gray-50 p-3 rounded-md">
+                            <p className="font-medium text-gray-900 mb-1">Ticket Issue:</p>
                             <p className="text-gray-700">{ticket.issue}</p>
                           </div>
-                          <div>
-                            <p className="font-medium text-gray-900">Ticket Summary:</p>
+                          <div className="bg-gray-50 p-3 rounded-md">
+                            <p className="font-medium text-gray-900 mb-1">Ticket Summary:</p>
                             <p className="text-gray-700">{ticket.summary}</p>
                           </div>
                         </div>
