@@ -26,14 +26,11 @@ const Index = () => {
   });
 
   const totalTickets = dashboardData?.length || 0;
-  const categories = [...new Set(dashboardData?.map(ticket => ticket.category) || [])];
 
   return (
     <Layout>
       <div className="space-y-6">
         <h1 className="text-2xl font-bold">HyperSight Dashboard</h1>
-        
-        <h2 className="font-medium">Total Tickets: {totalTickets}</h2>
 
         <TicketAnalysisTable />
 
