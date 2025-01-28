@@ -33,8 +33,8 @@ export const TicketAnalysisTable = () => {
       console.log("Fetching tickets...");
       const { data, error, count } = await supabase
         .from("ticket_analysis")
-        .select("*", { count: 'exact' })
-        .order("created_at", { ascending: false });
+        .select("*", { count: 'exact', head: false })
+        .limit(10000);
 
       if (error) {
         console.error("Error fetching tickets:", error);
