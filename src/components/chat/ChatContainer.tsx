@@ -19,12 +19,6 @@ I'm your Ticket Analysis Assistant. Ask me about:
 
 How can I help you today?`,
       isUser: false,
-      followUpQuestions: [
-        "What are the most common issues?",
-        "Show me ticket summaries by category",
-        "What are the department justifications?",
-        "Are there any relevant documentation links?",
-      ],
     },
   ]);
   const [input, setInput] = useState("");
