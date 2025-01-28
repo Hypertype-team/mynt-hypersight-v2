@@ -15,7 +15,7 @@ export const ChatInput = ({
   onSubmit,
 }: ChatInputProps) => {
   return (
-    <form onSubmit={onSubmit} className="border-t border-[#333] p-4 bg-black">
+    <form onSubmit={onSubmit} className="border-t border-[#333] p-4 bg-[#1e1e1e]">
       <div className="flex gap-2">
         <Input
           value={input}
