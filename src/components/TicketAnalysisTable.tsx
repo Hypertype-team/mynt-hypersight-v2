@@ -29,13 +29,18 @@ export const TicketAnalysisTable = () => {
   const { data: allTickets, isLoading } = useQuery({
     queryKey: ["tickets"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      console.log("Fetching tickets...");
+      const { data, error, count } = await supabase
         .from("ticket_analysis")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(10000); // Increased limit to handle all records
+        .select("*", { count: 'exact' })
+        .order("created_at", { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching tickets:", error);
+        throw error;
+      }
+      
+      console.log("Total tickets fetched:", count);
       return data;
     },
   });
@@ -137,6 +142,9 @@ export const TicketAnalysisTable = () => {
           <div className="flex items-center gap-2 mb-6">
             <Filter className="w-5 h-5 text-purple-500" />
             <h2 className="text-lg font-semibold text-gray-900">Filter Tickets</h2>
+            <span className="ml-auto text-sm text-muted-foreground">
+              Total Tickets: {allTickets?.length || 0}
+            </span>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
