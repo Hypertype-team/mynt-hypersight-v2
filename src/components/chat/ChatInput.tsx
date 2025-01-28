@@ -22,7 +22,7 @@ export const ChatInput = ({
           value={input}
           onChange={(e) => onInputChange(e.target.value)}
           placeholder="Ask about your ticket data..."
-          className="flex-1 bg-purple-50/50 border-purple-100 text-purple-900 placeholder:text-purple-400 focus:ring-purple-200 focus:border-purple-300"
+          className="flex-1 bg-purple-50/50 border-purple-100 text-purple-900 placeholder:text-gray-900 focus:ring-purple-200 focus:border-purple-300"
           disabled={isLoading}
         />
         <Button 
