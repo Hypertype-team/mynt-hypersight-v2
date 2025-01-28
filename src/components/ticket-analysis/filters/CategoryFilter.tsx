@@ -33,9 +33,6 @@ export const CategoryFilter = ({
           <SelectValue placeholder="Select category" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="_all" className="hover:bg-purple-50">
-            All categories
-          </SelectItem>
           {categories.map(({ name, display }) => (
             <SelectItem key={name} value={name} className="hover:bg-purple-50">
               {display}
