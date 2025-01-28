@@ -86,8 +86,8 @@ How can I help you today?`,
   return (
     <div className="flex flex-col h-full bg-white shadow-lg">
       <div className="p-4 border-b bg-gradient-to-r from-purple-50 to-white">
-        <h2 className="text-lg font-semibold text-purple-900">Ticket Analysis Assistant</h2>
-        <p className="text-sm text-purple-600">Ask me anything about your tickets</p>
+        <h2 className="text-lg font-semibold text-gray-900">Ticket Analysis Assistant</h2>
+        <p className="text-sm text-gray-700">Ask me anything about your tickets</p>
       </div>
       <ChatMessages 
         messages={messages} 
