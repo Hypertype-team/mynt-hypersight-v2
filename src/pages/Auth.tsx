@@ -47,18 +47,18 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="w-full max-w-md space-y-8 p-8 bg-card rounded-lg shadow-lg">
+    <div className="min-h-screen flex items-center justify-center bg-[#1A1F2C]">
+      <div className="w-full max-w-md space-y-8 p-8 bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl">
         <div className="text-center">
-          <h2 className="text-2xl font-bold">{isSignUp ? "Create Account" : "Welcome Back"}</h2>
-          <p className="text-muted-foreground mt-2">
+          <h2 className="text-2xl font-bold text-white">{isSignUp ? "Create Account" : "Welcome Back"}</h2>
+          <p className="text-[#8E9196] mt-2">
             {isSignUp ? "Sign up to get started" : "Sign in to your account"}
           </p>
         </div>
 
         <form onSubmit={handleAuth} className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email" className="text-white">Email</Label>
             <Input
               id="email"
               type="email"
@@ -66,11 +66,12 @@ const Auth = () => {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Enter your email"
               required
+              className="bg-white/5 border-white/10 text-white placeholder:text-[#8E9196]"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password" className="text-white">Password</Label>
             <Input
               id="password"
               type="password"
@@ -78,10 +79,15 @@ const Auth = () => {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter your password"
               required
+              className="bg-white/5 border-white/10 text-white placeholder:text-[#8E9196]"
             />
           </div>
 
-          <Button type="submit" className="w-full" disabled={isLoading}>
+          <Button 
+            type="submit" 
+            className="w-full bg-[#9b87f5] hover:bg-[#7E69AB] text-white transition-colors"
+            disabled={isLoading}
+          >
             {isLoading ? "Loading..." : isSignUp ? "Sign Up" : "Sign In"}
           </Button>
         </form>
@@ -90,7 +96,7 @@ const Auth = () => {
           <button
             type="button"
             onClick={() => setIsSignUp(!isSignUp)}
-            className="text-primary hover:underline"
+            className="text-[#D6BCFA] hover:text-[#9b87f5] transition-colors"
           >
             {isSignUp ? "Already have an account? Sign in" : "Need an account? Sign up"}
           </button>
