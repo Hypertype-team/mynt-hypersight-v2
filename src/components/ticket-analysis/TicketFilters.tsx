@@ -31,7 +31,19 @@ export const TicketFilters = ({
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       <div className="relative">
         <Layers className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-        <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+        <Select 
+          value={selectedCategory} 
+          onValueChange={(value) => {
+            setSelectedCategory(value);
+            // Prevent the dropdown from closing after selection
+            const event = new MouseEvent('click', {
+              bubbles: true,
+              cancelable: true,
+              view: window
+            });
+            document.querySelector('[role="combobox"]')?.dispatchEvent(event);
+          }}
+        >
           <SelectTrigger className="pl-8">
             <SelectValue placeholder="Select a category" />
           </SelectTrigger>
