@@ -1,9 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { ChevronDown } from "lucide-react";
 
 export const TicketAnalysisTable = () => {
   const { data, isLoading } = useQuery({
@@ -48,7 +46,7 @@ export const TicketAnalysisTable = () => {
       <div className="space-y-6">
         {Object.entries(groupedTickets || {}).map(([category, { tickets, count }]) => (
           <div key={category} className="space-y-4">
-            <div className="border-b pb-4">
+            <div className="border-b pb-2">
               <h2 className="text-xl font-semibold">
                 {category} ({count} total tickets)
               </h2>
@@ -59,7 +57,7 @@ export const TicketAnalysisTable = () => {
                 <div>
                   <div className="flex justify-between items-start mb-2">
                     <h3 className="font-medium">Ticket {index + 1}:</h3>
-                    <Button variant="ghost" size="sm">
+                    <Button variant="link" size="sm" className="text-blue-600">
                       View Issue
                     </Button>
                   </div>
