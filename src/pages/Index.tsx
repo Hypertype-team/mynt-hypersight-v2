@@ -40,14 +40,17 @@ const Index = () => {
         
         <div className="space-y-4">
           <div className="grid grid-cols-3 gap-6">
-            <div>
-              <p className="text-sm text-muted-foreground mb-1">Company Name</p>
-              <p className="font-medium">Demo</p>
+            <div className="space-y-2">
+              <div>
+                <span className="font-medium">Company Name: </span>
+                <span>Demo</span>
+              </div>
+              <div>
+                <span className="font-medium">Total Tickets: </span>
+                <span>{totalTickets}</span>
+              </div>
             </div>
-            <div>
-              <p className="text-sm text-muted-foreground mb-1">Total Tickets</p>
-              <p className="font-medium">{totalTickets}</p>
-            </div>
+            <div></div>
             <div>
               <p className="text-sm text-muted-foreground mb-1">Report Period</p>
               <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
