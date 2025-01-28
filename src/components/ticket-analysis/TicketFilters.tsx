@@ -94,16 +94,19 @@ export const TicketFilters = ({
         <div className="space-y-2">
           <label className="text-sm font-medium block text-gray-700">Category</label>
           <Select 
-            value={selectedCategory} 
+            value={selectedCategory}
             onValueChange={(value) => {
               setSelectedCategory(value);
-              setSelectedTheme(""); // Reset theme when category changes
+              setSelectedTheme("");
             }}
           >
             <SelectTrigger className="w-full bg-white border-gray-200 hover:border-purple-200 transition-colors">
               <SelectValue placeholder="Select category" />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="" className="hover:bg-purple-50">
+                Select category
+              </SelectItem>
               {categories.map(({ name, display }) => (
                 <SelectItem key={name} value={name} className="hover:bg-purple-50">
                   {display}
@@ -126,6 +129,9 @@ export const TicketFilters = ({
               <SelectValue placeholder={!selectedCategory ? "Select a category first" : "Select theme"} />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="" className="hover:bg-purple-50">
+                Select theme
+              </SelectItem>
               {themes.map(({ name, display }) => (
                 <SelectItem key={name} value={name} className="hover:bg-purple-50">
                   {display}
