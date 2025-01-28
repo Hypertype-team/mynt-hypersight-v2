@@ -78,7 +78,7 @@ export const TicketAnalysisTable = () => {
     selectedDepartment
   );
   
-  const categories = getCategoriesWithCounts(filteredTickets);
+  const categories = getCategoriesWithCounts(allTickets); // Use allTickets instead of filteredTickets
   const themes = getThemesWithCounts(filteredTickets, selectedCategory, sortAscending);
   const departments = ["All", ...new Set(filteredTickets?.map(ticket => ticket.responsible_department))];
   
@@ -91,7 +91,7 @@ export const TicketAnalysisTable = () => {
       <Card className="overflow-hidden">
         <TicketFilters
           totalTickets={3539}
-          filteredCount={3539}
+          filteredCount={filteredTickets.length}
           selectedPeriod={selectedPeriod}
           setSelectedPeriod={setSelectedPeriod}
           selectedCategory={selectedCategory}

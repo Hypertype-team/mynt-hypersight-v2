@@ -17,11 +17,18 @@ export const getFilteredTickets = (
 };
 
 export const getCategoriesWithCounts = (filteredTickets: Ticket[]) => {
-  return [...new Set(filteredTickets?.map(ticket => ticket.category))]
-    .map(category => ({
-      name: category || "",
-      count: filteredTickets?.filter(t => t.category === category).length || 0,
-      display: `${category} (${filteredTickets?.filter(t => t.category === category).length || 0} tickets)`
+  // Get all unique categories and their counts from the full dataset
+  const categoryMap = filteredTickets.reduce((acc, ticket) => {
+    const category = ticket.category || "Uncategorized";
+    acc[category] = (acc[category] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  return Object.entries(categoryMap)
+    .map(([category, count]) => ({
+      name: category,
+      count: count,
+      display: `${category} (${count} tickets)`
     }))
     .sort((a, b) => {
       if (a.name === "Batterier") return -1;
