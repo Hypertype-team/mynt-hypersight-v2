@@ -16,7 +16,7 @@ const Index = () => {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [subcategoryFilter, setSubcategoryFilter] = useState("");
   const [commonIssueFilter, setCommonIssueFilter] = useState("");
-  const [isFiltersExpanded, setIsFiltersExpanded] = useState(true);
+  const [isFiltersExpanded, setIsFiltersExpanded] = useState(false); // Changed to false for initial collapsed state
 
   const { data: dashboardData } = useQuery({
     queryKey: ["dashboard-info"],
