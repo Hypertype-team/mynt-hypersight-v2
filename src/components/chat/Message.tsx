@@ -17,7 +17,7 @@ export const Message = ({ message, onFollowUpClick }: MessageProps) => {
           "p-2 rounded-lg max-w-[90%] text-sm",
           message.isUser
             ? "bg-[#9b87f5] text-white ml-auto"
-            : "bg-[#2A2A2A] text-[#D6BCFA]"
+            : "bg-[#2A2A2A] text-white"
         )}
       >
         {message.isUser ? (
