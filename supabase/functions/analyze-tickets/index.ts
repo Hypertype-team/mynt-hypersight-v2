@@ -16,23 +16,31 @@ async function getGoogleAccessToken(serviceAccountJson: string): Promise<string>
     const now = Math.floor(Date.now() / 1000);
     const exp = now + 3600; // Token expires in 1 hour
     
-    const jwt = {
+    const jwtHeader = {
+      alg: "RS256",
+      typ: "JWT",
+      kid: credentials.private_key_id
+    };
+
+    const jwtClaimSet = {
       iss: credentials.client_email,
       scope: 'https://www.googleapis.com/auth/cloud-platform',
       aud: 'https://oauth2.googleapis.com/token',
       exp: exp,
       iat: now,
     };
-    
-    // Sign the JWT with the private key
-    const key = credentials.private_key;
-    const encoder = new TextEncoder();
-    const signatureInput = encoder.encode(JSON.stringify(jwt));
-    
-    // Convert private key to crypto key
+
+    // Encode JWT header and claim set
+    const base64Header = btoa(JSON.stringify(jwtHeader));
+    const base64ClaimSet = btoa(JSON.stringify(jwtClaimSet));
+
+    // Create the signing input
+    const signatureInput = `${base64Header}.${base64ClaimSet}`;
+
+    // Import private key for signing
     const privateKey = await crypto.subtle.importKey(
       'pkcs8',
-      new TextEncoder().encode(key),
+      new TextEncoder().encode(credentials.private_key),
       {
         name: 'RSASSA-PKCS1-v1_5',
         hash: 'SHA-256',
@@ -40,17 +48,18 @@ async function getGoogleAccessToken(serviceAccountJson: string): Promise<string>
       false,
       ['sign']
     );
-    
+
     // Sign the JWT
     const signature = await crypto.subtle.sign(
       'RSASSA-PKCS1-v1_5',
       privateKey,
-      signatureInput
+      new TextEncoder().encode(signatureInput)
     );
-    
-    // Encode the JWT
-    const jwtString = `${btoa(JSON.stringify(jwt))}.${btoa(String.fromCharCode(...new Uint8Array(signature)))}`;
-    
+
+    // Create the complete JWT
+    const base64Signature = btoa(String.fromCharCode(...new Uint8Array(signature)));
+    const jwt = `${signatureInput}.${base64Signature}`;
+
     // Exchange JWT for access token
     const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
       method: 'POST',
@@ -59,10 +68,16 @@ async function getGoogleAccessToken(serviceAccountJson: string): Promise<string>
       },
       body: new URLSearchParams({
         grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
-        assertion: jwtString,
+        assertion: jwt,
       }),
     });
-    
+
+    if (!tokenResponse.ok) {
+      const errorData = await tokenResponse.text();
+      console.error('Token exchange error:', errorData);
+      throw new Error(`Token exchange failed: ${tokenResponse.status}`);
+    }
+
     const tokenData = await tokenResponse.json();
     return tokenData.access_token;
   } catch (error) {
@@ -94,6 +109,7 @@ serve(async (req) => {
     // Get Google Cloud access token
     console.log('Getting Google Cloud access token...');
     const accessToken = await getGoogleAccessToken(serviceAccountJson);
+    console.log('Successfully obtained access token');
 
     // Call Google Cloud Function
     console.log('Calling Google Cloud Function...');
