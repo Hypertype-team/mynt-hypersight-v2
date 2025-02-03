@@ -71,7 +71,7 @@ async function getGoogleAccessToken(serviceAccountJson: string): Promise<string>
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
         grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
-        assertion: jwt,
+        assertion: jwt.trim(),
       }),
     });
 
