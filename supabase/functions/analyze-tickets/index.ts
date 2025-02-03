@@ -40,6 +40,7 @@ async function generateGoogleAuthToken(client_email: string, token_uri: string, 
   const encodedPayload = encode(JSON.stringify(payload));
 
   const privateKeyData = parsePEM(google_key);
+  console.log("The private key: ", privateKeyData);
 
   const message = `${encodedHeader}.${encodedPayload}`;
   const key = await crypto.subtle.importKey(
