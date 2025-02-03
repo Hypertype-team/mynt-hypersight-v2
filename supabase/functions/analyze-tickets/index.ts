@@ -61,11 +61,8 @@ async function getGoogleAccessToken(serviceAccountJson: string): Promise<string>
       jwtPayload,
       privateKey
     );
-
     jwt = jwt.replace(/\n/g, "");
-
     console.log("THE JWT WE GOT: ", jwt);
-
 
     // Exchange JWT for an access token
     const response = await fetch("https://oauth2.googleapis.com/token", {
@@ -73,11 +70,12 @@ async function getGoogleAccessToken(serviceAccountJson: string): Promise<string>
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
         grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
-        assertion: jwt,
+        assertion: encodeURIComponent(jwt),
       }),
     });
 
     console.log("The reponse we got: ", response);
+    console.log("The response text: ", response.text);
 
     const data = await response.json();
     if (!data.id_token) {
