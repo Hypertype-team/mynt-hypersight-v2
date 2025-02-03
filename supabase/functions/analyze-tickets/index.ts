@@ -3,6 +3,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createSign } from "https://deno.land/std@0.190.0/node/crypto.ts";
 import { encode } from "https://deno.land/std@0.190.0/encoding/base64url.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4';
+import { SignJWT } from "https://deno.land/x/jose@v4.15.5/index.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -113,27 +114,45 @@ async function getGoogleAccessToken(serviceAccountJson: string): Promise<string>
 
 
 
-  // ✅ Encode Header & Claims
-  const encodedHeader = encode(new TextEncoder().encode(JSON.stringify(header)));
-  const encodedClaims = encode(new TextEncoder().encode(JSON.stringify(claims)));
-  const signingInput = `${encodedHeader}.${encodedClaims}`;
+    // ✅ Encode Header & Claims
+    const encodedHeader = encode(new TextEncoder().encode(JSON.stringify(header)));
+    const encodedClaims = encode(new TextEncoder().encode(JSON.stringify(claims)));
+    const signingInput = `${encodedHeader}.${encodedClaims}`;
 
-  // ✅ Use Node.js crypto to sign JWT (Works in Deno)
-  const sign = createSign("RSA-SHA256");
-  sign.update(signingInput);
-  sign.end();
+    // ✅ Use Node.js crypto to sign JWT (Works in Deno)
+    const sign = createSign("RSA-SHA256");
+    sign.update(signingInput);
+    sign.end();
 
-  const privateKey = credentials.private_key.replace(/\\n/g, "\n");
-  const signature = sign.sign(privateKey, "base64url");
+    // const privateKey = credentials.private_key.replace(/\\n/g, "\n");
+    const privateKey = credentials.private_key
+      .replace(/\\n/g, "\n") // ✅ Convert escaped `\n` into actual newlines
+      .trim(); // ✅ Ensure no extra whitespace
 
 
+    const signature = sign.sign(privateKey, "base64url");
+
+
+    console.log("✅ Correctly formatted private key");
 
 
 
     // Create final JWT
     //const jwt = `${signInput}.${base64Signature}`;
     //console.log('Created final JWT');
-    const jwt = `${signingInput}.${signature}`;
+    //const jwt = `${signingInput}.${signature}`;
+
+
+
+    const jwt = await new SignJWT(claims)
+      .setProtectedHeader({ alg: "RS256", typ: "JWT", kid: credentials.private_key_id })
+      .sign(await crypto.subtle.importKey(
+        "pkcs8",
+        new TextEncoder().encode(privateKey),
+        { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" },
+        false,
+        ["sign"]
+      ));
     console.log("✅ Successfully created signed JWT");
 
     // Exchange JWT for access token
