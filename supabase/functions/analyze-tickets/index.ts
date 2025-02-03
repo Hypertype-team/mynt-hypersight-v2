@@ -1,11 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-// import { createSign } from "https://deno.land/std@0.190.0/node/crypto.ts";
-// import { encode } from "https://deno.land/std@0.190.0/encoding/base64url.ts";
-// import * as crypto from "jsr:@std/crypto@1.0.3";
-import { SignJWT, importPKCS8 } from "https://deno.land/x/jose@v4.15.5/index.ts";
-
-
+import { GoogleAuth } from 'google-auth-library';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -26,65 +21,80 @@ async function getGoogleAccessToken(serviceAccountJson: string): Promise<string>
     const credentials = JSON.parse(serviceAccountJson);
     console.log("✅ Successfully parsed service account credentials");
 
-    // ✅ Step 2: Prepare JWT Claims
-    const now = Math.floor(Date.now() / 1000);
-    const exp = now + 3600; // Token expires in 1 hour
-
-    // const claims = {
-    //   iss: credentials.client_email, // Service account email
-    //   scope: "https://www.googleapis.com/auth/cloud-platform", // Full Google Cloud scope
-    //   aud: "https://oauth2.googleapis.com/token", // Token exchange endpoint
-    //   exp,
-    //   iat: now,
-    // };
-
-    const claims = {
-      iss: credentials.client_email,
-      sub: credentials.client_email,
-      aud: "https://us-central1-hypertype.cloudfunctions.net/lovable_hypersight_chat_greenely", // ✅ Correct for Cloud Functions
-      exp,
-      iat: now,
-    };
-
-    console.log("✅ Created JWT claims");
-
-    // ✅ Step 3: Properly Format Private Key (Keep Headers!)
-    const privateKey = credentials.private_key.replace(/\\n/g, "\n").trim();
-    
-    console.log("✅ Properly formatted private key");
-
-    // ✅ Step 4: Import the Private Key using `jose`
-    const key = await importPKCS8(privateKey, "RS256");
-
-    console.log("✅ Successfully imported private key");
-
-    // ✅ Step 5: Sign the JWT using the imported key
-    const jwt = await new SignJWT(claims)
-      .setProtectedHeader({ alg: "RS256", typ: "JWT", kid: credentials.private_key_id })
-      .sign(key);
-
-    console.log("✅ Successfully created signed JWT");
-
-    // ✅ Step 6: Exchange JWT for OAuth Access Token
-    console.log("🔄 Attempting to exchange JWT for access token...");
-    const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({
-        grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
-        assertion: jwt,
-      }),
+    const auth = new GoogleAuth({
+      credentials: credentials,
+      scopes: ['https://www.googleapis.com/auth/cloud-platform']
     });
 
-    if (!tokenResponse.ok) {
-      const errorText = await tokenResponse.text();
-      console.error("❌ Token exchange failed:", errorText);
-      throw new Error(`Token exchange failed: ${tokenResponse.status} - ${errorText}`);
-    }
+    // Acquire a client for authentication
+    const client = await auth.getIdTokenClient("https://us-central1-hypertype.cloudfunctions.net/lovable_hypersight_chat_greenely");
+    
+    // Get the identity token
+    const tokenResponse = await client.idTokenProvider.fetchIdToken("https://us-central1-hypertype.cloudfunctions.net/lovable_hypersight_chat_greenely");
+    return tokenResponse;
 
-    const tokenData = await tokenResponse.json();
-    console.log("✅ Successfully obtained access token");
-    return tokenData.access_token;
+
+
+
+  //   // ✅ Step 2: Prepare JWT Claims
+  //   const now = Math.floor(Date.now() / 1000);
+  //   const exp = now + 3600; // Token expires in 1 hour
+
+  //   // const claims = {
+  //   //   iss: credentials.client_email, // Service account email
+  //   //   scope: "https://www.googleapis.com/auth/cloud-platform", // Full Google Cloud scope
+  //   //   aud: "https://oauth2.googleapis.com/token", // Token exchange endpoint
+  //   //   exp,
+  //   //   iat: now,
+  //   // };
+
+  //   const claims = {
+  //     iss: credentials.client_email,
+  //     sub: credentials.client_email,
+  //     aud: "https://us-central1-hypertype.cloudfunctions.net/lovable_hypersight_chat_greenely", // ✅ Correct for Cloud Functions
+  //     exp,
+  //     iat: now,
+  //   };
+
+  //   console.log("✅ Created JWT claims");
+
+  //   // ✅ Step 3: Properly Format Private Key (Keep Headers!)
+  //   const privateKey = credentials.private_key.replace(/\\n/g, "\n").trim();
+    
+  //   console.log("✅ Properly formatted private key");
+
+  //   // ✅ Step 4: Import the Private Key using `jose`
+  //   const key = await importPKCS8(privateKey, "RS256");
+
+  //   console.log("✅ Successfully imported private key");
+
+  //   // ✅ Step 5: Sign the JWT using the imported key
+  //   const jwt = await new SignJWT(claims)
+  //     .setProtectedHeader({ alg: "RS256", typ: "JWT", kid: credentials.private_key_id })
+  //     .sign(key);
+
+  //   console.log("✅ Successfully created signed JWT");
+
+  //   // ✅ Step 6: Exchange JWT for OAuth Access Token
+  //   console.log("🔄 Attempting to exchange JWT for access token...");
+  //   const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
+  //     method: "POST",
+  //     headers: { "Content-Type": "application/x-www-form-urlencoded" },
+  //     body: new URLSearchParams({
+  //       grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
+  //       assertion: jwt,
+  //     }),
+  //   });
+
+  //   if (!tokenResponse.ok) {
+  //     const errorText = await tokenResponse.text();
+  //     console.error("❌ Token exchange failed:", errorText);
+  //     throw new Error(`Token exchange failed: ${tokenResponse.status} - ${errorText}`);
+  //   }
+
+  //   const tokenData = await tokenResponse.json();
+  //   console.log("✅ Successfully obtained access token");
+  //   return tokenData.access_token;
   } catch (error) {
     console.error("❌ Error in getGoogleAccessToken:", error);
     throw new Error(`Failed to get Google access token: ${error.message}`);
@@ -170,10 +180,10 @@ async function getGoogleAccessToken(serviceAccountJson: string): Promise<string>
 //     const tokenData = await tokenResponse.json();
 //     console.log('Successfully obtained access token');
 //     return tokenData.access_token;
-//   } catch (error) {
-//     console.error('Detailed error in getGoogleAccessToken:', error);
-//     throw new Error(`Failed to get Google access token: ${error.message}`);
-//   }
+  // } catch (error) {
+  //   console.error('Detailed error in getGoogleAccessToken:', error);
+  //   throw new Error(`Failed to get Google access token: ${error.message}`);
+  // }
 // }
 
 serve(async (req) => {
