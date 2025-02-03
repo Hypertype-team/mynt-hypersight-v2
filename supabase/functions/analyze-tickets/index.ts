@@ -107,6 +107,7 @@ serve(async (req) => {
 
     // Parse the request body
     const { query } = await req.json();
+    console.log("Checking logs are updated.....");
     console.log('Received query:', query);
 
     if (!query) {
