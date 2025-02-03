@@ -16,13 +16,14 @@ async function getGoogleAccessToken(serviceAccountJson: string): Promise<string>
     const now = Math.floor(Date.now() / 1000);
     const exp = now + 3600; // Token expires in 1 hour
     
-    const jwtHeader = {
+    // Create JWT header and claims
+    const header = {
       alg: "RS256",
       typ: "JWT",
       kid: credentials.private_key_id
     };
 
-    const jwtClaimSet = {
+    const claims = {
       iss: credentials.client_email,
       scope: 'https://www.googleapis.com/auth/cloud-platform',
       aud: 'https://oauth2.googleapis.com/token',
@@ -30,17 +31,29 @@ async function getGoogleAccessToken(serviceAccountJson: string): Promise<string>
       iat: now,
     };
 
-    // Encode JWT header and claim set
-    const base64Header = btoa(JSON.stringify(jwtHeader));
-    const base64ClaimSet = btoa(JSON.stringify(jwtClaimSet));
+    // Base64url encode header and claims
+    const base64Header = btoa(JSON.stringify(header))
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=+$/, '');
+    
+    const base64Claims = btoa(JSON.stringify(claims))
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=+$/, '');
 
-    // Create the signing input
-    const signatureInput = `${base64Header}.${base64ClaimSet}`;
+    // Create signing input
+    const signInput = `${base64Header}.${base64Claims}`;
 
-    // Import private key for signing
-    const privateKey = await crypto.subtle.importKey(
+    // Clean and format private key
+    const privateKey = credentials.private_key
+      .replace(/\\n/g, '\n')
+      .replace(/["']/g, '');
+
+    // Import private key
+    const keyData = await crypto.subtle.importKey(
       'pkcs8',
-      new TextEncoder().encode(credentials.private_key),
+      new TextEncoder().encode(privateKey),
       {
         name: 'RSASSA-PKCS1-v1_5',
         hash: 'SHA-256',
@@ -49,16 +62,23 @@ async function getGoogleAccessToken(serviceAccountJson: string): Promise<string>
       ['sign']
     );
 
-    // Sign the JWT
+    // Sign the input
     const signature = await crypto.subtle.sign(
       'RSASSA-PKCS1-v1_5',
-      privateKey,
-      new TextEncoder().encode(signatureInput)
+      keyData,
+      new TextEncoder().encode(signInput)
     );
 
-    // Create the complete JWT
-    const base64Signature = btoa(String.fromCharCode(...new Uint8Array(signature)));
-    const jwt = `${signatureInput}.${base64Signature}`;
+    // Convert signature to base64url
+    const base64Signature = btoa(String.fromCharCode(...new Uint8Array(signature)))
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=+$/, '');
+
+    // Create final JWT
+    const jwt = `${signInput}.${base64Signature}`;
+
+    console.log('JWT created successfully');
 
     // Exchange JWT for access token
     const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
@@ -73,12 +93,13 @@ async function getGoogleAccessToken(serviceAccountJson: string): Promise<string>
     });
 
     if (!tokenResponse.ok) {
-      const errorData = await tokenResponse.text();
-      console.error('Token exchange error:', errorData);
-      throw new Error(`Token exchange failed: ${tokenResponse.status}`);
+      const errorText = await tokenResponse.text();
+      console.error('Token exchange error:', errorText);
+      throw new Error(`Token exchange failed: ${tokenResponse.status} - ${errorText}`);
     }
 
     const tokenData = await tokenResponse.json();
+    console.log('Successfully obtained access token');
     return tokenData.access_token;
   } catch (error) {
     console.error('Error getting Google access token:', error);
@@ -109,7 +130,6 @@ serve(async (req) => {
     // Get Google Cloud access token
     console.log('Getting Google Cloud access token...');
     const accessToken = await getGoogleAccessToken(serviceAccountJson);
-    console.log('Successfully obtained access token');
 
     // Call Google Cloud Function
     console.log('Calling Google Cloud Function...');
