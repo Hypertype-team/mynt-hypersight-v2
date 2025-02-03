@@ -16,7 +16,7 @@ async function createServiceAccountJWT(serviceAccount: JSON): Promise<string> {
   const payload = {
       iss: serviceAccount.client_email,  // ✅ Issuer (Service Account Email)
       sub: serviceAccount.client_email,  // ✅ Subject (Same Service Account Email)
-      aud: "https://oauth2.googleapis.com/token", // ✅ Audience must be EXACTLY this
+      aud: "https://us-central1-hypertype.cloudfunctions.net/lovable_hypersight_chat_greenely", // ✅ Audience must be EXACTLY this
       iat: now,
       exp: now + 3600,  // ✅ Token expiration (1 hour)
   };
