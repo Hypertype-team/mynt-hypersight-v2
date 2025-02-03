@@ -94,6 +94,8 @@ async function generateGoogleAuthToken(client_email: string, token_uri: string, 
 
   // 🔹 Debugging: Log the JWT (Check in jwt.io)
   console.log("Generated JWT: ", signedJWT);
+  console.log("unsignedToken: ", unsignedToken);
+  console.log("encodedSignature: ", encodedSignature);
 
   return signedJWT;
 }
