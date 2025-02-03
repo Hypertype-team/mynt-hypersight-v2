@@ -1,94 +1,71 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { create, getNumericDate } from "https://deno.land/x/djwt@v2.8/mod.ts";
-import { importSPKI } from "https://deno.land/x/jose@v4.15.2/index.ts";
+import { OAuth2Client } from "https://deno.land/x/oauth2_client/mod.ts";
+import { SignJWT, importPKCS8 } from "https://deno.land/x/jose@v4.15.2/index.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Convert PEM private key to a CryptoKey
-async function importPrivateKey(pemKey: string): Promise<CryptoKey> {
-  // Remove PEM headers
-  const pemContents = pemKey.replace(/-----BEGIN PRIVATE KEY-----|-----END PRIVATE KEY-----|\n/g, "");
-  
-  // Convert base64-encoded key to binary buffer
-  const binaryDer = Uint8Array.from(atob(pemContents), (c) => c.charCodeAt(0)).buffer;
 
-  // Import as CryptoKey
-  return await crypto.subtle.importKey(
-      "pkcs8",
-      binaryDer,
-      { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" },
-      false,
-      ["sign"]
-  );
+// Function to create and sign a JWT for Google authentication
+async function createServiceAccountJWT(serviceAccount: JSON): Promise<string> {
+  const now = Math.floor(Date.now() / 1000);
+
+  const payload = {
+      iss: serviceAccount.client_email,  // ✅ Issuer (Service Account Email)
+      sub: serviceAccount.client_email,  // ✅ Subject (Same Service Account Email)
+      aud: "https://oauth2.googleapis.com/token", // ✅ Audience must be EXACTLY this
+      iat: now,
+      exp: now + 3600,  // ✅ Token expiration (1 hour)
+  };
+
+  // Import private key from the service account
+  const privateKey = await importPKCS8(serviceAccount.private_key.replace(/\n/g, "").trim(), "RS256");
+
+  // Sign the JWT
+  return await new SignJWT(payload)
+      .setProtectedHeader({ alg: "RS256", typ: "JWT" })
+      .sign(privateKey);
 }
 
-/**
- * Generates an OAuth 2.0 access token for Google Cloud APIs using a Service Account.
- *
- * @param serviceAccountJson - The JSON string containing service account credentials.
- * @returns {Promise<string>} - A valid Google access token.
- */
-async function getGoogleAccessToken(serviceAccountJson: string): Promise<string> {
-  try {
-    console.log("🚀 Starting Google access token generation...");
+// Function to exchange JWT for an Identity Token
+async function getIdentityToken(serviceAccountJson: string): Promise<string> {
+  const serviceAccount = JSON.parse(serviceAccountJson);
+  const jwt = await createServiceAccountJWT(serviceAccount);
 
-    // ✅ Step 1: Parse the service account JSON
-    const serviceAccount = JSON.parse(serviceAccountJson);
-    console.log("✅ Successfully parsed service account credentials");
+  console.log("🔑 Generated JWT:", jwt);
 
-    // Rest of the code
+  // Define the OAuth2 client for Google Identity Token exchange
+  const GOOGLE_OAUTH_CLIENT = new OAuth2Client({
+    clientId: serviceAccount.client_id,  // ✅ Use client_id from the service account JSON
+    clientSecret: "",  // Service accounts do not use client secrets
+    tokenUri: "https://oauth2.googleapis.com/token", // Google token exchange endpoint
+  });
 
-    const now = getNumericDate(0);
-    const jwtPayload = {
-      iss: serviceAccount.client_email,
-      sub: serviceAccount.client_email,
-      //aud: "https://oauth2.googleapis.com/token",
-      aud: "https://us-central1-hypertype.cloudfunctions.net/lovable_hypersight_chat_greenely/ask_llm",
-      iat: now,
-      exp: now + 3600, // Expires in 1 hour
-    };
-
-    const privateKey = await importPrivateKey(serviceAccount.private_key);
-
-    console.log("THE PRIVATE KEY WE GOT: ", privateKey);
-
-    // Sign the JWT using the service account's private key
-    let jwt = await create(
-      { alg: "RS256", typ: "JWT" },
-      jwtPayload,
-      privateKey
-    );
-    jwt = jwt.replace(/\n/g, "");
-    console.log("THE JWT WE GOT: ", jwt);
-
-    // Exchange JWT for an access token
-    const response = await fetch("https://oauth2.googleapis.com/token", {
+  const response = await fetch(GOOGLE_OAUTH_CLIENT.config.tokenUri, {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
-        grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
-        assertion: jwt,
+          grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
+          assertion: jwt,
       }),
-    });
+  });
 
-    const response_text = await response.text();
-    console.log("The reponse we got: ", response);
-    console.log("The response text: ", response_text);
+  const text = await response.text();
+  console.log("🔍 Google OAuth Response:", text);
 
-    const data = await response.json();
-    if (!data.id_token) {
-      throw new Error(`Failed to get ID token: ${JSON.stringify(data)}`);
-    }
-
-    return data.id_token;
-  } catch (error) {
-    console.error("❌ Error in getGoogleAccessToken:", error);
-    throw new Error(`Failed to get Google access token: ${error.message}`);
+  if (!response.ok) {
+      throw new Error(`Google OAuth Error: ${text}`);
   }
+
+  const data = JSON.parse(text);
+  if (!data.id_token) {
+      throw new Error(`❌ Failed to get ID token: ${JSON.stringify(data)}`);
+  }
+
+  return data.id_token;
 }
 
 serve(async (req) => {
@@ -115,7 +92,7 @@ serve(async (req) => {
     // Get Google Cloud access token
     console.log('Getting Google Cloud access token...');
     console.log('The service account: ', serviceAccountJson);
-    const accessToken = await getGoogleAccessToken(serviceAccountJson);
+    const accessToken = await getIdentityToken(serviceAccountJson);
     console.log("THE TOKEN WE GOT IS:", accessToken);
 
     // Call Google Cloud Function
