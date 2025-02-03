@@ -11,6 +11,7 @@ async function getGoogleAccessToken(serviceAccountJson: string): Promise<string>
   try {
     // Parse the service account JSON
     const credentials = JSON.parse(serviceAccountJson);
+    console.log('Successfully parsed service account credentials');
     
     // Create a JWT for Google authentication
     const now = Math.floor(Date.now() / 1000);
