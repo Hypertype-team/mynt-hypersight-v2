@@ -75,7 +75,7 @@ async function getGoogleAccessToken(serviceAccountJson: string): Promise<string>
     });
 
     console.log("The reponse we got: ", response);
-    console.log("The response text: ", response.text);
+    console.log("The response text: ", response.text());
 
     const data = await response.json();
     if (!data.id_token) {
