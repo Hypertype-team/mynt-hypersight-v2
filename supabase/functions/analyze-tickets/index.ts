@@ -10,6 +10,15 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+function parsePEM(pem: string): Uint8Array {
+  const base64String = pem
+      .replace(/-----BEGIN PRIVATE KEY-----/, "")
+      .replace(/-----END PRIVATE KEY-----/, "")
+      .replace(/\n/g, "")
+      .trim();
+  return new Uint8Array([...atob(base64String)].map(c => c.charCodeAt(0)));
+}
+
 // Function to generate a JWT for Google authentication
 async function generateGoogleAuthToken(client_email: string, token_uri: string, google_key: string): Promise<string> {
   const header = {
@@ -30,10 +39,12 @@ async function generateGoogleAuthToken(client_email: string, token_uri: string, 
   const encodedHeader = encode(JSON.stringify(header));
   const encodedPayload = encode(JSON.stringify(payload));
 
+  const privateKeyData = parsePEM(google_key);
+
   const message = `${encodedHeader}.${encodedPayload}`;
   const key = await crypto.subtle.importKey(
       "pkcs8",
-      Uint8Array.from(atob(google_key.split("-----")[2]), c => c.charCodeAt(0)),
+      privateKeyData,
       { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" },
       false,
       ["sign"]
@@ -49,7 +60,7 @@ async function generateGoogleAuthToken(client_email: string, token_uri: string, 
 async function getIdentityToken(serviceAccountJson: string): Promise<string> {
   const google_credentials = JSON.parse(serviceAccountJson);
   const google_client_email = google_credentials.client_email;
-  const google_private_key = google_credentials.private_key.replace(/\\n/g, "\n");
+  const google_private_key = google_credentials.private_key.replace(/\\n/g, "\n").trim();
   const google_token_uri = google_credentials.token_uri;
 
   const jwt = await generateGoogleAuthToken(google_client_email, google_token_uri, google_private_key);
