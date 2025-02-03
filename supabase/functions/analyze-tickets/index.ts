@@ -1,14 +1,19 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
-// import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-// import { OAuth2Client } from "https://deno.land/x/oauth2_client/mod.ts";
-// import { SignJWT, importPKCS8 } from "https://deno.land/x/jose@v4.15.2/index.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { encode } from "https://deno.land/std@0.168.0/encoding/base64.ts";
+//import { encode } from "https://deno.land/std@0.168.0/encoding/base64.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// ✅ Helper Function: Base64 URL Encoding (Google requires this format)
+function base64UrlEncode(input: string): string {
+  return btoa(input)
+      .replace(/\+/g, "-") // Replace "+" with "-"
+      .replace(/\//g, "_") // Replace "/" with "_"
+      .replace(/=+$/, ""); // Remove trailing "="
+}
 
 function parsePEM(pem: string): Uint8Array {
   const base64String = pem
@@ -21,28 +26,36 @@ function parsePEM(pem: string): Uint8Array {
 
 // Function to generate a JWT for Google authentication
 async function generateGoogleAuthToken(client_email: string, token_uri: string, google_key: string): Promise<string> {
-  const header = {
-      alg: "RS256",
-      typ: "JWT",
-  };
+  // const header = {
+  //     alg: "RS256",
+  //     typ: "JWT",
+  // };
+  const header = base64UrlEncode(JSON.stringify({ alg: "RS256", typ: "JWT" }));
+
 
   const now = Math.floor(Date.now() / 1000);
-  const payload = {
-      iss: client_email,
-      scope: "https://www.googleapis.com/auth/cloud-platform",
-      aud: token_uri,
-      exp: now + 3600, // Token valid for 1 hour
-      iat: now,
-  };
+  // const payload = {
+  //     iss: client_email,
+  //     scope: "https://www.googleapis.com/auth/cloud-platform",
+  //     aud: token_uri,
+  //     exp: now + 3600, // Token valid for 1 hour
+  //     iat: now,
+  // };
+  const payload = base64UrlEncode(JSON.stringify({
+    iss: client_email,
+    scope: "https://www.googleapis.com/auth/cloud-platform",
+    aud: token_uri,
+    exp: now + 3600, // Expires in 1 hour
+    iat: now,
+  }));
 
-  const encoder = new TextEncoder();
-  const encodedHeader = encode(JSON.stringify(header));
-  const encodedPayload = encode(JSON.stringify(payload));
+  // 🔹 Construct Unsigned JWT
+  const unsignedToken = `${header}.${payload}`;
 
+  // 🔹 Parse Private Key
   const privateKeyData = parsePEM(google_key);
-  console.log("The private key: ", privateKeyData);
 
-  const message = `${encodedHeader}.${encodedPayload}`;
+  // 🔹 Import RSA Key for Signing
   const key = await crypto.subtle.importKey(
       "pkcs8",
       privateKeyData,
@@ -51,10 +64,38 @@ async function generateGoogleAuthToken(client_email: string, token_uri: string, 
       ["sign"]
   );
 
-  const signature = await crypto.subtle.sign("RSASSA-PKCS1-v1_5", key, encoder.encode(message));
-  const encodedSignature = encode(String.fromCharCode(...new Uint8Array(signature)));
+  // const encoder = new TextEncoder();
+  // const encodedHeader = encode(JSON.stringify(header));
+  // const encodedPayload = encode(JSON.stringify(payload));
 
-  return `${message}.${encodedSignature}`;
+  // const privateKeyData = parsePEM(google_key);
+  console.log("The private key: ", privateKeyData);
+
+  // const message = `${encodedHeader}.${encodedPayload}`;
+  // const key = await crypto.subtle.importKey(
+  //     "pkcs8",
+  //     privateKeyData,
+  //     { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" },
+  //     false,
+  //     ["sign"]
+  // );
+
+  // const signature = await crypto.subtle.sign("RSASSA-PKCS1-v1_5", key, encoder.encode(message));
+  // const encodedSignature = encode(String.fromCharCode(...new Uint8Array(signature)));
+
+  // return `${message}.${encodedSignature}`;
+  // 🔹 Sign JWT
+  const unsignedTokenBytes = new TextEncoder().encode(unsignedToken);
+  const signatureBuffer = await crypto.subtle.sign("RSASSA-PKCS1-v1_5", key, unsignedTokenBytes);
+  const encodedSignature = base64UrlEncode(String.fromCharCode(...new Uint8Array(signatureBuffer)));
+
+  // 🔹 Final Signed JWT
+  const signedJWT = `${unsignedToken}.${encodedSignature}`;
+
+  // 🔹 Debugging: Log the JWT (Check in jwt.io)
+  console.log("Generated JWT: ", signedJWT);
+
+  return signedJWT;
 }
 
 // Function to retrieve an OAuth token from Google
