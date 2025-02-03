@@ -1,5 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { create, getNumericDate } from "https://deno.land/x/djwt@v2.8/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -20,57 +21,40 @@ async function getGoogleAccessToken(serviceAccountJson: string): Promise<string>
     const serviceAccount = JSON.parse(serviceAccountJson);
     console.log("✅ Successfully parsed service account credentials");
 
-    const jwtHeader = {
-      alg: "RS256",
-      typ: "JWT",
-    };
+    // Rest of the code
 
-    const token_url = "https://oauth2.googleapis.com/token";
-    const now = Math.floor(Date.now() / 1000);
+    const now = getNumericDate(0);
     const jwtPayload = {
-        iss: serviceAccount.client_email,
-        sub: serviceAccount.client_email,
-        aud: token_url,
-        iat: now,
-        exp: now + 3600, // Expires in 1 hour
+      iss: serviceAccount.client_email,
+      sub: serviceAccount.client_email,
+      aud: "https://us-central1-hypertype.cloudfunctions.net/lovable_hypersight_chat_greenely",
+      iat: now,
+      exp: now + 3600, // Expires in 1 hour
     };
 
-    const encoder = new TextEncoder();
-    const headerBase64 = btoa(JSON.stringify(jwtHeader));
-    const payloadBase64 = btoa(JSON.stringify(jwtPayload));
-
-    // Sign the JWT using the private key
-    const key = await crypto.subtle.importKey(
-        "pkcs8",
-        encoder.encode(serviceAccount.private_key),
-        { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" },
-        false,
-        ["sign"]
+    // Sign the JWT using the service account's private key
+    const jwt = await create(
+      { alg: "RS256", typ: "JWT" },
+      jwtPayload,
+      serviceAccount.private_key
     );
 
-    const signature = await crypto.subtle.sign(
-        "RSASSA-PKCS1-v1_5",
-        key,
-        encoder.encode(`${headerBase64}.${payloadBase64}`)
-    );
-
-    const signatureBase64 = btoa(String.fromCharCode(...new Uint8Array(signature)));
-    const jwt = `${headerBase64}.${payloadBase64}.${signatureBase64}`;
-
-    // Exchange JWT for an OAuth token
-    const response = await fetch(token_url, {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({
-            grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
-            assertion: jwt,
-        }),
+    // Exchange JWT for an access token
+    const response = await fetch("https://us-central1-hypertype.cloudfunctions.net/lovable_hypersight_chat_greenely", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
+        assertion: jwt,
+      }),
     });
 
     const data = await response.json();
+    if (!data.id_token) {
+      throw new Error(`Failed to get ID token: ${JSON.stringify(data)}`);
+    }
+
     return data.id_token;
-
-
 
 
   //   // ✅ Step 2: Prepare JWT Claims
