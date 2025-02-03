@@ -193,6 +193,7 @@ serve(async (req) => {
     console.log('Getting Google Cloud access token...');
     console.log('The service account: ', serviceAccountJson);
     const accessToken = await getGoogleAccessToken(serviceAccountJson);
+    console.log("THE TOKEN WE GOT IS:", accessToken);
 
     // Call Google Cloud Function
     console.log('Calling Google Cloud Function...');
