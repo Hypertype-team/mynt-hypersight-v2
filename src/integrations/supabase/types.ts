@@ -9,6 +9,27 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      embeddings: {
+        Row: {
+          embedding: string | null
+          id: number
+          text: string
+          ticket_id: number
+        }
+        Insert: {
+          embedding?: string | null
+          id?: number
+          text: string
+          ticket_id: number
+        }
+        Update: {
+          embedding?: string | null
+          id?: number
+          text?: string
+          ticket_id?: number
+        }
+        Relationships: []
+      }
       ticket_analysis: {
         Row: {
           category: string | null
