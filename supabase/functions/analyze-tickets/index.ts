@@ -30,10 +30,17 @@ async function getGoogleAccessToken(serviceAccountJson: string): Promise<string>
     const now = Math.floor(Date.now() / 1000);
     const exp = now + 3600; // Token expires in 1 hour
 
+    // const claims = {
+    //   iss: credentials.client_email, // Service account email
+    //   scope: "https://www.googleapis.com/auth/cloud-platform", // Full Google Cloud scope
+    //   aud: "https://oauth2.googleapis.com/token", // Token exchange endpoint
+    //   exp,
+    //   iat: now,
+    // };
+
     const claims = {
-      iss: credentials.client_email, // Service account email
-      scope: "https://www.googleapis.com/auth/cloud-platform", // Full Google Cloud scope
-      aud: "https://oauth2.googleapis.com/token", // Token exchange endpoint
+      iss: credentials.client_email,
+      aud: "https://us-central1-hypertype.cloudfunctions.net/lovable_hypersight_chat_greenely", // ✅ Correct for Cloud Functions
       exp,
       iat: now,
     };
