@@ -56,11 +56,13 @@ async function getGoogleAccessToken(serviceAccountJson: string): Promise<string>
     console.log("THE PRIVATE KEY WE GOT: ", privateKey);
 
     // Sign the JWT using the service account's private key
-    const jwt = await create(
+    let jwt = await create(
       { alg: "RS256", typ: "JWT" },
       jwtPayload,
       privateKey
-    ).replace(/\n/g, "");
+    );
+
+    jwt = jwt.replace(/\n/g, "");
 
     console.log("THE JWT WE GOT: ", jwt);
 
