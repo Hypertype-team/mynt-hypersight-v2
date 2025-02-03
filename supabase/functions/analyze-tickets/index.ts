@@ -53,6 +53,7 @@ async function getIdentityToken(serviceAccountJson: string): Promise<string> {
   const google_token_uri = google_credentials.token_uri;
 
   const jwt = await generateGoogleAuthToken(google_client_email, google_token_uri, google_private_key);
+  console.log("THE JWT THING: ", jwt);
   
   const response = await fetch(google_token_uri, {
       method: "POST",
