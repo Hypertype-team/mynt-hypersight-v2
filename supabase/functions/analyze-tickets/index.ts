@@ -44,7 +44,8 @@ async function generateGoogleAuthToken(client_email: string, token_uri: string, 
   const payload = base64UrlEncode(JSON.stringify({
     iss: client_email,
     scope: "https://www.googleapis.com/auth/cloud-platform",
-    aud: token_uri,
+    //aud: token_uri,
+    aud: "https://us-central1-hypertype.cloudfunctions.net/lovable_hypersight_chat_greenely/ask_llm",
     exp: now + 3600, // Expires in 1 hour
     iat: now,
   }));
