@@ -1,11 +1,30 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { create, getNumericDate } from "https://deno.land/x/djwt@v2.8/mod.ts";
+import { importSPKI } from "https://deno.land/x/jose@v4.15.2/index.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Convert PEM private key to a CryptoKey
+async function importPrivateKey(pemKey: string): Promise<CryptoKey> {
+  // Remove PEM headers
+  const pemContents = pemKey.replace(/-----BEGIN PRIVATE KEY-----|-----END PRIVATE KEY-----|\n/g, "");
+  
+  // Convert base64-encoded key to binary buffer
+  const binaryDer = Uint8Array.from(atob(pemContents), (c) => c.charCodeAt(0)).buffer;
+
+  // Import as CryptoKey
+  return await crypto.subtle.importKey(
+      "pkcs8",
+      binaryDer,
+      { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" },
+      false,
+      ["sign"]
+  );
+}
 
 /**
  * Generates an OAuth 2.0 access token for Google Cloud APIs using a Service Account.
@@ -32,11 +51,13 @@ async function getGoogleAccessToken(serviceAccountJson: string): Promise<string>
       exp: now + 3600, // Expires in 1 hour
     };
 
+    const privateKey = await importPrivateKey(serviceAccount.private_key);
+
     // Sign the JWT using the service account's private key
     const jwt = await create(
       { alg: "RS256", typ: "JWT" },
       jwtPayload,
-      serviceAccount.private_key
+      privateKey
     );
 
     // Exchange JWT for an access token
