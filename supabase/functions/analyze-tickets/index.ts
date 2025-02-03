@@ -23,6 +23,8 @@ async function getGoogleAccessToken(serviceAccountJson: string): Promise<string>
       console.error('Error parsing service account JSON:', parseError);
       throw new Error('Invalid service account credentials format');
     }
+
+    console.log("This is the latest deploy 1350");
     
     // Create a JWT for Google authentication
     const now = Math.floor(Date.now() / 1000);
@@ -204,7 +206,7 @@ serve(async (req) => {
 
     // Get Google Cloud access token
     console.log('Getting Google Cloud access token...');
-    console.log("The service account: ", serviceAccountJson);
+    console.log('The service account: ', serviceAccountJson);
     const accessToken = await getGoogleAccessToken(serviceAccountJson);
 
     // Call Google Cloud Function
