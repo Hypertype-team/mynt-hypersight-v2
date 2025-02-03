@@ -9,9 +9,17 @@ const corsHeaders = {
 
 async function getGoogleAccessToken(serviceAccountJson: string): Promise<string> {
   try {
+    console.log('Starting Google access token generation...');
+    
     // Parse the service account JSON
-    const credentials = JSON.parse(serviceAccountJson);
-    console.log('Successfully parsed service account credentials');
+    let credentials;
+    try {
+      credentials = JSON.parse(serviceAccountJson);
+      console.log('Successfully parsed service account credentials');
+    } catch (parseError) {
+      console.error('Error parsing service account JSON:', parseError);
+      throw new Error('Invalid service account credentials format');
+    }
     
     // Create a JWT for Google authentication
     const now = Math.floor(Date.now() / 1000);
@@ -32,6 +40,8 @@ async function getGoogleAccessToken(serviceAccountJson: string): Promise<string>
       iat: now,
     };
 
+    console.log('Created JWT header and claims');
+
     // Base64url encode header and claims
     const base64Header = btoa(JSON.stringify(header))
       .replace(/\+/g, '-')
@@ -45,30 +55,47 @@ async function getGoogleAccessToken(serviceAccountJson: string): Promise<string>
 
     // Create signing input
     const signInput = `${base64Header}.${base64Claims}`;
+    console.log('Created signing input');
 
     // Clean and format private key
     const privateKey = credentials.private_key
       .replace(/\\n/g, '\n')
       .replace(/["']/g, '');
 
+    console.log('Cleaned private key format');
+
     // Import private key
-    const keyData = await crypto.subtle.importKey(
-      'pkcs8',
-      new TextEncoder().encode(privateKey),
-      {
-        name: 'RSASSA-PKCS1-v1_5',
-        hash: 'SHA-256',
-      },
-      false,
-      ['sign']
-    );
+    let keyData;
+    try {
+      keyData = await crypto.subtle.importKey(
+        'pkcs8',
+        new TextEncoder().encode(privateKey),
+        {
+          name: 'RSASSA-PKCS1-v1_5',
+          hash: 'SHA-256',
+        },
+        false,
+        ['sign']
+      );
+      console.log('Successfully imported private key');
+    } catch (keyError) {
+      console.error('Error importing private key:', keyError);
+      throw new Error('Failed to import private key');
+    }
 
     // Sign the input
-    const signature = await crypto.subtle.sign(
-      'RSASSA-PKCS1-v1_5',
-      keyData,
-      new TextEncoder().encode(signInput)
-    );
+    let signature;
+    try {
+      signature = await crypto.subtle.sign(
+        'RSASSA-PKCS1-v1_5',
+        keyData,
+        new TextEncoder().encode(signInput)
+      );
+      console.log('Successfully signed JWT');
+    } catch (signError) {
+      console.error('Error signing JWT:', signError);
+      throw new Error('Failed to sign JWT');
+    }
 
     // Convert signature to base64url
     const base64Signature = btoa(String.fromCharCode(...new Uint8Array(signature)))
@@ -78,8 +105,7 @@ async function getGoogleAccessToken(serviceAccountJson: string): Promise<string>
 
     // Create final JWT
     const jwt = `${signInput}.${base64Signature}`;
-
-    console.log('JWT created successfully');
+    console.log('Created final JWT');
 
     // Exchange JWT for access token
     const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
@@ -95,7 +121,7 @@ async function getGoogleAccessToken(serviceAccountJson: string): Promise<string>
 
     if (!tokenResponse.ok) {
       const errorText = await tokenResponse.text();
-      console.error('Token exchange error:', errorText);
+      console.error('Token exchange error response:', errorText);
       throw new Error(`Token exchange failed: ${tokenResponse.status} - ${errorText}`);
     }
 
@@ -103,8 +129,8 @@ async function getGoogleAccessToken(serviceAccountJson: string): Promise<string>
     console.log('Successfully obtained access token');
     return tokenData.access_token;
   } catch (error) {
-    console.error('Error getting Google access token:', error);
-    throw new Error('Failed to get Google access token');
+    console.error('Detailed error in getGoogleAccessToken:', error);
+    throw new Error(`Failed to get Google access token: ${error.message}`);
   }
 }
 
@@ -132,7 +158,7 @@ serve(async (req) => {
     console.log('Getting Google Cloud access token...');
     const accessToken = await getGoogleAccessToken(serviceAccountJson);
 
-    // Call Google Cloud Function with the correct URL format
+    // Call Google Cloud Function
     console.log('Calling Google Cloud Function...');
     const cloudFunctionUrl = 'https://hypertype.cloudfunctions.net/ask_llm_function';
     
@@ -148,17 +174,14 @@ serve(async (req) => {
     if (!response.ok) {
       const errorText = await response.text();
       console.error('Google Cloud Function error:', errorText);
-      throw new Error(`Google Cloud Function error: ${response.status}`);
+      throw new Error(`Google Cloud Function error: ${response.status} - ${errorText}`);
     }
 
     const result = await response.json();
     console.log('Successfully received response from Google Cloud Function');
 
-    // Extract the response from the result
-    const answer = result.response;
-
     return new Response(
-      JSON.stringify({ answer }),
+      JSON.stringify({ answer: result.response }),
       { 
         headers: { 
           ...corsHeaders, 
