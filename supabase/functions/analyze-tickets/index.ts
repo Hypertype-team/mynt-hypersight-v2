@@ -7,6 +7,70 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+async function getGoogleAccessToken(serviceAccountJson: string): Promise<string> {
+  try {
+    // Parse the service account JSON
+    const credentials = JSON.parse(serviceAccountJson);
+    
+    // Create a JWT for Google authentication
+    const now = Math.floor(Date.now() / 1000);
+    const exp = now + 3600; // Token expires in 1 hour
+    
+    const jwt = {
+      iss: credentials.client_email,
+      scope: 'https://www.googleapis.com/auth/cloud-platform',
+      aud: 'https://oauth2.googleapis.com/token',
+      exp: exp,
+      iat: now,
+    };
+    
+    // Sign the JWT with the private key
+    const key = credentials.private_key;
+    const encoder = new TextEncoder();
+    const signatureInput = encoder.encode(JSON.stringify(jwt));
+    
+    // Convert private key to crypto key
+    const privateKey = await crypto.subtle.importKey(
+      'pkcs8',
+      new TextEncoder().encode(key),
+      {
+        name: 'RSASSA-PKCS1-v1_5',
+        hash: 'SHA-256',
+      },
+      false,
+      ['sign']
+    );
+    
+    // Sign the JWT
+    const signature = await crypto.subtle.sign(
+      'RSASSA-PKCS1-v1_5',
+      privateKey,
+      signatureInput
+    );
+    
+    // Encode the JWT
+    const jwtString = `${btoa(JSON.stringify(jwt))}.${btoa(String.fromCharCode(...new Uint8Array(signature)))}`;
+    
+    // Exchange JWT for access token
+    const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+        assertion: jwtString,
+      }),
+    });
+    
+    const tokenData = await tokenResponse.json();
+    return tokenData.access_token;
+  } catch (error) {
+    console.error('Error getting Google access token:', error);
+    throw new Error('Failed to get Google access token');
+  }
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -14,10 +78,9 @@ serve(async (req) => {
   }
 
   try {
-    const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
-    if (!openAIApiKey) {
-      console.error('OpenAI API key not found');
-      throw new Error('OpenAI API key not configured');
+    const serviceAccountJson = Deno.env.get('GCLOUD_SERVICE_ACCOUNT');
+    if (!serviceAccountJson) {
+      throw new Error('Google Cloud service account credentials not configured');
     }
 
     // Parse the request body
@@ -28,101 +91,32 @@ serve(async (req) => {
       throw new Error('Query is required');
     }
 
-    // Initialize Supabase client
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    // Get Google Cloud access token
+    console.log('Getting Google Cloud access token...');
+    const accessToken = await getGoogleAccessToken(serviceAccountJson);
 
-    console.log('Fetching ticket data...');
-
-    // Fetch only the most recent tickets (limit to 100) and select only necessary fields
-    const { data: tickets, error: dbError } = await supabase
-      .from('ticket_analysis')
-      .select('summary, common_issue, category, subcategory, responsible_department')
-      .order('created_at', { ascending: false })
-      .limit(100);
-
-    if (dbError) {
-      console.error('Database query error:', dbError);
-      throw dbError;
-    }
-
-    console.log(`Retrieved ${tickets?.length} tickets for analysis`);
-
-    // Create a summarized context from the tickets
-    const ticketSummaries = tickets?.map(ticket => ({
-      issue: ticket.common_issue,
-      category: ticket.category,
-      department: ticket.responsible_department
-    }));
-
-    // Group tickets by category for a more concise context
-    const categorySummary = tickets?.reduce((acc, ticket) => {
-      const category = ticket.category || 'Uncategorized';
-      if (!acc[category]) {
-        acc[category] = {
-          count: 0,
-          common_issues: new Set(),
-          departments: new Set()
-        };
-      }
-      acc[category].count++;
-      if (ticket.common_issue) acc[category].common_issues.add(ticket.common_issue);
-      if (ticket.responsible_department) acc[category].departments.add(ticket.responsible_department);
-      return acc;
-    }, {});
-
-    // Convert the summary to a string format
-    const contextSummary = Object.entries(categorySummary)
-      .map(([category, data]) => `
-        Category: ${category}
-        Count: ${data.count}
-        Common Issues: ${Array.from(data.common_issues).join(', ')}
-        Departments: ${Array.from(data.departments).join(', ')}
-      `).join('\n');
-
-    console.log('Calling OpenAI API with optimized context...');
-
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    // Call Google Cloud Function
+    console.log('Calling Google Cloud Function...');
+    const response = await fetch('https://hypertype.cloudfunctions.net/ask_llm_function', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
+        'Authorization': `Bearer ${accessToken}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          {
-            role: 'system',
-            content: `You are a helpful assistant analyzing ticket data. Your task is to provide insights about the tickets based on the user's query.
-            
-            Guidelines for your responses:
-            1. Keep responses concise and focused
-            2. Use bullet points for better readability
-            3. Highlight key insights
-            4. Use markdown formatting
-            5. Focus on trends and patterns`
-          },
-          {
-            role: 'user',
-            content: `Based on this ticket summary:\n${contextSummary}\n\nAnswer this question: ${query}`
-          }
-        ],
-        temperature: 0.7,
-        max_tokens: 1000,
-      }),
+      body: JSON.stringify({ query }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('OpenAI API error response:', errorText);
-      throw new Error(`OpenAI API error: ${response.status} - ${errorText}`);
+      console.error('Google Cloud Function error:', errorText);
+      throw new Error(`Google Cloud Function error: ${response.status}`);
     }
 
     const result = await response.json();
-    const answer = result.choices[0].message.content;
+    console.log('Successfully received response from Google Cloud Function');
 
-    console.log('Successfully generated response');
+    // Extract the response from the result
+    const answer = result.response;
 
     return new Response(
       JSON.stringify({ answer }),
