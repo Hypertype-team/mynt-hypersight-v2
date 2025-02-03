@@ -1,84 +1,70 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
+// import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+// import { OAuth2Client } from "https://deno.land/x/oauth2_client/mod.ts";
+// import { SignJWT, importPKCS8 } from "https://deno.land/x/jose@v4.15.2/index.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { OAuth2Client } from "https://deno.land/x/oauth2_client/mod.ts";
-import { SignJWT, importPKCS8 } from "https://deno.land/x/jose@v4.15.2/index.ts";
+import { encode } from "https://deno.land/std@0.168.0/encoding/base64.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-
-// Function to create and sign a JWT for Google authentication
-async function createServiceAccountJWT(serviceAccount: JSON): Promise<string> {
-  const now = Math.floor(Date.now() / 1000);
-
-  const payload = {
-      iss: serviceAccount.client_email,  // ✅ Issuer (Service Account Email)
-      sub: serviceAccount.client_email,  // ✅ Subject (Same Service Account Email)
-      aud: "https://us-central1-hypertype.cloudfunctions.net/lovable_hypersight_chat_greenely", // ✅ Audience must be EXACTLY this
-      iat: now,
-      exp: now + 3600,  // ✅ Token expiration (1 hour)
+// Function to generate a JWT for Google authentication
+async function generateGoogleAuthToken(client_email: string, token_uri: string, google_key: string): Promise<string> {
+  const header = {
+      alg: "RS256",
+      typ: "JWT",
   };
 
-  // Import private key from the service account
-  const privateKey = await importPKCS8(serviceAccount.private_key.replace(/\n/g, "").trim(), "RS256");
+  const now = Math.floor(Date.now() / 1000);
+  const payload = {
+      iss: client_email,
+      scope: "https://www.googleapis.com/auth/cloud-platform",
+      aud: token_uri,
+      exp: now + 3600, // Token valid for 1 hour
+      iat: now,
+  };
 
-  // Sign the JWT
-  return await new SignJWT(payload)
-      .setProtectedHeader({ alg: "RS256", typ: "JWT" })
-      .sign(privateKey);
+  const encoder = new TextEncoder();
+  const encodedHeader = encode(JSON.stringify(header));
+  const encodedPayload = encode(JSON.stringify(payload));
+
+  const message = `${encodedHeader}.${encodedPayload}`;
+  const key = await crypto.subtle.importKey(
+      "pkcs8",
+      Uint8Array.from(atob(google_key.split("-----")[2]), c => c.charCodeAt(0)),
+      { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" },
+      false,
+      ["sign"]
+  );
+
+  const signature = await crypto.subtle.sign("RSASSA-PKCS1-v1_5", key, encoder.encode(message));
+  const encodedSignature = encode(String.fromCharCode(...new Uint8Array(signature)));
+
+  return `${message}.${encodedSignature}`;
 }
 
-// Function to exchange JWT for an Identity Token
+// Function to retrieve an OAuth token from Google
 async function getIdentityToken(serviceAccountJson: string): Promise<string> {
-  const serviceAccount = JSON.parse(serviceAccountJson);
-  const jwt = await createServiceAccountJWT(serviceAccount);
+  const google_credentials = JSON.parse(serviceAccountJson);
+  const google_client_email = google_credentials.client_email;
+  const google_private_key = google_credentials.private_key.replace(/\\n/g, "\n");
+  const google_token_uri = google_credentials.token_uri;
 
-  console.log("🔑 Generated JWT:", jwt);
-
-  // Define the OAuth2 client for Google Identity Token exchange
-  const GOOGLE_OAUTH_CLIENT = new OAuth2Client({
-    clientId: serviceAccount.client_id,  // ✅ Use client_id from the service account JSON
-    clientSecret: "",  // Service accounts do not use client secrets
-    tokenUri: "https://oauth2.googleapis.com/token", // Google token exchange endpoint
+  const jwt = await generateGoogleAuthToken(google_client_email, google_token_uri, google_private_key);
+  
+  const response = await fetch(google_token_uri, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+          grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
+          assertion: jwt,
+      }),
   });
 
-  const response = await fetch(`https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${serviceAccount.client_email}:generateIdToken`, {
-    method: "POST",
-    headers: {
-        Authorization: `Bearer ${jwt}`,
-        "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-        audience: "https://us-central1-hypertype.cloudfunctions.net/lovable_hypersight_chat_greenely", // ✅ Set audience to Cloud Function URL
-        includeEmail: true,
-    }),
-});
-
-
-  // const response = await fetch(GOOGLE_OAUTH_CLIENT.config.tokenUri, {
-  //     method: "POST",
-  //     headers: { "Content-Type": "application/x-www-form-urlencoded" },
-  //     body: new URLSearchParams({
-  //         grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
-  //         assertion: jwt,
-  //     }),
-  // });
-
-  const text = await response.text();
-  console.log("🔍 Google OAuth Response:", text);
-
-  if (!response.ok) {
-      throw new Error(`Google OAuth Error: ${text}`);
-  }
-
-  const data = JSON.parse(text);
-  if (!data.id_token) {
-      throw new Error(`❌ Failed to get ID token: ${JSON.stringify(data)}`);
-  }
-
-  return data.id_token;
+  const data = await response.json();
+  return data.access_token;
 }
 
 serve(async (req) => {
