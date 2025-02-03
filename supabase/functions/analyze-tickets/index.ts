@@ -53,12 +53,17 @@ async function getGoogleAccessToken(serviceAccountJson: string): Promise<string>
 
     const privateKey = await importPrivateKey(serviceAccount.private_key);
 
+    console.log("THE PRIVATE KEY WE GOT: ", privateKey);
+
     // Sign the JWT using the service account's private key
     const jwt = await create(
       { alg: "RS256", typ: "JWT" },
       jwtPayload,
       privateKey
     );
+
+    console.log("THE JWT WE GOT: ", jwt);
+
 
     // Exchange JWT for an access token
     const response = await fetch("https://oauth2.googleapis.com/token", {
@@ -70,163 +75,19 @@ async function getGoogleAccessToken(serviceAccountJson: string): Promise<string>
       }),
     });
 
+    console.log("The reponse we got: ", response);
+
     const data = await response.json();
     if (!data.id_token) {
       throw new Error(`Failed to get ID token: ${JSON.stringify(data)}`);
     }
 
     return data.id_token;
-
-
-  //   // ✅ Step 2: Prepare JWT Claims
-  //   const now = Math.floor(Date.now() / 1000);
-  //   const exp = now + 3600; // Token expires in 1 hour
-
-  //   // const claims = {
-  //   //   iss: credentials.client_email, // Service account email
-  //   //   scope: "https://www.googleapis.com/auth/cloud-platform", // Full Google Cloud scope
-  //   //   aud: "https://oauth2.googleapis.com/token", // Token exchange endpoint
-  //   //   exp,
-  //   //   iat: now,
-  //   // };
-
-  //   const claims = {
-  //     iss: credentials.client_email,
-  //     sub: credentials.client_email,
-  //     aud: "https://us-central1-hypertype.cloudfunctions.net/lovable_hypersight_chat_greenely", // ✅ Correct for Cloud Functions
-  //     exp,
-  //     iat: now,
-  //   };
-
-  //   console.log("✅ Created JWT claims");
-
-  //   // ✅ Step 3: Properly Format Private Key (Keep Headers!)
-  //   const privateKey = credentials.private_key.replace(/\\n/g, "\n").trim();
-    
-  //   console.log("✅ Properly formatted private key");
-
-  //   // ✅ Step 4: Import the Private Key using `jose`
-  //   const key = await importPKCS8(privateKey, "RS256");
-
-  //   console.log("✅ Successfully imported private key");
-
-  //   // ✅ Step 5: Sign the JWT using the imported key
-  //   const jwt = await new SignJWT(claims)
-  //     .setProtectedHeader({ alg: "RS256", typ: "JWT", kid: credentials.private_key_id })
-  //     .sign(key);
-
-  //   console.log("✅ Successfully created signed JWT");
-
-  //   // ✅ Step 6: Exchange JWT for OAuth Access Token
-  //   console.log("🔄 Attempting to exchange JWT for access token...");
-  //   const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
-  //     method: "POST",
-  //     headers: { "Content-Type": "application/x-www-form-urlencoded" },
-  //     body: new URLSearchParams({
-  //       grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
-  //       assertion: jwt,
-  //     }),
-  //   });
-
-  //   if (!tokenResponse.ok) {
-  //     const errorText = await tokenResponse.text();
-  //     console.error("❌ Token exchange failed:", errorText);
-  //     throw new Error(`Token exchange failed: ${tokenResponse.status} - ${errorText}`);
-  //   }
-
-  //   const tokenData = await tokenResponse.json();
-  //   console.log("✅ Successfully obtained access token");
-  //   return tokenData.access_token;
   } catch (error) {
     console.error("❌ Error in getGoogleAccessToken:", error);
     throw new Error(`Failed to get Google access token: ${error.message}`);
   }
 }
-
-// async function getGoogleAccessToken(serviceAccountJson: string): Promise<string> {
-//   try {
-//     console.log('Starting Google access token generation...');
-    
-//     // Parse the service account JSON
-//     let credentials;
-//     try {
-//       credentials = JSON.parse(serviceAccountJson);
-//       console.log('Successfully parsed service account credentials');
-//     } catch (parseError) {
-//       console.error('Error parsing service account JSON:', parseError);
-//       throw new Error('Invalid service account credentials format');
-//     }
-
-//     console.log("This is the latest deploy 1350");
-    
-//     // Create JWT claims
-//     const now = Math.floor(Date.now() / 1000);
-//     const exp = now + 3600; // Token expires in 1 hour
-    
-//     const header = {
-//       alg: "RS256",
-//       typ: "JWT",
-//       kid: credentials.private_key_id
-//     };
-
-//     const claims = {
-//       iss: credentials.client_email,
-//       scope: 'https://www.googleapis.com/auth/cloud-platform',
-//       aud: 'https://oauth2.googleapis.com/token',
-//       exp: exp,
-//       iat: now,
-//     };
-
-//     console.log('Created JWT header and claims');
-
-//     // Encode Header & Claims
-//     const encodedHeader = encode(new TextEncoder().encode(JSON.stringify(header)));
-//     const encodedClaims = encode(new TextEncoder().encode(JSON.stringify(claims)));
-//     const signingInput = `${encodedHeader}.${encodedClaims}`;
-
-//     // Clean and prepare private key
-//     const privateKey = credentials.private_key
-//       .replace(/\\n/g, "\n")
-//       .trim();
-
-//     console.log('Prepared private key for signing');
-
-//     // Sign JWT
-//     const sign = crypto.createSign("RSA-SHA256");
-//     sign.update(signingInput);
-//     sign.end();
-//     const signature = sign.sign(privateKey, "base64url");
-
-//     const jwt = `${signingInput}.${signature}`;
-//     console.log('Successfully created signed JWT');
-
-//     // Exchange JWT for access token
-//     console.log('Attempting to exchange JWT for access token...');
-//     const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
-//       method: 'POST',
-//       headers: {
-//         'Content-Type': 'application/x-www-form-urlencoded',
-//       },
-//       body: new URLSearchParams({
-//         grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
-//         assertion: jwt,
-//       }),
-//     });
-
-//     if (!tokenResponse.ok) {
-//       const errorText = await tokenResponse.text();
-//       console.error('Token exchange error response:', errorText);
-//       throw new Error(`Token exchange failed: ${tokenResponse.status} - ${errorText}`);
-//     }
-
-//     const tokenData = await tokenResponse.json();
-//     console.log('Successfully obtained access token');
-//     return tokenData.access_token;
-  // } catch (error) {
-  //   console.error('Detailed error in getGoogleAccessToken:', error);
-  //   throw new Error(`Failed to get Google access token: ${error.message}`);
-  // }
-// }
 
 serve(async (req) => {
   // Handle CORS preflight requests
