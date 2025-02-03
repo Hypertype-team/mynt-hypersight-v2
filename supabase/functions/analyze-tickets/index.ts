@@ -131,9 +131,11 @@ serve(async (req) => {
     console.log('Getting Google Cloud access token...');
     const accessToken = await getGoogleAccessToken(serviceAccountJson);
 
-    // Call Google Cloud Function
+    // Call Google Cloud Function with the correct URL format
     console.log('Calling Google Cloud Function...');
-    const response = await fetch('https://hypertype.cloudfunctions.net/ask_llm_function', {
+    const cloudFunctionUrl = 'https://hypertype.cloudfunctions.net/ask_llm_function';
+    
+    const response = await fetch(cloudFunctionUrl, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${accessToken}`,
