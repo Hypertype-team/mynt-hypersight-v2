@@ -46,7 +46,8 @@ async function getGoogleAccessToken(serviceAccountJson: string): Promise<string>
     const jwtPayload = {
       iss: serviceAccount.client_email,
       sub: serviceAccount.client_email,
-      aud: "https://oauth2.googleapis.com/token",
+      //aud: "https://oauth2.googleapis.com/token",
+      aud: "https://us-central1-hypertype.cloudfunctions.net/lovable_hypersight_chat_greenely",
       iat: now,
       exp: now + 3600, // Expires in 1 hour
     };
