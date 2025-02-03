@@ -1,9 +1,9 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 // import { createSign } from "https://deno.land/std@0.190.0/node/crypto.ts";
-import { encode } from "https://deno.land/std@0.190.0/encoding/base64url.ts";
-import * as crypto from "jsr:@std/crypto@1.0.3";
-import { SignJWT } from "https://deno.land/x/jose@v4.15.5/index.ts";
+// import { encode } from "https://deno.land/std@0.190.0/encoding/base64url.ts";
+// import * as crypto from "jsr:@std/crypto@1.0.3";
+import { SignJWT, importPKCS8 } from "https://deno.land/x/jose@v4.15.5/index.ts";
 
 
 
@@ -41,26 +41,23 @@ async function getGoogleAccessToken(serviceAccountJson: string): Promise<string>
     console.log("✅ Created JWT claims");
 
     // ✅ Step 3: Properly Format Private Key (Keep Headers!)
-    const privateKey = credentials.private_key
-      .replace(/\\n/g, "\n") // Convert escaped `\n` into real newlines
-      .trim();
+    const privateKey = credentials.private_key.replace(/\\n/g, "\n").trim();
     
     console.log("✅ Properly formatted private key");
 
-    // ✅ Step 4: Sign the JWT using the `jose` library
+    // ✅ Step 4: Import the Private Key using `jose`
+    const key = await importPKCS8(privateKey, "RS256");
+
+    console.log("✅ Successfully imported private key");
+
+    // ✅ Step 5: Sign the JWT using the imported key
     const jwt = await new SignJWT(claims)
       .setProtectedHeader({ alg: "RS256", typ: "JWT", kid: credentials.private_key_id })
-      .sign(await crypto.subtle.importKey(
-        "pkcs8",
-        new TextEncoder().encode(privateKey),
-        { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" },
-        false,
-        ["sign"]
-      ));
+      .sign(key);
 
     console.log("✅ Successfully created signed JWT");
 
-    // ✅ Step 5: Exchange JWT for OAuth Access Token
+    // ✅ Step 6: Exchange JWT for OAuth Access Token
     console.log("🔄 Attempting to exchange JWT for access token...");
     const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
       method: "POST",
