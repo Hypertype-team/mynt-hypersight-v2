@@ -47,7 +47,7 @@ async function getGoogleAccessToken(serviceAccountJson: string): Promise<string>
       iss: serviceAccount.client_email,
       sub: serviceAccount.client_email,
       //aud: "https://oauth2.googleapis.com/token",
-      aud: "https://us-central1-hypertype.cloudfunctions.net/lovable_hypersight_chat_greenely",
+      aud: "https://us-central1-hypertype.cloudfunctions.net/lovable_hypersight_chat_greenely/ask_llm",
       iat: now,
       exp: now + 3600, // Expires in 1 hour
     };
