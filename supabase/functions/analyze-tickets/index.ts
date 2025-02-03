@@ -60,7 +60,7 @@ async function getGoogleAccessToken(serviceAccountJson: string): Promise<string>
       { alg: "RS256", typ: "JWT" },
       jwtPayload,
       privateKey
-    );
+    ).replace(/\n/g, "");
 
     console.log("THE JWT WE GOT: ", jwt);
 
@@ -71,7 +71,7 @@ async function getGoogleAccessToken(serviceAccountJson: string): Promise<string>
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
         grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
-        assertion: jwt.trim(),
+        assertion: jwt,
       }),
     });
 
