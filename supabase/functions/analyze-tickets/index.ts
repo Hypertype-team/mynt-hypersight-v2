@@ -65,6 +65,7 @@ async function getIdentityToken(serviceAccountJson: string): Promise<string> {
   });
 
   const data = await response.json();
+  console.log("THE DATA: ", data);
   return data.access_token;
 }
 
