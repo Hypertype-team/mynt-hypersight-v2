@@ -196,7 +196,8 @@ serve(async (req) => {
 
     // Call Google Cloud Function
     console.log('Calling Google Cloud Function...');
-    const cloudFunctionUrl = 'https://hypertype.cloudfunctions.net/lovable_hypersight_chat_greenely';
+    //const cloudFunctionUrl = 'https://hypertype.cloudfunctions.net/lovable_hypersight_chat_greenely';
+    const cloudFunctionUrl = 'https://us-central1-hypertype.cloudfunctions.net/lovable_hypersight_chat_greenely/ask_llm';
     
     const response = await fetch(cloudFunctionUrl, {
       method: 'POST',
