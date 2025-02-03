@@ -44,14 +44,27 @@ async function getIdentityToken(serviceAccountJson: string): Promise<string> {
     tokenUri: "https://oauth2.googleapis.com/token", // Google token exchange endpoint
   });
 
-  const response = await fetch(GOOGLE_OAUTH_CLIENT.config.tokenUri, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({
-          grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
-          assertion: jwt,
-      }),
-  });
+  const response = await fetch(`https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${serviceAccount.client_email}:generateIdToken`, {
+    method: "POST",
+    headers: {
+        Authorization: `Bearer ${jwt}`,
+        "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+        audience: "https://us-central1-hypertype.cloudfunctions.net/lovable_hypersight_chat_greenely", // ✅ Set audience to Cloud Function URL
+        includeEmail: true,
+    }),
+});
+
+
+  // const response = await fetch(GOOGLE_OAUTH_CLIENT.config.tokenUri, {
+  //     method: "POST",
+  //     headers: { "Content-Type": "application/x-www-form-urlencoded" },
+  //     body: new URLSearchParams({
+  //         grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
+  //         assertion: jwt,
+  //     }),
+  // });
 
   const text = await response.text();
   console.log("🔍 Google OAuth Response:", text);
