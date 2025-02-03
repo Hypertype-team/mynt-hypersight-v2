@@ -40,6 +40,7 @@ async function getGoogleAccessToken(serviceAccountJson: string): Promise<string>
 
     const claims = {
       iss: credentials.client_email,
+      sub: credentials.client_email,
       aud: "https://us-central1-hypertype.cloudfunctions.net/lovable_hypersight_chat_greenely", // ✅ Correct for Cloud Functions
       exp,
       iat: now,
