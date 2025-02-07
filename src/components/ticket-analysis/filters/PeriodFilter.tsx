@@ -31,7 +31,7 @@ export const PeriodFilter = ({
           {/* <SelectItem value="_all" className="hover:bg-purple-50">
             All periods
           </SelectItem> */}
-          {/* Hardcoded for DEMO purposes. (7Feb25) */}
+          {/* TODO-DEMO: Hardcoded for DEMO purposes. (7Feb25) */}
           <SelectItem key={'Jan 16 - Jan 31'} value={'Jan 16 - Jan 31'} className="hover:bg-purple-50">
             {'Jan 16 - Jan 31'}
           </SelectItem>

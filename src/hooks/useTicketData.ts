@@ -24,6 +24,7 @@ export const useTicketData = () => {
         const { data, error, count } = await supabase
           .from("ticket_analysis")
           .select("*", { count: 'exact' })
+          .eq("report_period", "Jan 16 - Jan 31") // TODO-DEMO: Hardcoded for DEMO purposes. (7Feb25)
           .range(start, start + pageSize - 1)
           .order("created_at", { ascending: false });
         
