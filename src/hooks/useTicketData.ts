@@ -26,6 +26,8 @@ export const useTicketData = () => {
           .select("*", { count: 'exact' })
           .range(start, start + pageSize - 1)
           .order("created_at", { ascending: false });
+        
+        console.log("How many tickets did we get", data);
 
         if (error) {
           toast({
