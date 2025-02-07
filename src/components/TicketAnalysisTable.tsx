@@ -13,7 +13,7 @@ import {
 } from "./ticket-analysis/TicketFilterLogic";
 
 export const TicketAnalysisTable = () => {
-  const [selectedPeriod, setSelectedPeriod] = useState<string>("");
+  const [selectedPeriod, setSelectedPeriod] = useState<string>("Jan 16 - Jan 31");
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [selectedTheme, setSelectedTheme] = useState<string>("");
   const [selectedDepartment, setSelectedDepartment] = useState<string>("All");
