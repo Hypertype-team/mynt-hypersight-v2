@@ -25,8 +25,8 @@ const Auth = () => {
     try {
       // Only allow specific credentials for sign in
       if (
-        email === "johan.wikstrom@greenely.se" &&
-        password === "greenely20hypersight"
+        email === "fredrik.hagblom@greenely.se" &&
+        password === "r8Xu9y9YuOm7nNA8RGN"
       ) {
         localStorage.setItem("authToken", "test-token");
         toast({

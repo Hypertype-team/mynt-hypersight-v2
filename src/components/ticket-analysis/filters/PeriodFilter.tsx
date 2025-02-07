@@ -28,9 +28,9 @@ export const PeriodFilter = ({
           <SelectValue placeholder="Select period" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="_all" className="hover:bg-purple-50">
+          {/* <SelectItem value="_all" className="hover:bg-purple-50">
             All periods
-          </SelectItem>
+          </SelectItem> */}
           {reportPeriods.map(period => (
             <SelectItem key={period} value={period} className="hover:bg-purple-50">
               {period}
