@@ -49,7 +49,7 @@ export const TicketAnalysisTable = () => {
     selectedDepartment
   );
   
-  const categories = getCategoriesWithCounts(allTickets);
+  const categories = getCategoriesWithCounts(filteredTickets);
   const themes = getThemesWithCounts(filteredTickets, selectedCategory, sortAscending);
   const departments = ["All", ...new Set(filteredTickets?.map(ticket => ticket.responsible_department))];
   
