@@ -41,15 +41,21 @@ How can I help you today?`,
     setMessages((prev) => [...prev, { text: userMessage, isUser: true }]);
     setInput("");
 
+    // ✅ Correctly format chat history for OpenAI
+    const chatHistory = messages.map(msg => ({
+      role: msg.isUser ? "user" : "assistant",
+      content: msg.text,
+    }));
+
     // ✅ Convert messages into a formatted conversation history string
-    const conversationMemory = messages
-      .slice(-9) // Limit memory to the last 5 messages
-      .map(msg => `The ${msg.isUser ? "user" : "assistant"} said: ${msg.text}`)
-      .join("\n");
+    // const conversationMemory = messages
+    //   .slice(-9) // Limit memory to the last 5 messages
+    //   .map(msg => `The ${msg.isUser ? "user" : "assistant"} said: ${msg.text}`)
+    //   .join("\n");
 
     try {
       const { data, error } = await supabase.functions.invoke('analyze-tickets', {
-        body: { query: userMessage, conversationMemory }
+        body: { query: userMessage, chat_history: chatHistory }
       });
 
       if (error) {
