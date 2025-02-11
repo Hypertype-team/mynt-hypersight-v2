@@ -9,6 +9,87 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      chat_tickets: {
+        Row: {
+          category: string | null
+          common_issue: string | null
+          company_name: string | null
+          created_at: string | null
+          extracted_keywords: string[] | null
+          id: string
+          issue: string | null
+          issue_summary: string | null
+          link: string | null
+          priority: string | null
+          read: boolean | null
+          report_period: string | null
+          responsible_department: string | null
+          responsible_department_justification: string | null
+          sentiment: string | null
+          state: string | null
+          summary: string | null
+          theme: string | null
+        }
+        Insert: {
+          category?: string | null
+          common_issue?: string | null
+          company_name?: string | null
+          created_at?: string | null
+          extracted_keywords?: string[] | null
+          id: string
+          issue?: string | null
+          issue_summary?: string | null
+          link?: string | null
+          priority?: string | null
+          read?: boolean | null
+          report_period?: string | null
+          responsible_department?: string | null
+          responsible_department_justification?: string | null
+          sentiment?: string | null
+          state?: string | null
+          summary?: string | null
+          theme?: string | null
+        }
+        Update: {
+          category?: string | null
+          common_issue?: string | null
+          company_name?: string | null
+          created_at?: string | null
+          extracted_keywords?: string[] | null
+          id?: string
+          issue?: string | null
+          issue_summary?: string | null
+          link?: string | null
+          priority?: string | null
+          read?: boolean | null
+          report_period?: string | null
+          responsible_department?: string | null
+          responsible_department_justification?: string | null
+          sentiment?: string | null
+          state?: string | null
+          summary?: string | null
+          theme?: string | null
+        }
+        Relationships: []
+      }
+      chat_vectors: {
+        Row: {
+          embedding: string | null
+          id: string
+          metadata: Json | null
+        }
+        Insert: {
+          embedding?: string | null
+          id: string
+          metadata?: Json | null
+        }
+        Update: {
+          embedding?: string | null
+          id?: string
+          metadata?: Json | null
+        }
+        Relationships: []
+      }
       embeddings: {
         Row: {
           embedding: string | null
@@ -30,7 +111,7 @@ export type Database = {
         }
         Relationships: []
       }
-      ticket_analysis: {
+      Mynt_Hypersight: {
         Row: {
           category: string | null
           common_issue: string | null
@@ -90,12 +171,92 @@ export type Database = {
         }
         Relationships: []
       }
+      ticket_analysis: {
+        Row: {
+          category: string | null
+          common_issue: string | null
+          company_name: string | null
+          created_at: string | null
+          id: number | null
+          issue: string | null
+          issue_summary: string | null
+          link: string | null
+          priority: string | null
+          read: boolean | null
+          report_period: string | null
+          responsible_department: string | null
+          responsible_department_justification: string | null
+          sentiment: string | null
+          state: string | null
+          subcategory: string | null
+          summary: string | null
+        }
+        Insert: {
+          category?: string | null
+          common_issue?: string | null
+          company_name?: string | null
+          created_at?: string | null
+          id?: number | null
+          issue?: string | null
+          issue_summary?: string | null
+          link?: string | null
+          priority?: string | null
+          read?: boolean | null
+          report_period?: string | null
+          responsible_department?: string | null
+          responsible_department_justification?: string | null
+          sentiment?: string | null
+          state?: string | null
+          subcategory?: string | null
+          summary?: string | null
+        }
+        Update: {
+          category?: string | null
+          common_issue?: string | null
+          company_name?: string | null
+          created_at?: string | null
+          id?: number | null
+          issue?: string | null
+          issue_summary?: string | null
+          link?: string | null
+          priority?: string | null
+          read?: boolean | null
+          report_period?: string | null
+          responsible_department?: string | null
+          responsible_department_justification?: string | null
+          sentiment?: string | null
+          state?: string | null
+          subcategory?: string | null
+          summary?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_table_schema: {
+        Args: {
+          table_name: string
+        }
+        Returns: {
+          column_name: string
+          data_type: string
+          description: string
+        }[]
+      }
+      match_chat_vectors: {
+        Args: {
+          query_embedding: string
+          match_count?: number
+        }
+        Returns: {
+          id: string
+          metadata: Json
+          similarity: number
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
