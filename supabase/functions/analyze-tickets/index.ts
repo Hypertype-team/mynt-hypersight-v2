@@ -109,9 +109,12 @@ serve(async (req) => {
     }
 
     // Parse the request body
-    //const { query } = await req.json();
-    const { query, conversationMemory, company } = await req.json(); // ✅ Extract both query & conversationMemory
     console.log("Checking logs are updated.....");
+    //const { query } = await req.json();
+    //const { query, conversationMemory, company } = await req.json(); // ✅ Extract both query & conversationMemory
+    const requestBody = await req.json();
+    console.log("Full request body:", requestBody); // Log before destructuring
+    const { query, conversationMemory, company } = requestBody; 
     console.log('Received query:', query);
     console.log('Received memory:', conversationMemory);
     console.log('Received company:', company);

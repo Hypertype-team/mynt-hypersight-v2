@@ -115,9 +115,9 @@ How can I help you today?`,
         <h2 className="text-lg font-semibold text-gray-900">Ticket Analysis Assistant</h2>
         <p className="text-sm text-gray-700">Ask me anything about your tickets</p>
       </div>
-      <ChatMessages 
-        messages={messages} 
-        onFollowUpClick={handleFollowUpClick} 
+      <ChatMessages
+        messages={messages}
+        onFollowUpClick={handleFollowUpClick}
         scrollRef={scrollRef}
       />
       <ChatInput
