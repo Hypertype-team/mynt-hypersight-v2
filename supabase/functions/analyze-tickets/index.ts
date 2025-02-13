@@ -110,10 +110,12 @@ serve(async (req) => {
 
     // Parse the request body
     //const { query } = await req.json();
-    const { query, conversationMemory } = await req.json(); // ✅ Extract both query & conversationMemory
+    const { query, conversationMemory, company } = await req.json(); // ✅ Extract both query & conversationMemory
     console.log("Checking logs are updated.....");
     console.log('Received query:', query);
     console.log('Received memory:', conversationMemory);
+    console.log('Received company:', company);
+
 
     if (!query) {
       throw new Error('Query is required');
@@ -138,7 +140,7 @@ serve(async (req) => {
         'Authorization': `Bearer ${accessToken}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ query: query, conversationMemory: conversationMemory, company: 'mynt' }),
+      body: JSON.stringify({ query: query, conversationMemory: conversationMemory, company: company }),
     });
 
     if (!response.ok) {
