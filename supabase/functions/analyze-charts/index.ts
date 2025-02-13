@@ -23,7 +23,7 @@ serve(async (req) => {
 
     // Get all ticket data
     const { data: tickets, error: ticketError } = await supabase
-      .from('ticket_analysis')
+      .from('Mynt_Hypersight')
       .select('*');
 
     if (ticketError) {

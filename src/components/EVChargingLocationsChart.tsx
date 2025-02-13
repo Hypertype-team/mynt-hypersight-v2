@@ -19,7 +19,7 @@ export const EVChargingLocationsChart = () => {
     queryKey: ['ticket-categories'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('ticket_analysis')
+        .from('Mynt_Hypersight')
         .select('category')
         .not('category', 'is', null);
 
@@ -46,7 +46,7 @@ export const EVChargingLocationsChart = () => {
     setSelectedCount(data.value);
 
     const { data: subcategoryData, error } = await supabase
-      .from('ticket_analysis')
+      .from('Mynt_Hypersight')
       .select('subcategory')
       .eq('category', data.name)
       .not('subcategory', 'is', null);

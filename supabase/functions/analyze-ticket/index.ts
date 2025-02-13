@@ -75,7 +75,7 @@ serve(async (req) => {
 
     // Update the ticket with AI analysis
     const { error: updateError } = await supabaseClient
-      .from('ticket_analysis')
+      .from('Mynt_Hypersight')
       .update({
         summary: analysis.summary,
         category: analysis.category,

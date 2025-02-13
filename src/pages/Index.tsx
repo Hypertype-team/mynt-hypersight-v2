@@ -17,7 +17,7 @@ const Index = () => {
     queryKey: ["dashboard-info"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("ticket_analysis")
+        .from("Mynt_Hypersight")
         .select("*");
       
       if (error) throw error;
