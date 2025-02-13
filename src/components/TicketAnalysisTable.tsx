@@ -14,7 +14,7 @@ import {
 
 export const TicketAnalysisTable = () => {
   {/* TODO-DEMO: Hardcoded for DEMO purposes. (7Feb25) */}
-  const [selectedPeriod, setSelectedPeriod] = useState<string>("Jan 16 - Jan 31");
+  const [selectedPeriod, setSelectedPeriod] = useState<string>("Jan 01 - Jan 31");
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [selectedTheme, setSelectedTheme] = useState<string>("");
   const [selectedDepartment, setSelectedDepartment] = useState<string>("All");
