@@ -136,7 +136,7 @@ serve(async (req) => {
         'Authorization': `Bearer ${accessToken}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ query, conversationMemory, 'company': 'mynt' }),
+      body: JSON.stringify({ query, conversationMemory, company: 'mynt' }),
     });
 
     if (!response.ok) {
