@@ -119,6 +119,8 @@ serve(async (req) => {
       throw new Error('Query is required');
     }
 
+
+
     // Get Google Cloud access token
     console.log('Getting Google Cloud access token...');
     console.log('The service account: ', serviceAccountJson);
@@ -136,7 +138,7 @@ serve(async (req) => {
         'Authorization': `Bearer ${accessToken}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ query, conversationMemory, company: 'mynt' }),
+      body: JSON.stringify({ query: query, conversationMemory: conversationMemory, company: 'mynt' }),
     });
 
     if (!response.ok) {
